@@ -193,6 +193,8 @@ import com.metrolist.music.extensions.toQueue
 import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.models.PersistPlayerState
 import com.metrolist.music.models.PersistQueue
+import com.metrolist.music.models.PersistQueueSessions
+import com.metrolist.music.models.QueueSession
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.alarm.MusicAlarmScheduler
 import com.metrolist.music.playback.alarm.MusicAlarmStore
@@ -345,6 +347,8 @@ class MusicService :
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
+    val queueSessions = MutableStateFlow<List<QueueSession>>(emptyList())
+    val activeQueueId = MutableStateFlow<Long?>(null)
 
     val currentMediaMetadata = MutableStateFlow<com.metrolist.music.models.MediaMetadata?>(null)
     private val currentSong =
@@ -1187,6 +1191,22 @@ class MusicService :
         }
         if (startupPrefs!![PersistentQueueKey] ?: true) {
             val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
+            val sessionsFile = filesDir.resolve(PERSISTENT_QUEUE_SESSIONS_FILE)
+            if (sessionsFile.exists()) {
+                runCatching {
+                    sessionsFile.inputStream().use { fis ->
+                        ObjectInputStream(fis).use { oos ->
+                            oos.readObject() as PersistQueueSessions
+                        }
+                    }
+                }.onSuccess { saved ->
+                    queueSessions.value = saved.sessions
+                    activeQueueId.value = saved.activeId?.takeIf { queueFile.exists() }
+                }.onFailure { error ->
+                    Timber.tag(TAG).w(error, "Failed to read queue sessions, clearing data")
+                    runCatching { sessionsFile.delete() }
+                }
+            }
             if (queueFile.exists()) {
                 runCatching {
                     queueFile.inputStream().use { fis ->
@@ -1789,16 +1809,25 @@ class MusicService :
         queue: Queue,
         playWhenReady: Boolean = true,
         restoringQueue: Boolean = false,
+        newSession: Boolean = !restoringQueue,
     ) {
         if (taskCleared) return
         if (!playerInitialized.value) {
             Timber.tag(TAG).w("playQueue called before player initialization, queuing request")
             scope.launch {
                 playerInitialized.first { it }
-                playQueue(queue, playWhenReady)
+                playQueue(queue, playWhenReady, restoringQueue, newSession)
             }
             return
         }
+
+        if (newSession) {
+            snapshotActiveSession()
+            startQueueSession(queue)
+        } else if (queueSessions.value.none { it.id == activeQueueId.value }) {
+            startQueueSession(queue)
+        }
+        val sessionId = activeQueueId.value
 
         currentQueue = queue
         queueTitle = null
@@ -1823,6 +1852,7 @@ class MusicService :
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
+                onSessionTitleResolved(sessionId, initialStatus.title)
             }
             if (initialStatus.items.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
@@ -1857,6 +1887,132 @@ class MusicService :
             if (player.shuffleModeEnabled) {
                 val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
                 applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+            }
+        }
+    }
+
+    private fun currentShuffleOrder(): List<Int>? {
+        if (!player.shuffleModeEnabled) return null
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) return null
+        val order = ArrayList<Int>(timeline.windowCount)
+        var index = timeline.getFirstWindowIndex(true)
+        while (index != C.INDEX_UNSET) {
+            order += index
+            index = timeline.getNextWindowIndex(index, REPEAT_MODE_OFF, true)
+        }
+        return order
+    }
+
+    private fun snapshotActiveSession() {
+        val id = activeQueueId.value ?: return
+        if (player.mediaItemCount == 0) return
+        val items = player.mediaItems.mapNotNull { it.metadata }
+        val shuffleOrder = currentShuffleOrder()
+        queueSessions.value =
+            queueSessions.value.map { session ->
+                if (session.id != id) {
+                    session
+                } else {
+                    session.copy(
+                        title = queueTitle,
+                        items = items,
+                        mediaItemIndex = player.currentMediaItemIndex,
+                        position = player.currentPosition,
+                        shuffleEnabled = player.shuffleModeEnabled,
+                        shuffleOrder = shuffleOrder,
+                        liveQueue = currentQueue,
+                    )
+                }
+            }
+    }
+
+    private fun startQueueSession(queue: Queue) {
+        val session =
+            QueueSession(
+                id = (queueSessions.value.maxOfOrNull { it.id } ?: 0L) + 1,
+                title = null,
+                items = emptyList(),
+                mediaItemIndex = 0,
+                position = 0L,
+                shuffleEnabled = false,
+                shuffleOrder = null,
+                liveQueue = queue,
+            )
+        queueSessions.value = (listOf(session) + queueSessions.value).take(MAX_QUEUE_SESSIONS)
+        activeQueueId.value = session.id
+        saveQueueSessionsToDisk()
+    }
+
+    private fun onSessionTitleResolved(
+        sessionId: Long?,
+        title: String,
+    ) {
+        if (sessionId == null || activeQueueId.value != sessionId) return
+        // Playing a source again replaces its previous queue instead of duplicating it
+        queueSessions.value =
+            queueSessions.value
+                .filter { it.id == sessionId || it.title != title }
+                .map { if (it.id == sessionId) it.copy(title = title) else it }
+        saveQueueSessionsToDisk()
+    }
+
+    fun switchQueue(id: Long) {
+        if (id == activeQueueId.value) return
+        val target = queueSessions.value.firstOrNull { it.id == id } ?: return
+        if (target.items.isEmpty()) return
+        snapshotActiveSession()
+
+        val items = target.items.map { it.toMediaItem() }
+        val index = target.mediaItemIndex.coerceIn(0, items.lastIndex)
+        clearAutomix()
+        currentQueue = target.liveQueue ?: ListQueue(target.title, items, index, target.position)
+        queueTitle = target.title
+        originalQueueSize = 0
+        player.setMediaItems(items, index, target.position)
+        player.shuffleModeEnabled = target.shuffleEnabled
+        val shuffleOrder = target.shuffleOrder
+        if (target.shuffleEnabled && shuffleOrder != null && shuffleOrder.size == items.size) {
+            player.setShuffleOrder(DefaultShuffleOrder(shuffleOrder.toIntArray(), System.currentTimeMillis()))
+        } else if (target.shuffleEnabled) {
+            applyShuffleOrder(index, items.size, cachedShufflePlaylistFirst)
+        }
+        player.prepare()
+
+        queueSessions.value = listOf(target) + queueSessions.value.filter { it.id != id }
+        activeQueueId.value = id
+        saveQueueSessionsToDisk()
+        if (cachedPersistentQueue) saveQueueToDisk()
+    }
+
+    fun deleteQueue(id: Long) {
+        queueSessions.value = queueSessions.value.filter { it.id != id }
+        if (activeQueueId.value == id) {
+            activeQueueId.value = null
+            currentQueue = EmptyQueue
+            queueTitle = null
+            clearAutomix()
+            player.stop()
+            player.clearMediaItems()
+            runCatching { filesDir.resolve(PERSISTENT_QUEUE_FILE).delete() }
+            runCatching { filesDir.resolve(PERSISTENT_AUTOMIX_FILE).delete() }
+        }
+        saveQueueSessionsToDisk()
+    }
+
+    private fun saveQueueSessionsToDisk() {
+        if (!cachedPersistentQueue) return
+        val persisted = PersistQueueSessions(activeQueueId.value, queueSessions.value)
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                filesDir.resolve(PERSISTENT_QUEUE_SESSIONS_FILE).outputStream().use { fos ->
+                    ObjectOutputStream(fos).use { oos ->
+                        oos.writeObject(persisted)
+                    }
+                }
+            }.onFailure {
+                Timber.tag(TAG).e(it, "Failed to save queue sessions")
+                reportException(it)
             }
         }
     }
@@ -5052,6 +5208,8 @@ class MusicService :
         const val PERSISTENT_QUEUE_FILE = "persistent_queue.data"
         const val PERSISTENT_AUTOMIX_FILE = "persistent_automix.data"
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
+        const val PERSISTENT_QUEUE_SESSIONS_FILE = "persistent_queue_sessions.data"
+        const val MAX_QUEUE_SESSIONS = 20
         const val MAX_CONSECUTIVE_ERR = 5
         const val MAX_RETRY_COUNT = 10
 
