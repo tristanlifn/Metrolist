@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +43,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -88,6 +90,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -117,6 +120,8 @@ import com.metrolist.music.ui.component.BottomSheet
 import com.metrolist.music.ui.component.BottomSheetState
 import com.metrolist.music.ui.component.LocalBottomSheetPageState
 import com.metrolist.music.ui.component.LocalMenuState
+import com.metrolist.music.models.QueueSession
+import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.MediaMetadataListItem
 import com.metrolist.music.ui.menu.PlayerMenu
 import com.metrolist.music.ui.menu.QueueMenu
@@ -656,6 +661,38 @@ fun Queue(
     ) {
         val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
         val queueWindows by playerConnection.queueWindows.collectAsStateWithLifecycle()
+        val queueSessions by playerConnection.queueSessions.collectAsStateWithLifecycle()
+        val activeQueueId by playerConnection.activeQueueId.collectAsStateWithLifecycle()
+        var queueSwitcherOpen by remember { mutableStateOf(false) }
+        var queueToDelete by remember { mutableStateOf<QueueSession?>(null) }
+
+        queueToDelete?.let { session ->
+            DefaultDialog(
+                onDismiss = { queueToDelete = null },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.delete),
+                        contentDescription = null,
+                    )
+                },
+                title = { Text(stringResource(R.string.delete_queue)) },
+                buttons = {
+                    TextButton(onClick = { queueToDelete = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            playerConnection.deleteQueue(session.id)
+                            queueToDelete = null
+                        },
+                    ) {
+                        Text(stringResource(R.string.delete))
+                    }
+                },
+            ) {
+                Text(stringResource(R.string.delete_queue_confirm, session.title ?: stringResource(R.string.untitled_queue)))
+            }
+        }
         val automix by playerConnection.service.automixItems.collectAsStateWithLifecycle()
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
         val queueLength =
@@ -1057,13 +1094,29 @@ fun Queue(
                         .height(ListItemHeight)
                         .padding(horizontal = 12.dp),
             ) {
-                Text(
-                    text = queueTitle.orEmpty(),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .clickable(enabled = !inSelectMode && queueSessions.isNotEmpty()) {
+                                queueSwitcherOpen = !queueSwitcherOpen
+                            },
+                ) {
+                    Text(
+                        text = queueTitle.orEmpty(),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (queueSessions.isNotEmpty() && !inSelectMode) {
+                        Icon(
+                            painter = painterResource(if (queueSwitcherOpen) R.drawable.expand_less else R.drawable.expand_more),
+                            contentDescription = stringResource(R.string.switch_queue),
+                        )
+                    }
+                }
 
                 AnimatedVisibility(
                     visible = !inSelectMode,
@@ -1101,6 +1154,56 @@ fun Queue(
                         text = makeTimeString(queueLength * 1000L),
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = queueSwitcherOpen && !inSelectMode,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f),
+                ) {
+                    items(queueSessions, key = { it.id }) { session ->
+                        val isActive = session.id == activeQueueId
+                        val songCount = if (isActive) queueWindows.size else session.items.size
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(ListItemHeight)
+                                    .clickable {
+                                        playerConnection.switchQueue(session.id)
+                                        queueSwitcherOpen = false
+                                    }.padding(start = 12.dp),
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = session.title ?: stringResource(R.string.untitled_queue),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (isActive) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = pluralStringResource(R.plurals.n_song, songCount, songCount),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = { queueToDelete = session }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = stringResource(R.string.delete_queue),
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

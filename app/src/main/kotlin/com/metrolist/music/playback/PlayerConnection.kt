@@ -178,6 +178,8 @@ class PlayerConnection(
         }.stateIn(scope, SharingStarted.Lazily, null)
 
     val queueTitle = MutableStateFlow<String?>(null)
+    val queueSessions = service.queueSessions
+    val activeQueueId = service.activeQueueId
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
     val currentWindowIndex = MutableStateFlow(-1)
@@ -249,11 +251,22 @@ class PlayerConnection(
             Timber.tag(TAG).w("playQueue called before player ready; delegating to service")
         }
         try {
-            service.playQueue(queue)
+            // Listen Together sync reuses the active queue instead of piling up new ones
+            service.playQueue(queue, newSession = !allowInternalSync)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in playQueue")
             throw e
         }
+    }
+
+    fun switchQueue(id: Long) {
+        if (shouldBlockPlaybackChanges?.invoke() == true) return
+        service.switchQueue(id)
+    }
+
+    fun deleteQueue(id: Long) {
+        if (shouldBlockPlaybackChanges?.invoke() == true) return
+        service.deleteQueue(id)
     }
 
     fun refreshSongMetadata(song: Song) {

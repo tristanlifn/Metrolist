@@ -994,4 +994,8 @@
     <string name="stream_source_web_creator_desc">Creator web client.</string>
     <string name="top_result">Top result</string>
     <string name="other">Other</string>
+    <string name="switch_queue">Switch queue</string>
+    <string name="untitled_queue">Untitled queue</string>
+    <string name="delete_queue">Delete queue</string>
+    <string name="delete_queue_confirm">Delete queue \"%1$s\"?</string>
 </resources>
