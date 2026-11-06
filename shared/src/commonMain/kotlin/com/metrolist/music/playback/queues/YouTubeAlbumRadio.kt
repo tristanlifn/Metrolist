@@ -5,10 +5,9 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.WatchEndpoint
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -32,21 +31,21 @@ class YouTubeAlbumRadio(
         albumSongCount = albumSongs.size
         Queue.Status(
             title = albumSongs.first().album?.name.orEmpty(),
-            items = albumSongs.map { it.toMediaItem() },
+            items = albumSongs.map { it.toMediaMetadata() },
             mediaItemIndex = 0
         )
     }
 
     override fun hasNextPage(): Boolean = !firstTimeLoaded || continuation != null
 
-    override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
+    override suspend fun nextPage(): List<MediaMetadata> = withContext(IO) {
         val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
         continuation = nextResult.continuation
         if (!firstTimeLoaded) {
             firstTimeLoaded = true
-            nextResult.items.subList(albumSongCount, nextResult.items.size).map { it.toMediaItem() }
+            nextResult.items.subList(albumSongCount, nextResult.items.size).map { it.toMediaMetadata() }
         } else {
-            nextResult.items.map { it.toMediaItem() }
+            nextResult.items.map { it.toMediaMetadata() }
         }
     }
 }

@@ -115,6 +115,7 @@ import com.metrolist.music.extensions.move
 import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.playback.RepeatMode
 import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.BottomSheet
 import com.metrolist.music.ui.component.BottomSheetState
@@ -368,14 +369,14 @@ fun Queue(
                     PlayerQueueButton(
                         icon =
                             when (repeatMode) {
-                                Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                RepeatMode.ALL -> R.drawable.repeat
+                                RepeatMode.ONE -> R.drawable.repeat_one
                                 else -> R.drawable.repeat
                             },
                         onClick = {
-                            playerConnection.player.toggleRepeatMode()
+                            playerConnection.toggleRepeatMode()
                         },
-                        isActive = repeatMode != Player.REPEAT_MODE_OFF,
+                        isActive = repeatMode != RepeatMode.OFF,
                         enabled = !isListenTogetherGuest,
                         shape = repeatShape,
                         modifier = Modifier.size(buttonSize),
@@ -1340,17 +1341,16 @@ fun Queue(
             IconButton(
                 enabled = !isListenTogetherGuest,
                 modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = playerConnection.player::toggleRepeatMode,
+                onClick = playerConnection::toggleRepeatMode,
             ) {
-                val baseAlpha = if (repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f
+                val baseAlpha = if (repeatMode == RepeatMode.OFF) 0.5f else 1f
                 val finalAlpha = if (!isListenTogetherGuest) baseAlpha else 0.3f
                 Icon(
                     painter =
                         painterResource(
                             when (repeatMode) {
-                                Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                else -> throw IllegalStateException()
+                                RepeatMode.OFF, RepeatMode.ALL -> R.drawable.repeat
+                                RepeatMode.ONE -> R.drawable.repeat_one
                             },
                         ),
                     contentDescription = null,

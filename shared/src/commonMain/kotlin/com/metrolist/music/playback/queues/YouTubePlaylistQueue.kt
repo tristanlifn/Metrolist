@@ -5,10 +5,9 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.SongItem
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -30,7 +29,7 @@ class YouTubePlaylistQueue(
             if (initialSongs.isNotEmpty()) {
                 Queue.Status(
                     title = playlistTitle,
-                    items = initialSongs.map { it.toMediaItem() },
+                    items = initialSongs.map { it.toMediaMetadata() },
                     mediaItemIndex = startIndex,
                 )
             } else {
@@ -38,7 +37,7 @@ class YouTubePlaylistQueue(
                 continuation = playlistPage.songsContinuation
                 Queue.Status(
                     title = playlistPage.playlist.title,
-                    items = playlistPage.songs.map { it.toMediaItem() },
+                    items = playlistPage.songs.map { it.toMediaMetadata() },
                     mediaItemIndex = startIndex,
                 )
             }
@@ -47,7 +46,7 @@ class YouTubePlaylistQueue(
 
     override fun hasNextPage(): Boolean = continuation != null
 
-    override suspend fun nextPage(): List<MediaItem> {
+    override suspend fun nextPage(): List<MediaMetadata> {
         return withContext(IO) {
             val currentContinuation = continuation ?: return@withContext emptyList()
             var lastException: Throwable? = null
@@ -57,7 +56,7 @@ class YouTubePlaylistQueue(
                     val continuationPage = YouTube.playlistContinuation(currentContinuation).getOrThrow()
                     continuation = continuationPage.continuation
                     retryCount = 0
-                    return@withContext continuationPage.songs.map { it.toMediaItem() }
+                    return@withContext continuationPage.songs.map { it.toMediaMetadata() }
                 } catch (e: Exception) {
                     lastException = e
                     retryCount++

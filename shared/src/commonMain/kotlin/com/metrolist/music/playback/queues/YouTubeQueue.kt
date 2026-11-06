@@ -5,10 +5,9 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.WatchEndpoint
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -62,7 +61,7 @@ class YouTubeQueue(
                     retryCount = 0
                     return@withContext Queue.Status(
                         title = nextResult.title,
-                        items = items.map { it.toMediaItem() },
+                        items = items.map { it.toMediaMetadata() },
                         mediaItemIndex = nextResult.currentIndex ?: 0,
                     )
                 } catch (e: Exception) {
@@ -83,7 +82,7 @@ class YouTubeQueue(
 
     override fun hasNextPage(): Boolean = continuation != null
 
-    override suspend fun nextPage(): List<MediaItem> {
+    override suspend fun nextPage(): List<MediaMetadata> {
         return withContext(IO) {
             var lastException: Throwable? = null
 
@@ -93,7 +92,7 @@ class YouTubeQueue(
                     endpoint = nextResult.endpoint
                     continuation = nextResult.continuation
                     retryCount = 0
-                    return@withContext nextResult.items.map { it.toMediaItem() }
+                    return@withContext nextResult.items.map { it.toMediaMetadata() }
                 } catch (e: Exception) {
                     lastException = e
                     retryCount++

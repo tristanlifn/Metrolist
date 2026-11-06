@@ -68,6 +68,7 @@ import com.metrolist.music.constants.ListThumbnailSize
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.playback.queues.YouTubeAlbumRadio
 import com.metrolist.music.ui.component.ListDialog
@@ -360,7 +361,7 @@ fun YouTubeAlbumMenu(
                                 onClick = {
                                     album
                                         ?.songs
-                                        ?.map { it.toMediaItem() }
+                                        ?.map { it.toMediaMetadata() }
                                         ?.let(playerConnection::playNext)
                                     onDismiss()
                                 },
@@ -381,7 +382,7 @@ fun YouTubeAlbumMenu(
                                 onClick = {
                                     album
                                         ?.songs
-                                        ?.map { it.toMediaItem() }
+                                        ?.map { it.toMediaMetadata() }
                                         ?.let(playerConnection::addToQueue)
                                     onDismiss()
                                 },

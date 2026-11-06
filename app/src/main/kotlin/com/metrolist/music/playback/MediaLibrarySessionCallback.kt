@@ -848,8 +848,8 @@ class MediaLibrarySessionCallback(
                                 service.adoptQueue(radioQueue, radioStatus.title, radioStatus.items.size) //Used to make the radio queue load more songs when near the end
                             }
                             return@future MediaItemsWithStartPosition(
-                                radioStatus.items,
-                                radioStatus.items.indexOfFirst { it.mediaId == selectedSong.id }.coerceAtLeast(0),
+                                radioStatus.items.map { it.toMediaItem() },
+                                radioStatus.items.indexOfFirst { it.id == selectedSong.id }.coerceAtLeast(0),
                                 C.TIME_UNSET,
                             )
                         }
@@ -860,7 +860,7 @@ class MediaLibrarySessionCallback(
                         service.adoptQueue(
                             ListQueue(
                                 title = selectedSong.song.title,
-                                items = items,
+                                items = listOf(selectedSong.toMediaMetadata()),
                             ),
                             title = selectedSong.song.title,
                         )

@@ -252,7 +252,7 @@ fun OnlineSearchScreen(
                                                     } else {
                                                         ListQueue(
                                                             title = item.title,
-                                                            items = listOf(item.toMediaItem())
+                                                            items = listOf(item.toMediaMetadata())
                                                         )
                                                     }
                                                 )
@@ -525,7 +525,7 @@ fun OnlineSearchScreen(
                                                 } else {
                                                     ListQueue(
                                                         title = item.title,
-                                                        items = listOf(item.toMediaItem())
+                                                        items = listOf(item.toMediaMetadata())
                                                     )
                                                 }
                                             )

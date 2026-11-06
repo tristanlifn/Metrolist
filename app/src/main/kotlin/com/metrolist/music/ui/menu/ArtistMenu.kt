@@ -37,6 +37,7 @@ import com.metrolist.music.constants.ArtistSongSortType
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.extensions.toMediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ArtistListItem
 import com.metrolist.music.ui.component.Material3MenuGroup
@@ -107,7 +108,7 @@ fun ArtistMenu(
                                                 database
                                                     .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
                                                     .first()
-                                                    .map { it.toMediaItem() }
+                                                    .map { it.toMediaMetadata() }
                                             }
                                             playerConnection.playQueue(
                                                 ListQueue(
@@ -138,7 +139,7 @@ fun ArtistMenu(
                                                 database
                                                     .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
                                                     .first()
-                                                    .map { it.toMediaItem() }
+                                                    .map { it.toMediaMetadata() }
                                                     .shuffled()
                                             }
                                             playerConnection.playQueue(

@@ -98,6 +98,7 @@ import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.listentogether.ListenTogetherManager
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.CastConnectionHandler
+import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.utils.resize
@@ -498,7 +499,7 @@ private fun NewMiniPlayer(
 @Composable
 private fun NewMiniPlayerPlayButton(
     progressState: ProgressState,
-    playbackState: Int,
+    playbackState: PlaybackState,
     isCasting: Boolean,
     castHandler: CastConnectionHandler?,
     playerConnection: PlayerConnection,
@@ -568,7 +569,7 @@ private fun NewMiniPlayerPlayButton(
                         }
                         if (isCasting) {
                             if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-                        } else if (playbackState == Player.STATE_ENDED) {
+                        } else if (playbackState == PlaybackState.ENDED) {
                             playerConnection.player.seekTo(0, 0)
                             playerConnection.player.playWhenReady = true
                         } else {
@@ -591,7 +592,7 @@ private fun NewMiniPlayerPlayButton(
 
             // Overlay for paused state or muted (guest)
             if (isListenTogetherGuest && isMuted ||
-                (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == Player.STATE_ENDED))
+                (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == PlaybackState.ENDED))
             ) {
                 Box(
                     modifier =
@@ -604,7 +605,7 @@ private fun NewMiniPlayerPlayButton(
                         painterResource(
                             if (isListenTogetherGuest) {
                                 if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                            } else if (playbackState == Player.STATE_ENDED) {
+                            } else if (playbackState == PlaybackState.ENDED) {
                                 R.drawable.replay
                             } else {
                                 R.drawable.play
@@ -892,7 +893,7 @@ private fun LegacyMiniPlayer(
 
 @Composable
 private fun LegacyPlayPauseButton(
-    playbackState: Int,
+    playbackState: PlaybackState,
     isCasting: Boolean,
     castHandler: CastConnectionHandler?,
     playerConnection: PlayerConnection,
@@ -912,7 +913,7 @@ private fun LegacyPlayPauseButton(
             }
             if (isCasting) {
                 if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-            } else if (playbackState == Player.STATE_ENDED) {
+            } else if (playbackState == PlaybackState.ENDED) {
                 playerConnection.player.seekTo(0, 0)
                 playerConnection.player.playWhenReady = true
             } else {
@@ -925,7 +926,7 @@ private fun LegacyPlayPauseButton(
                 painterResource(
                     when {
                         isListenTogetherGuest -> if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                        playbackState == Player.STATE_ENDED -> R.drawable.replay
+                        playbackState == PlaybackState.ENDED -> R.drawable.replay
                         effectiveIsPlaying -> R.drawable.pause
                         else -> R.drawable.play
                     },

@@ -314,7 +314,7 @@ fun SelectionSongMenu(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = "Selection",
-                                            items = songSelection.map { it.toMediaItem() },
+                                            items = songSelection.map { it.toMediaMetadata() },
                                         ),
                                     )
                                     clearAction()
@@ -339,7 +339,7 @@ fun SelectionSongMenu(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = "Selection",
-                                            items = songSelection.shuffled().map { it.toMediaItem() },
+                                            items = songSelection.shuffled().map { it.toMediaMetadata() },
                                         ),
                                     )
                                     clearAction()
@@ -383,7 +383,7 @@ fun SelectionSongMenu(
                                     },
                                     onClick = {
                                         onDismiss()
-                                        playerConnection.playNext(songSelection.map { it.toMediaItem() })
+                                        playerConnection.playNext(songSelection.map { it.toMediaMetadata() })
                                         clearAction()
                                     },
                                 ),
@@ -403,7 +403,7 @@ fun SelectionSongMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "Selection",
-                                                items = songSelection.shuffled().map { it.toMediaItem() },
+                                                items = songSelection.shuffled().map { it.toMediaMetadata() },
                                             ),
                                         )
                                         clearAction()
@@ -422,7 +422,7 @@ fun SelectionSongMenu(
                                     },
                                     onClick = {
                                         onDismiss()
-                                        playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                                        playerConnection.addToQueue(songSelection.map { it.toMediaMetadata() })
                                         clearAction()
                                     },
                                 ),
@@ -815,7 +815,7 @@ fun SelectionMediaMetadataMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "Selection",
-                                                items = songSelection.map { it.toMediaItem() },
+                                                items = songSelection,
                                             ),
                                         )
                                         clearAction()
@@ -836,7 +836,7 @@ fun SelectionMediaMetadataMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "Selection",
-                                                items = songSelection.shuffled().map { it.toMediaItem() },
+                                                items = songSelection.shuffled(),
                                             ),
                                         )
                                         clearAction()
@@ -855,7 +855,7 @@ fun SelectionMediaMetadataMenu(
                                         },
                                         onClick = {
                                             onDismiss()
-                                            playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                                            playerConnection.addToQueue(songSelection)
                                             clearAction()
                                         },
                                     ),

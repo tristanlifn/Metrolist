@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
@@ -222,12 +223,12 @@ fun LocalSearchScreen(
                                                         result.map
                                                             .getOrDefault(LocalFilter.SONG, emptyList())
                                                             .filterIsInstance<Song>()
-                                                            .map { it.toMediaItem() }
+                                                            .map { it.toMediaMetadata() }
                                                     playerConnection.playQueue(
                                                         ListQueue(
                                                             title = queueSearchedSongsStr,
                                                             items = songs,
-                                                            startIndex = songs.indexOfFirst { it.mediaId == item.id },
+                                                            startIndex = songs.indexOfFirst { it.id == item.id },
                                                         ),
                                                     )
                                                 }

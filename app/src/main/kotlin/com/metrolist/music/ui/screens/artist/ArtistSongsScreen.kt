@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
@@ -162,7 +163,7 @@ fun ArtistSongsScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = queueAllSongsStr,
-                                                items = songs.map { it.toMediaItem() },
+                                                items = songs.map { it.toMediaMetadata() },
                                                 startIndex = index,
                                             ),
                                         )
@@ -204,7 +205,7 @@ fun ArtistSongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = artist?.artist?.name,
-                        items = songs.shuffled().map { it.toMediaItem() },
+                        items = songs.shuffled().map { it.toMediaMetadata() },
                     ),
                 )
             },

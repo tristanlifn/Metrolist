@@ -39,16 +39,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.PlaybackException
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.playback.PlayerError
 import java.time.Instant
 
 @Composable
 fun PlaybackError(
-    error: PlaybackException,
+    error: PlayerError,
     retry: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -56,7 +56,7 @@ fun PlaybackError(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val streamClient by playerConnection.currentStreamClient.collectAsState()
     val isOnline by playerConnection.service.connectivityObserver.networkStatus.collectAsState()
-    val causes = remember(error) { error.causeChain() }
+    val causes = remember(error) { error.cause.causeChain() }
     val rawErrorMessages =
         remember(causes) {
             causes.mapNotNull { it.message?.takeIf(String::isNotBlank) }.distinct()
@@ -96,7 +96,7 @@ fun PlaybackError(
                     cause.javaClass.simpleName.ifBlank { cause.javaClass.name }
                 }
         }
-    val errorCodeName = remember(error) { error.errorCodeName.removePrefix("ERROR_CODE_") }
+    val errorCodeName = remember(error) { error.codeName.removePrefix("ERROR_CODE_") }
     val reportedAt = remember(error) { Instant.now() }
     val errorReport =
         remember(error, mediaMetadata, streamClient) {
@@ -143,7 +143,7 @@ fun PlaybackError(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Code: $errorCodeName (${error.errorCode})",
+            text = "Code: $errorCodeName (${error.code})",
             style =
             MaterialTheme.typography.bodySmall.copy(
                 fontFamily = FontFamily.Monospace,
@@ -223,7 +223,7 @@ internal fun playbackErrorMessages(
     if (isOnline) (listOfNotNull(guidance) + rawErrorMessages).distinct() else listOf(offlineMessage)
 
 private fun buildPlaybackErrorReport(
-    error: PlaybackException,
+    error: PlayerError,
     mediaMetadata: MediaMetadata?,
     streamClient: String?,
     reportedAt: Instant,
@@ -247,12 +247,12 @@ private fun buildPlaybackErrorReport(
         appendLine()
         appendLine("Error")
         appendLine("-----")
-        appendLine("Code: ${error.errorCodeName.removePrefix("ERROR_CODE_")} (${error.errorCode})")
-        error.causeChain().forEachIndexed { index, cause ->
+        appendLine("Code: ${error.codeName.removePrefix("ERROR_CODE_")} (${error.code})")
+        error.cause.causeChain().forEachIndexed { index, cause ->
             appendLine("[$index] ${cause.javaClass.name}: ${cause.message ?: "(no message)"}")
         }
         appendLine()
         appendLine("Stack trace")
         appendLine("-----------")
-        append(error.stackTraceToString())
+        append(error.cause.stackTraceToString())
     }

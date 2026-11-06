@@ -439,7 +439,7 @@ fun StatsScreen(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = context.getString(R.string.most_played_songs),
-                                            items = orderedMostPlayedSongs.map { it.toMediaMetadata().toMediaItem() },
+                                            items = orderedMostPlayedSongs.map { it.toMediaMetadata() },
                                         ),
                                     )
                                 }
@@ -663,7 +663,7 @@ fun StatsScreen(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.most_played_songs),
-                            items = orderedMostPlayedSongs.map { it.toMediaMetadata().toMediaItem() }.shuffled(),
+                            items = orderedMostPlayedSongs.map { it.toMediaMetadata() }.shuffled(),
                         ),
                     )
                 },

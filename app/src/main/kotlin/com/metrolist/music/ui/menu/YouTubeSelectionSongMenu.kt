@@ -231,7 +231,7 @@ fun YouTubeSelectionSongMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = queueAllSongsStr,
-                                        items = songSelection.map { it.toMediaItem() },
+                                        items = songSelection.map { it.toMediaMetadata() },
                                     ),
                                 )
                                 clearAction()
@@ -249,7 +249,7 @@ fun YouTubeSelectionSongMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = queueAllSongsStr,
-                                        items = songSelection.shuffled().map { it.toMediaItem() },
+                                        items = songSelection.shuffled().map { it.toMediaMetadata() },
                                     ),
                                 )
                                 clearAction()
@@ -264,7 +264,7 @@ fun YouTubeSelectionSongMenu(
                             icon = { Icon(painterResource(R.drawable.queue_music), null) },
                             title = { Text(stringResource(R.string.add_to_queue)) },
                             onClick = {
-                                playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                                playerConnection.addToQueue(songSelection.map { it.toMediaMetadata() })
                                 clearAction()
                                 onDismiss()
                             },

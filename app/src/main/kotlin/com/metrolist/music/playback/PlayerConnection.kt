@@ -8,6 +8,7 @@ package com.metrolist.music.playback
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM
 import androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
@@ -29,8 +30,11 @@ import com.metrolist.music.extensions.currentMetadata
 import com.metrolist.music.extensions.getCurrentQueueIndex
 import com.metrolist.music.extensions.getQueueWindows
 import com.metrolist.music.extensions.metadata
+import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.extensions.togglePlayPause
+import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.extensions.withUpdatedMetadata
+import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.queues.Queue
@@ -41,8 +45,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,7 +63,8 @@ class PlayerConnection(
     binder: MusicBinder,
     val database: MusicDatabase,
     scope: CoroutineScope,
-) : Player.Listener {
+) : Player.Listener,
+    MusicPlayer {
     private companion object {
         private const val TAG = "PlayerConnection"
     }
@@ -97,9 +104,9 @@ class PlayerConnection(
     /** Tracks whether player initialization completed successfully */
     private val isPlayerInitialized = MutableStateFlow(service.isPlayerReady.value)
 
-    val playbackState: MutableStateFlow<Int>
+    private val playbackStateCode: MutableStateFlow<Int>
     private val playWhenReady: MutableStateFlow<Boolean>
-    val isPlaying: kotlinx.coroutines.flow.StateFlow<Boolean>
+    override val isPlaying: StateFlow<Boolean>
 
     private val initialState: Triple<Int, Boolean, Boolean> =
         try {
@@ -122,10 +129,10 @@ class PlayerConnection(
     init {
         Timber.tag(TAG).d("PlayerConnection init: playerReady=${playerReadinessFlow.value}")
 
-        playbackState = MutableStateFlow(initialState.first)
+        playbackStateCode = MutableStateFlow(initialState.first)
         playWhenReady = MutableStateFlow(initialState.second)
         isPlaying =
-            combine(playbackState, playWhenReady) { state, ready ->
+            combine(playbackStateCode, playWhenReady) { state, ready ->
                 ready && state != STATE_ENDED
             }.stateIn(
                 scope,
@@ -146,7 +153,12 @@ class PlayerConnection(
         Timber.tag(TAG).d("PlayerConnection state flows initialized successfully")
     }
 
-    val isEffectivelyPlaying =
+    override val playbackState: StateFlow<PlaybackState> =
+        playbackStateCode
+            .map { it.toPlaybackState() }
+            .stateIn(scope, SharingStarted.Eagerly, initialState.first.toPlaybackState())
+
+    override val isEffectivelyPlaying =
         combine(
             isPlaying,
             service.castConnectionHandler?.isCasting ?: MutableStateFlow(false),
@@ -159,40 +171,46 @@ class PlayerConnection(
             initialState.third,
         )
 
-    val mediaMetadata = MutableStateFlow(getPlayerOrNull()?.currentMetadata)
+    override val mediaMetadata = MutableStateFlow(getPlayerOrNull()?.currentMetadata)
     // stateIn so the latest DB result is cached and shared: on resume / re-subscription the value
     // is available immediately instead of re-running the Room query (which delayed now-playing
     // details, format and like-state on every foreground). Lazily keeps it hot across lifecycle
     // pauses, matching isPlaying above. StateFlow is still a Flow, so existing collectors are unaffected.
-    val currentSong =
+    override val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
-    val currentLyrics =
+    override val currentLyrics =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.lyrics(mediaMetadata?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
-    val currentFormat =
+    override val currentFormat =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.format(mediaMetadata?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
 
-    val queueTitle = MutableStateFlow<String?>(null)
-    val queueSessions = service.queueSessions
-    val activeQueueId = service.activeQueueId
+    override val queueTitle = MutableStateFlow<String?>(null)
+    override val queueSessions = service.queueSessions
+    override val activeQueueId = service.activeQueueId
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
+    override val queue = MutableStateFlow<List<QueueEntry>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
     val currentWindowIndex = MutableStateFlow(-1)
+    override val currentQueuePosition: StateFlow<Int> get() = currentWindowIndex
 
-    val shuffleModeEnabled = MutableStateFlow(false)
-    val repeatMode = MutableStateFlow(REPEAT_MODE_OFF)
+    override val shuffleModeEnabled = MutableStateFlow(false)
+    private val repeatModeCode = MutableStateFlow(REPEAT_MODE_OFF)
+    override val repeatMode: StateFlow<RepeatMode> =
+        repeatModeCode.map { it.toRepeatMode() }.stateIn(scope, SharingStarted.Eagerly, RepeatMode.OFF)
 
-    val canSkipPrevious = MutableStateFlow(true)
-    val canSkipNext = MutableStateFlow(true)
+    override val canSkipPrevious = MutableStateFlow(true)
+    override val canSkipNext = MutableStateFlow(true)
 
-    val error = MutableStateFlow<PlaybackException?>(null)
-    val isMuted = service.isMuted
-    val currentStreamClient = service.currentStreamClient
+    private val playerException = MutableStateFlow<PlaybackException?>(null)
+    override val error: StateFlow<PlayerError?> =
+        playerException.map { it?.toPlayerError() }.stateIn(scope, SharingStarted.Eagerly, null)
+    override val isMuted = service.isMuted
+    override val currentStreamClient = service.currentStreamClient
 
     val waitingForNetworkConnection = service.waitingForNetworkConnection
 
@@ -229,19 +247,19 @@ class PlayerConnection(
         attachedPlayer = newPlayer
         newPlayer.addListener(this)
         // Refresh all state from new player
-        playbackState.value = newPlayer.playbackState
+        playbackStateCode.value = newPlayer.playbackState
         playWhenReady.value = newPlayer.playWhenReady
         mediaMetadata.value = newPlayer.currentMetadata
         queueTitle.value = service.queueTitle
-        queueWindows.value = newPlayer.getQueueWindows()
+        updateQueue(newPlayer)
         currentWindowIndex.value = newPlayer.getCurrentQueueIndex()
         currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
         shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
-        repeatMode.value = newPlayer.repeatMode
+        repeatModeCode.value = newPlayer.repeatMode
         Timber.tag(TAG).d("Attached to new player instance: $newPlayer")
     }
 
-    fun playQueue(queue: Queue) {
+    override fun playQueue(queue: Queue) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("playQueue blocked - Listen Together guest")
@@ -259,12 +277,12 @@ class PlayerConnection(
         }
     }
 
-    fun switchQueue(id: Long) {
+    override fun switchQueue(id: Long) {
         if (shouldBlockPlaybackChanges?.invoke() == true) return
         service.switchQueue(id)
     }
 
-    fun deleteQueue(id: Long) {
+    override fun deleteQueue(id: Long) {
         if (shouldBlockPlaybackChanges?.invoke() == true) return
         service.deleteQueue(id)
     }
@@ -281,7 +299,7 @@ class PlayerConnection(
         mediaMetadata.value = player.currentMetadata
     }
 
-    fun startRadioSeamlessly() {
+    override fun startRadioSeamlessly() {
         // Block if Listen Together guest
         if (shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("startRadioSeamlessly blocked - Listen Together guest")
@@ -298,39 +316,35 @@ class PlayerConnection(
         }
     }
 
-    fun playNext(item: MediaItem) = playNext(listOf(item))
-
-    fun playNext(items: List<MediaItem>) {
+    override fun playNext(items: List<MediaMetadata>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("playNext blocked - Listen Together guest")
             return
         }
         try {
-            service.playNext(items)
+            service.playNext(items.map { it.toMediaItem() })
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in playNext")
             throw e
         }
     }
 
-    fun addToQueue(item: MediaItem) = addToQueue(listOf(item))
-
-    fun addToQueue(items: List<MediaItem>) {
+    override fun addToQueue(items: List<MediaMetadata>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("addToQueue blocked - Listen Together guest")
             return
         }
         try {
-            service.addToQueue(items)
+            service.addToQueue(items.map { it.toMediaItem() })
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in addToQueue")
             throw e
         }
     }
 
-    fun toggleLike() {
+    override fun toggleLike() {
         try {
             service.toggleLike()
         } catch (e: Exception) {
@@ -338,7 +352,7 @@ class PlayerConnection(
         }
     }
 
-    fun toggleMute() {
+    override fun toggleMute() {
         service.toggleMute()
     }
 
@@ -346,7 +360,7 @@ class PlayerConnection(
         service.setMuted(muted)
     }
 
-    fun toggleLibrary() {
+    override fun toggleLibrary() {
         try {
             service.toggleLibrary()
         } catch (e: Exception) {
@@ -357,7 +371,7 @@ class PlayerConnection(
     /**
      * Toggle play/pause - handles Cast when active
      */
-    fun togglePlayPause() {
+    override fun togglePlayPause() {
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) return
         try {
             val castHandler = service.castConnectionHandler
@@ -378,7 +392,7 @@ class PlayerConnection(
     /**
      * Start playback - handles Cast when active
      */
-    fun play() {
+    override fun play() {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -397,7 +411,7 @@ class PlayerConnection(
     /**
      * Pause playback - handles Cast when active
      */
-    fun pause() {
+    override fun pause() {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -413,7 +427,7 @@ class PlayerConnection(
     /**
      * Seek to position - handles Cast when active
      */
-    fun seekTo(position: Long) {
+    override fun seekTo(position: Long) {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -426,7 +440,7 @@ class PlayerConnection(
         }
     }
 
-    fun seekToNext() {
+    override fun seekToNext() {
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -447,7 +461,7 @@ class PlayerConnection(
 
     var onRestartSong: (() -> Unit)? = null
 
-    fun seekToPrevious() {
+    override fun seekToPrevious() {
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -477,6 +491,67 @@ class PlayerConnection(
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in seekToPrevious")
         }
+    }
+
+    override val currentPosition: Long get() = getPlayerOrNull()?.currentPosition ?: 0L
+    override val duration: Long get() = getPlayerOrNull()?.duration ?: MusicPlayer.TIME_UNSET
+    override val volume: Float get() = getPlayerOrNull()?.volume ?: 1f
+
+    override var playbackSpeed: Float
+        get() = getPlayerOrNull()?.playbackParameters?.speed ?: 1f
+        set(value) {
+            getPlayerOrNull()?.let { it.playbackParameters = PlaybackParameters(value, it.playbackParameters.pitch) }
+        }
+
+    override var pitch: Float
+        get() = getPlayerOrNull()?.playbackParameters?.pitch ?: 1f
+        set(value) {
+            getPlayerOrNull()?.let { it.playbackParameters = PlaybackParameters(it.playbackParameters.speed, value) }
+        }
+
+    override fun seekToItem(index: Int) {
+        getPlayerOrNull()?.seekToDefaultPosition(index)
+    }
+
+    override fun moveItem(
+        from: Int,
+        to: Int,
+    ) {
+        getPlayerOrNull()?.moveMediaItem(from, to)
+    }
+
+    override fun removeItem(index: Int) {
+        getPlayerOrNull()?.removeMediaItem(index)
+    }
+
+    override fun clearQueue() {
+        getPlayerOrNull()?.run {
+            stop()
+            clearMediaItems()
+        }
+    }
+
+    override fun setShuffleModeEnabled(enabled: Boolean) {
+        getPlayerOrNull()?.shuffleModeEnabled = enabled
+    }
+
+    override fun setRepeatMode(mode: RepeatMode) {
+        getPlayerOrNull()?.repeatMode =
+            when (mode) {
+                RepeatMode.OFF -> REPEAT_MODE_OFF
+                RepeatMode.ONE -> Player.REPEAT_MODE_ONE
+                RepeatMode.ALL -> Player.REPEAT_MODE_ALL
+            }
+    }
+
+    override fun toggleRepeatMode() {
+        getPlayerOrNull()?.toggleRepeatMode()
+    }
+
+    private fun updateQueue(player: Player) {
+        val windows = player.getQueueWindows()
+        queueWindows.value = windows
+        queue.value = windows.map { QueueEntry(it.uid, it.firstPeriodIndex, it.mediaItem.metadata) }
     }
 
     /** Parses "0=09:00-23:00;1=22:00-06:00" into Map<dayIndex, Pair<start, end>>. */
@@ -606,8 +681,8 @@ class PlayerConnection(
     }
 
     override fun onPlaybackStateChanged(state: Int) {
-        playbackState.value = state
-        error.value = player.playerError
+        playbackStateCode.value = state
+        playerException.value = player.playerError
     }
 
     override fun onPlayWhenReadyChanged(
@@ -637,7 +712,7 @@ class PlayerConnection(
         timeline: Timeline,
         reason: Int,
     ) {
-        queueWindows.value = player.getQueueWindows()
+        updateQueue(player)
         queueTitle.value = service.queueTitle
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
@@ -646,14 +721,14 @@ class PlayerConnection(
 
     override fun onShuffleModeEnabledChanged(enabled: Boolean) {
         shuffleModeEnabled.value = enabled
-        queueWindows.value = player.getQueueWindows()
+        updateQueue(player)
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
     override fun onRepeatModeChanged(mode: Int) {
         if (mode != player.repeatMode) return
-        repeatMode.value = mode
+        repeatModeCode.value = mode
         updateCanSkipPreviousAndNext()
     }
 
@@ -661,7 +736,7 @@ class PlayerConnection(
         if (playbackError != null) {
             reportException(playbackError)
         }
-        error.value = playbackError
+        playerException.value = playbackError
     }
 
     private fun updateCanSkipPreviousAndNext() {
@@ -690,3 +765,20 @@ class PlayerConnection(
         }
     }
 }
+
+private fun Int.toPlaybackState() =
+    when (this) {
+        Player.STATE_BUFFERING -> PlaybackState.BUFFERING
+        Player.STATE_READY -> PlaybackState.READY
+        Player.STATE_ENDED -> PlaybackState.ENDED
+        else -> PlaybackState.IDLE
+    }
+
+private fun Int.toRepeatMode() =
+    when (this) {
+        Player.REPEAT_MODE_ONE -> RepeatMode.ONE
+        Player.REPEAT_MODE_ALL -> RepeatMode.ALL
+        else -> RepeatMode.OFF
+    }
+
+private fun PlaybackException.toPlayerError() = PlayerError(errorCode, errorCodeName, this)

@@ -1256,20 +1256,20 @@ class ListenTogetherManager(
                                     return@enqueueQueueMutation
                                 }
                                 result.onSuccess { list ->
-                                    val mediaItem =
+                                    val metadata =
                                         list
                                             .firstOrNull()
                                             ?.toMediaMetadata()
                                             ?.copy(
                                                 suggestedBy = track.suggestedBy.takeIf(String::isNotEmpty),
-                                            )?.toMediaItem()
-                                    if (mediaItem != null) {
+                                            )
+                                    if (metadata != null) {
                                         connection.allowInternalSync = true
                                         try {
                                             if (action.insertNext == true) {
-                                                connection.playNext(mediaItem)
+                                                connection.playNext(metadata)
                                             } else {
-                                                connection.addToQueue(mediaItem)
+                                                connection.addToQueue(metadata)
                                             }
                                         } finally {
                                             connection.allowInternalSync = false

@@ -157,6 +157,8 @@ import com.metrolist.music.constants.QueuePeekHeight
 import com.metrolist.music.constants.SleepTimerDefaultKey
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
+import com.metrolist.music.playback.PlaybackState
+import com.metrolist.music.playback.RepeatMode
 import org.koin.mp.KoinPlatform
 import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.constants.SliderStyle
@@ -786,8 +788,8 @@ fun BottomSheetPlayer(
         if (currentId != null &&
             currentId != previousMediaId &&
             previousMediaId != null &&
-            playbackState == Player.STATE_ENDED &&
-            repeatMode == Player.REPEAT_MODE_ONE &&
+            playbackState == PlaybackState.ENDED &&
+            repeatMode == RepeatMode.ONE &&
             !isListenTogetherGuest) {
             playerConnection.player.setRepeatMode(Player.REPEAT_MODE_ALL)
         }
@@ -964,7 +966,7 @@ fun BottomSheetPlayer(
                             isFullScreen &&
                                 (
                                     (isListenTogetherGuest && isMuted) ||
-                                        (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == STATE_ENDED))
+                                        (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == PlaybackState.ENDED))
                                 )
                         val thumbnailActionLabel =
                             if (isListenTogetherGuest) {
@@ -996,7 +998,7 @@ fun BottomSheetPlayer(
                                                 playerConnection.toggleMute()
                                             } else if (isCasting) {
                                                 if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-                                            } else if (playbackState == STATE_ENDED) {
+                                            } else if (playbackState == PlaybackState.ENDED) {
                                                 playerConnection.player.seekTo(0, 0)
                                                 playerConnection.player.playWhenReady = true
                                             } else {
@@ -1041,7 +1043,7 @@ fun BottomSheetPlayer(
                                                 when {
                                                     isListenTogetherGuest ->
                                                         if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                                                    playbackState == STATE_ENDED -> R.drawable.replay
+                                                    playbackState == PlaybackState.ENDED -> R.drawable.replay
                                                     else -> R.drawable.play
                                                 },
                                             ),
@@ -1694,7 +1696,7 @@ fun BottomSheetPlayer(
                                         } else {
                                             castHandler?.play()
                                         }
-                                    } else if (playbackState == STATE_ENDED) {
+                                    } else if (playbackState == PlaybackState.ENDED) {
                                         playerConnection.player.seekTo(0, 0)
                                         playerConnection.player.playWhenReady = true
                                     } else {
@@ -1784,9 +1786,8 @@ fun BottomSheetPlayer(
                                 ResizableIconButton(
                                     icon =
                                         when (repeatMode) {
-                                            Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                            else -> throw IllegalStateException()
+                                            RepeatMode.OFF, RepeatMode.ALL -> R.drawable.repeat
+                                            RepeatMode.ONE -> R.drawable.repeat_one
                                         },
                                     color = TextBackgroundColor,
                                     modifier =
@@ -1795,7 +1796,7 @@ fun BottomSheetPlayer(
                                             .padding(4.dp)
                                             .align(Alignment.Center)
                                             .alpha(
-                                                if (isListenTogetherGuest || repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f,
+                                                if (isListenTogetherGuest || repeatMode == RepeatMode.OFF) 0.5f else 1f,
                                             ),
                                     enabled = !isListenTogetherGuest,
                                     onClick = {
@@ -1837,7 +1838,7 @@ fun BottomSheetPlayer(
                                                 } else {
                                                     castHandler?.play()
                                                 }
-                                            } else if (playbackState == STATE_ENDED) {
+                                            } else if (playbackState == PlaybackState.ENDED) {
                                                 playerConnection.player.seekTo(0, 0)
                                                 playerConnection.player.playWhenReady = true
                                             } else {
@@ -1852,7 +1853,7 @@ fun BottomSheetPlayer(
                                             if (isListenTogetherGuest) {
                                                 if (isMuted) R.drawable.volume_off else R.drawable.volume_up
                                             } else if (playbackState ==
-                                                STATE_ENDED
+                                                PlaybackState.ENDED
                                             ) {
                                                 R.drawable.replay
                                             } else if (effectiveIsPlaying) {

@@ -626,7 +626,7 @@ fun SongMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    playerConnection.playNext(song.toMediaItem())
+                                    playerConnection.playNext(song.toMediaMetadata())
                                 },
                             )
                         } else {
@@ -644,7 +644,7 @@ fun SongMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    playerConnection.addToQueue(song.toMediaItem())
+                                    playerConnection.addToQueue(song.toMediaMetadata())
                                 },
                             )
                         } else {

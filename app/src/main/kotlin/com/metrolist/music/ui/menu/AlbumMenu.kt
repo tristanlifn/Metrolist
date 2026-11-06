@@ -76,6 +76,7 @@ import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.AlbumListItem
@@ -315,7 +316,7 @@ fun AlbumMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = album.album.title,
-                                                items = songs.map(Song::toMediaItem),
+                                                items = songs.map(Song::toMediaMetadata),
                                             ),
                                         )
                                     }
@@ -341,7 +342,7 @@ fun AlbumMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = album.album.title,
-                                                items = songs.shuffled().map(Song::toMediaItem),
+                                                items = songs.shuffled().map(Song::toMediaMetadata),
                                             ),
                                         )
                                     }
@@ -392,7 +393,7 @@ fun AlbumMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    playerConnection.playNext(songs.map { it.toMediaItem() })
+                                    playerConnection.playNext(songs.map { it.toMediaMetadata() })
                                 },
                             )
                         } else {
@@ -410,7 +411,7 @@ fun AlbumMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                    playerConnection.addToQueue(songs.map { it.toMediaMetadata() })
                                 },
                             )
                         } else {

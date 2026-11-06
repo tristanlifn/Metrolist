@@ -119,6 +119,7 @@ import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.LocalAlbumRadio
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinByBullet
@@ -564,7 +565,7 @@ fun SongListItem(
 
     if (isSwipeable && swipeEnabled) {
         SwipeToSongBox(
-            mediaItem = song.toMediaItem(),
+            mediaMetadata = song.toMediaMetadata(),
             modifier = Modifier.fillMaxWidth()
         ) {
             content()
@@ -1221,7 +1222,7 @@ fun YouTubeListItem(
 
     if (item is SongItem && isSwipeable && swipeEnabled) {
         SwipeToSongBox(
-            mediaItem = item.copy(thumbnail = item.thumbnail.resize(1080, 1080)).toMediaItem(),
+            mediaMetadata = item.copy(thumbnail = item.thumbnail.resize(1080, 1080)).toMediaMetadata(),
             modifier = Modifier.fillMaxWidth()
         ) {
             content()
@@ -1821,7 +1822,7 @@ fun BoxScope.AlbumPlayButton(
 @Composable
 fun SwipeToSongBox(
     modifier: Modifier = Modifier,
-    mediaItem: MediaItem,
+    mediaMetadata: MediaMetadata,
     content: @Composable BoxScope.() -> Unit
 ) {
     val ctx = LocalContext.current
@@ -1843,13 +1844,13 @@ fun SwipeToSongBox(
                 onDragStopped = {
                     when {
                         offset.floatValue >= threshold -> {
-                            player?.playNext(listOf(mediaItem))
+                            player?.playNext(mediaMetadata)
                             Toast.makeText(ctx, R.string.play_next, Toast.LENGTH_SHORT).show()
                             reset(offset, scope)
                         }
 
                         offset.floatValue <= -threshold -> {
-                            player?.addToQueue(listOf(mediaItem))
+                            player?.addToQueue(mediaMetadata)
                             Toast.makeText(ctx, R.string.add_to_queue, Toast.LENGTH_SHORT).show()
                             reset(offset, scope)
                         }

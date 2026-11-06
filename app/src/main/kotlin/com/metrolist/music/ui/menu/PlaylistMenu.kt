@@ -56,6 +56,7 @@ import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -342,7 +343,7 @@ fun PlaylistMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = playlist.playlist.name,
-                                                items = songs.map(Song::toMediaItem),
+                                                items = songs.map(Song::toMediaMetadata),
                                             ),
                                         )
                                     }
@@ -364,7 +365,7 @@ fun PlaylistMenu(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = playlist.playlist.name,
-                                                items = songs.shuffled().map(Song::toMediaItem),
+                                                items = songs.shuffled().map(Song::toMediaMetadata),
                                             ),
                                         )
                                     }
@@ -448,7 +449,7 @@ fun PlaylistMenu(
                                     },
                                     onClick = {
                                         coroutineScope.launch {
-                                            playerConnection.playNext(songs.map { it.toMediaItem() })
+                                            playerConnection.playNext(songs.map { it.toMediaMetadata() })
                                         }
                                         onDismiss()
                                     },
@@ -468,7 +469,7 @@ fun PlaylistMenu(
                                     },
                                     onClick = {
                                         onDismiss()
-                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                        playerConnection.addToQueue(songs.map { it.toMediaMetadata() })
                                     },
                                 ),
                             )

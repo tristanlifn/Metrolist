@@ -98,6 +98,7 @@ import com.metrolist.music.db.entities.Song
 import com.metrolist.music.discord.DiscordDefaults
 import com.metrolist.music.discord.DiscordRpcManager
 import com.metrolist.music.discord.DiscordTemplateRenderer
+import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.ui.component.EnumDialog
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
@@ -208,7 +209,7 @@ fun DiscordSettings(
     }
 
     LaunchedEffect(playbackState) {
-        if (playbackState == STATE_READY) {
+        if (playbackState == PlaybackState.READY) {
             while (isActive) {
                 delay(100)
                 position = playerConnection.player.currentPosition

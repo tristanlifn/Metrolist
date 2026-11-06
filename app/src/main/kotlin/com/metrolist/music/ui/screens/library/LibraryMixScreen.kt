@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -650,7 +651,7 @@ fun LibraryMixScreen(
                                                         playerConnection.playQueue(
                                                             ListQueue(
                                                                 title = queueSearchedSongsStr,
-                                                                items = filteredSongs.map { it.toMediaItem() },
+                                                                items = filteredSongs.map { it.toMediaMetadata() },
                                                                 startIndex = filteredSongs.indexOfFirst { it.id == item.id },
                                                             ),
                                                         )
@@ -958,7 +959,7 @@ fun LibraryMixScreen(
                                                         playerConnection.playQueue(
                                                             ListQueue(
                                                                 title = queueSearchedSongsStr,
-                                                                items = filteredSongs.map { it.toMediaItem() },
+                                                                items = filteredSongs.map { it.toMediaMetadata() },
                                                                 startIndex = filteredSongs.indexOfFirst { it.id == item.id },
                                                             ),
                                                         )

@@ -5,8 +5,6 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
-import com.metrolist.music.extensions.metadata
 import com.metrolist.music.models.MediaMetadata
 
 interface Queue {
@@ -16,22 +14,22 @@ interface Queue {
 
     fun hasNextPage(): Boolean
 
-    suspend fun nextPage(): List<MediaItem>
+    suspend fun nextPage(): List<MediaMetadata>
 
     data class Status(
         val title: String?,
-        val items: List<MediaItem>,
+        val items: List<MediaMetadata>,
         val mediaItemIndex: Int,
         val position: Long = 0L,
     ) {
         fun filterExplicit(enabled: Boolean = true) =
-            if (enabled) filterItems { it.metadata?.explicit != true } else this
+            if (enabled) filterItems { !it.explicit } else this
 
         fun filterVideoSongs(disableVideos: Boolean = false) =
-            if (disableVideos) filterItems { it.metadata?.isVideoSong != true } else this
+            if (disableVideos) filterItems { !it.isVideoSong } else this
 
         // Keeps mediaItemIndex on the same song; if that song is removed, starts at the next kept one.
-        private fun filterItems(keep: (MediaItem) -> Boolean): Status {
+        private fun filterItems(keep: (MediaMetadata) -> Boolean): Status {
             val filtered = items.filter(keep)
             if (filtered.size == items.size) return this
             val start = items.getOrNull(mediaItemIndex)
@@ -45,18 +43,18 @@ interface Queue {
     }
 }
 
-fun List<MediaItem>.filterExplicit(enabled: Boolean = true) =
+fun List<MediaMetadata>.filterExplicit(enabled: Boolean = true) =
     if (enabled) {
         filterNot {
-            it.metadata?.explicit == true
+            it.explicit
         }
     } else {
         this
     }
 
-fun List<MediaItem>.filterVideoSongs(disableVideos: Boolean = false) =
+fun List<MediaMetadata>.filterVideoSongs(disableVideos: Boolean = false) =
     if (disableVideos) {
-        filterNot { it.metadata?.isVideoSong == true }
+        filterNot { it.isVideoSong }
     } else {
         this
     }

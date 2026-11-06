@@ -84,6 +84,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import timber.log.Timber
 import androidx.media3.exoplayer.offline.Download
@@ -617,7 +618,7 @@ fun AutoPlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist,
-                                                        items = songs!!.map { it.toMediaItem() },
+                                                        items = songs!!.map { it.toMediaMetadata() },
                                                         startIndex = songs!!.indexOfFirst { it.id == song.id },
                                                     ),
                                                 )
@@ -930,7 +931,7 @@ private fun AutoPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = name,
-                            items = songs.shuffled().map { it.toMediaItem() },
+                            items = songs.shuffled().map { it.toMediaMetadata() },
                         ),
                     )
                 },
@@ -956,7 +957,7 @@ private fun AutoPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = name,
-                            items = songs.map { it.toMediaItem() },
+                            items = songs.map { it.toMediaMetadata() },
                         ),
                     )
                 },
@@ -985,7 +986,7 @@ private fun AutoPlaylistHeader(
                             downloadState = downloadState,
                             onQueue = {
                                 playerConnection.addToQueue(
-                                    songs.map { it.toMediaItem() },
+                                    songs.map { it.toMediaMetadata() },
                                 )
                             },
                             onDownload = {

@@ -94,6 +94,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.content.FileProvider
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
@@ -671,7 +672,7 @@ fun LocalPlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist!!.playlist.name,
-                                                        items = songs.map { it.song.toMediaItem() },
+                                                        items = songs.map { it.song.toMediaMetadata() },
                                                         startIndex = songs.indexOfFirst { it.map.id == song.map.id },
                                                     ),
                                                 )
@@ -1331,7 +1332,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.song.toMediaItem() },
+                            items = songs.shuffled().map { it.song.toMediaMetadata() },
                         ),
                     )
                 },
@@ -1357,7 +1358,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaItem() },
+                            items = songs.map { it.song.toMediaMetadata() },
                         ),
                     )
                 },
@@ -1426,7 +1427,7 @@ fun LocalPlaylistHeader(
                             },
                             onQueue = {
                                 playerConnection.addToQueue(
-                                    items = songs.map { it.song.toMediaItem() },
+                                    items = songs.map { it.song.toMediaMetadata() },
                                 )
                             },
                             onDismiss = { menuState.dismiss() },

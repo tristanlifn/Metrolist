@@ -829,7 +829,7 @@ fun HomeScreen(
                                                 } else {
                                                     ListQueue(
                                                         title = it.title,
-                                                        items = listOf(it.toMediaItem())
+                                                        items = listOf(it.toMediaMetadata())
                                                     )
                                                 }
                                             )
@@ -934,7 +934,7 @@ fun HomeScreen(
                                             } else {
                                                 ListQueue(
                                                     title = item.title,
-                                                    items = listOf(item.toMediaItem())
+                                                    items = listOf(item.toMediaMetadata())
                                                 )
                                             }
                                         )
@@ -962,7 +962,7 @@ fun HomeScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = item.title,
-                                                items = listOf(item.toMediaMetadata().toMediaItem()),
+                                                items = listOf(item.toMediaMetadata()),
                                             ),
                                         )
                                     }
@@ -1519,7 +1519,7 @@ fun HomeScreen(
                                                                                                         } else {
                                                                                                             ListQueue(
                                                                                                                 title = randomItem.title,
-                                                                                                                items = listOf(randomItem.toMediaItem())
+                                                                                                                items = listOf(randomItem.toMediaMetadata())
                                                                                                             )
                                                                                                         }
                                                                                                     )
@@ -1556,8 +1556,7 @@ fun HomeScreen(
                                                                                                             items =
                                                                                                                 listOf(
                                                                                                                     randomItem
-                                                                                                                        .toMediaMetadata()
-                                                                                                                        .toMediaItem(),
+                                                                                                                        .toMediaMetadata(),
                                                                                                                 ),
                                                                                                         ),
                                                                                                     )
@@ -1609,7 +1608,7 @@ fun HomeScreen(
                                                                                                         } else {
                                                                                                             ListQueue(
                                                                                                                 title = item.title,
-                                                                                                                items = listOf(item.toMediaItem())
+                                                                                                                items = listOf(item.toMediaMetadata())
                                                                                                             )
                                                                                                         }
                                                                                                     )
@@ -1656,8 +1655,7 @@ fun HomeScreen(
                                                                                                             items =
                                                                                                                 listOf(
                                                                                                                     item
-                                                                                                                        .toMediaMetadata()
-                                                                                                                        .toMediaItem(),
+                                                                                                                        .toMediaMetadata(),
                                                                                                                 ),
                                                                                                         ),
                                                                                                     )
@@ -1773,7 +1771,7 @@ fun HomeScreen(
                                                     playerConnection.playQueue(
                                                         ListQueue(
                                                             title = quickPicksTitle,
-                                                            items = quickPicks.distinctBy { it.id }.map { it.toMediaItem() },
+                                                            items = quickPicks.distinctBy { it.id }.map { it.toMediaMetadata() },
                                                         ),
                                                     )
                                                 }
@@ -1846,7 +1844,7 @@ fun HomeScreen(
                                                                             } else {
                                                                                 ListQueue(
                                                                                     title = song!!.title,
-                                                                                    items = listOf(song!!.toMediaItem())
+                                                                                    items = listOf(song!!.toMediaMetadata())
                                                                                 )
                                                                             }
                                                                         )
@@ -1922,7 +1920,7 @@ fun HomeScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = title,
-                                                        items = queueItems.map { it.toMediaItem() },
+                                                        items = queueItems,
                                                     ),
                                                 )
                                             }
@@ -1966,7 +1964,7 @@ fun HomeScreen(
                                                                 } else {
                                                                     ListQueue(
                                                                         title = song.title,
-                                                                        items = listOf(song.toMediaItem())
+                                                                        items = listOf(song.toMediaMetadata())
                                                                     )
                                                                 }
                                                             )
@@ -2091,7 +2089,7 @@ fun HomeScreen(
                                                     playerConnection.playQueue(
                                                         ListQueue(
                                                             title = forgottenFavoritesTitle,
-                                                            items = forgottenFavorites.distinctBy { it.id }.map { it.toMediaItem() },
+                                                            items = forgottenFavorites.distinctBy { it.id }.map { it.toMediaMetadata() },
                                                         ),
                                                     )
                                                 }
@@ -2169,7 +2167,7 @@ fun HomeScreen(
                                                                             } else {
                                                                                 ListQueue(
                                                                                     title = song!!.title,
-                                                                                    items = listOf(song!!.toMediaItem())
+                                                                                    items = listOf(song!!.toMediaMetadata())
                                                                                 )
                                                                             }
                                                                         )
@@ -2329,7 +2327,7 @@ fun HomeScreen(
                                                     playerConnection.playQueue(
                                                         ListQueue(
                                                             title = sectionData.title,
-                                                            items = sectionSongs.map { it.toMediaMetadata().toMediaItem() },
+                                                            items = sectionSongs.map { it.toMediaMetadata() },
                                                         ),
                                                     )
                                                 }
@@ -2395,7 +2393,7 @@ fun HomeScreen(
                                                                             } else {
                                                                                 ListQueue(
                                                                                     title = song.title,
-                                                                                    items = listOf(song.toMediaItem())
+                                                                                    items = listOf(song.toMediaMetadata())
                                                                                 )
                                                                             }
                                                                         )
@@ -2595,7 +2593,7 @@ fun HomeScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = luckyItem.title,
-                                                items = listOf(luckyItem.toMediaMetadata().toMediaItem()),
+                                                items = listOf(luckyItem.toMediaMetadata()),
                                             ),
                                         )
                                     }

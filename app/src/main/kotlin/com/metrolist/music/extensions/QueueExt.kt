@@ -9,6 +9,7 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.PersistQueue
 import com.metrolist.music.models.QueueData
 import com.metrolist.music.models.QueueType
+import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.LocalAlbumRadio
 import com.metrolist.music.playback.queues.Queue
@@ -82,7 +83,7 @@ fun PersistQueue.toQueue(): Queue {
     return when (queueType) {
         is QueueType.LIST -> ListQueue(
             title = title,
-            items = items.map { it.toMediaItem() },
+            items = items,
             startIndex = mediaItemIndex,
             position = position
         )
@@ -90,7 +91,7 @@ fun PersistQueue.toQueue(): Queue {
             // For now, fallback to ListQueue since we can't reconstruct YouTubeQueue properly
             ListQueue(
                 title = title,
-                items = items.map { it.toMediaItem() },
+                items = items,
                 startIndex = mediaItemIndex,
                 position = position
             )
@@ -99,7 +100,7 @@ fun PersistQueue.toQueue(): Queue {
             // For now, fallback to ListQueue since we can't reconstruct YouTubeAlbumRadio properly
             ListQueue(
                 title = title,
-                items = items.map { it.toMediaItem() },
+                items = items,
                 startIndex = mediaItemIndex,
                 position = position
             )
@@ -108,7 +109,7 @@ fun PersistQueue.toQueue(): Queue {
             // For now, fallback to ListQueue since we can't reconstruct LocalAlbumRadio properly
             ListQueue(
                 title = title,
-                items = items.map { it.toMediaItem() },
+                items = items,
                 startIndex = mediaItemIndex,
                 position = position
             )

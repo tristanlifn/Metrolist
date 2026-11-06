@@ -592,7 +592,7 @@ fun ArtistScreen(
                                                         playerConnection.playQueue(
                                                             ListQueue(
                                                                 title = displayArtistName ?: "Unknown Artist",
-                                                                items = librarySongs.map { it.toMediaItem() },
+                                                                items = librarySongs.map { it.toMediaMetadata() },
                                                                 startIndex = index,
                                                             ),
                                                         )
@@ -911,7 +911,7 @@ fun ArtistScreen(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = displayArtistName ?: "Unknown Artist",
-                                        items = librarySongs.map { it.toMediaItem() },
+                                        items = librarySongs.map { it.toMediaMetadata() },
                                     ),
                                 )
                             }
@@ -927,7 +927,7 @@ fun ArtistScreen(
                                     val result = YouTube.artistItems(moreEndpoint).getOrNull()
                                     withContext(kotlinx.coroutines.Dispatchers.Main) {
                                         if (result != null && result.items.isNotEmpty()) {
-                                            val songs = result.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                                            val songs = result.items.filterIsInstance<SongItem>().map { it.toMediaMetadata() }
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = displayArtistName ?: artistPage.artist.title,
@@ -936,7 +936,7 @@ fun ArtistScreen(
                                             )
                                         } else {
                                             // Fallback to loaded items
-                                            val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                                            val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaMetadata() }
                                             if (songs.isNotEmpty()) {
                                                 playerConnection.playQueue(
                                                     ListQueue(
@@ -950,7 +950,7 @@ fun ArtistScreen(
                                 }
                             } else if (songSection != null) {
                                 // Use loaded items if no more endpoint
-                                val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                                val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaMetadata() }
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = displayArtistName ?: artistPage.artist.title,

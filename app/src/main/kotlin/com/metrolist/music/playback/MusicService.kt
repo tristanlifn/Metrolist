@@ -1825,35 +1825,37 @@ class MusicService :
             player.playWhenReady = playWhenReady
         }
         scope.launch(SilentHandler) {
-            val initialStatus =
+            val (initialStatus, initialItems) =
                 withContext(Dispatchers.IO) {
-                    queue
-                        .getInitialStatus()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    val status =
+                        queue
+                            .getInitialStatus()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    status to status.items.map { it.toMediaItem() }
                 }
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-                onSessionTitleResolved(sessionId, initialStatus.title)
+            initialStatus.title?.let { title ->
+                queueTitle = title
+                onSessionTitleResolved(sessionId, title)
             }
-            if (initialStatus.items.isEmpty()) return@launch
+            if (initialItems.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
-            originalQueueSize = initialStatus.items.size
+            originalQueueSize = initialItems.size
             if (queue.preloadItem != null) {
                 player.addMediaItems(
                     0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex),
+                    initialItems.subList(0, initialStatus.mediaItemIndex),
                 )
                 player.addMediaItems(
-                    initialStatus.items.subList(
+                    initialItems.subList(
                         initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size,
+                        initialItems.size,
                     ),
                 )
             } else {
                 player.setMediaItems(
-                    initialStatus.items,
+                    initialItems,
                     if (initialStatus.mediaItemIndex >
                         0
                     ) {
@@ -1949,7 +1951,7 @@ class MusicService :
         val items = target.items.map { it.toMediaItem() }
         val index = target.mediaItemIndex.coerceIn(0, items.lastIndex)
         clearAutomix()
-        currentQueue = target.liveQueue ?: ListQueue(target.title, items, index, target.position)
+        currentQueue = target.liveQueue ?: ListQueue(target.title, target.items, index, target.position)
         queueTitle = target.title
         originalQueueSize = 0
         player.setMediaItems(items, index, target.position)
@@ -2028,22 +2030,17 @@ class MusicService :
                 )
 
             try {
-                val initialStatus =
+                val (initialStatus, radioItems) =
                     withContext(Dispatchers.IO) {
-                        radioQueue
-                            .getInitialStatus()
-                            .filterExplicit(dataStore.get(HideExplicitKey, false))
-                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                        val status =
+                            radioQueue
+                                .getInitialStatus()
+                                .filterExplicit(dataStore.get(HideExplicitKey, false))
+                                .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                        status to status.items.filter { it.id != currentMediaId }.map { it.toMediaItem() }
                     }
 
-                if (initialStatus.title != null) {
-                    queueTitle = initialStatus.title
-                }
-
-                val radioItems =
-                    initialStatus.items.filter { item ->
-                        item.mediaId != currentMediaId
-                    }
+                initialStatus.title?.let { queueTitle = it }
 
                 if (radioItems.isNotEmpty()) {
                     val itemCount = player.mediaItemCount
@@ -2075,9 +2072,10 @@ class MusicService :
                             val radioItems =
                                 songs
                                     .filter { it.id != currentMediaId }
-                                    .map { it.toMediaItem() }
+                                    .map { it.toMediaMetadata() }
                                     .filterExplicit(cachedHideExplicit)
                                     .filterVideoSongs(cachedHideVideoSongs)
+                                    .map { it.toMediaItem() }
 
                             if (radioItems.isNotEmpty()) {
                                 val itemCount = player.mediaItemCount
@@ -2754,6 +2752,7 @@ class MusicService :
                             .nextPage()
                             .filterExplicit(cachedHideExplicit)
                             .filterVideoSongs(cachedHideVideoSongs)
+                            .map { it.toMediaItem() }
                     }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
@@ -4658,7 +4657,7 @@ class MusicService :
                 val playlistName = database.playlist(targetId).first()?.playlist?.name ?: targetTitle
                 ListQueue(
                     title = playlistName,
-                    items = songs.map { it.song.toMediaItem() },
+                    items = songs.map { it.song.toMediaMetadata() },
                 )
             }
 
@@ -4669,7 +4668,7 @@ class MusicService :
                 if (cachedSongs.isNotEmpty()) {
                     ListQueue(
                         title = cachedPlaylist?.playlist?.name ?: targetTitle,
-                        items = cachedSongs.map { it.song.toMediaItem() },
+                        items = cachedSongs.map { it.song.toMediaMetadata() },
                     )
                 } else {
                     YouTubePlaylistQueue(
@@ -4684,7 +4683,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.liked_songs),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4693,7 +4692,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.downloaded_songs),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4703,7 +4702,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.my_top),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4758,7 +4757,7 @@ class MusicService :
                     }
                     return@launch
                 }
-                val items = playlistSongs.map { it.song.toMediaItem() }
+                val items = playlistSongs.map { it.song.toMediaMetadata() }
                 val playlistName =
                     withContext(Dispatchers.IO) {
                         database

@@ -379,7 +379,7 @@ fun HistoryScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = dateTitle,
-                                                        items = dateEvents.map { it.song.toMediaItem() },
+                                                        items = dateEvents.map { it.song.toMediaMetadata() },
                                                         startIndex = index,
                                                     ),
                                                 )
@@ -417,7 +417,7 @@ fun HistoryScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = historyTitle,
-                                items = songs.map { it.toMediaItem() }.shuffled(),
+                                items = songs.map { it.toMediaMetadata() }.shuffled(),
                             ),
                         )
                     }
@@ -425,7 +425,7 @@ fun HistoryScreen(
                     playerConnection.playQueue(
                         ListQueue(
                             title = historyTitle,
-                            items = allEvents.map { it.song.toMediaItem() }.shuffled(),
+                            items = allEvents.map { it.song.toMediaMetadata() }.shuffled(),
                         ),
                     )
                 }

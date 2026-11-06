@@ -319,7 +319,7 @@ fun OnlineSearchResult(
                                             } else {
                                                 ListQueue(
                                                     title = item.title,
-                                                    items = listOf(item.toMediaItem())
+                                                    items = listOf(item.toMediaMetadata())
                                                 )
                                             }
                                         )

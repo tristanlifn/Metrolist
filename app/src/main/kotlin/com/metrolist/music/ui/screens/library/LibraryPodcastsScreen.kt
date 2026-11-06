@@ -54,6 +54,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -435,7 +436,7 @@ fun LibraryPodcastsScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = downloadedEpisodesStr,
-                                                    items = downloadedEpisodes.map { it.toMediaItem() },
+                                                    items = downloadedEpisodes.map { it.toMediaMetadata() },
                                                     startIndex = index,
                                                 ),
                                             )
@@ -471,7 +472,7 @@ fun LibraryPodcastsScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = downloadedEpisodesStr,
-                                items = downloadedEpisodes.shuffled().map { it.toMediaItem() },
+                                items = downloadedEpisodes.shuffled().map { it.toMediaMetadata() },
                             ),
                         )
                     },

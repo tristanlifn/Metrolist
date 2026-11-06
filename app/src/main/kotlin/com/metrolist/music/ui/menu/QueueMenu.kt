@@ -349,9 +349,9 @@ fun QueueMenu(
                         onClick = {
                             onDismiss()
                             librarySong?.let {
-                                playerConnection.playNext(it.toMediaItem())
+                                playerConnection.playNext(it.toMediaMetadata())
                             } ?: run {
-                                playerConnection.playNext(mediaMetadata.toMediaItem())
+                                playerConnection.playNext(mediaMetadata)
                             }
                         }
                     ),
@@ -367,9 +367,9 @@ fun QueueMenu(
                         onClick = {
                             onDismiss()
                             librarySong?.let {
-                                playerConnection.addToQueue(it.toMediaItem())
+                                playerConnection.addToQueue(it.toMediaMetadata())
                             } ?: run {
-                                playerConnection.addToQueue(mediaMetadata.toMediaItem())
+                                playerConnection.addToQueue(mediaMetadata)
                             }
                         }
                     ),

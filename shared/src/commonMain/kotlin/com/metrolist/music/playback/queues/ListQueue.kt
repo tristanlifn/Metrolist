@@ -5,12 +5,11 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
 import com.metrolist.music.models.MediaMetadata
 
 class ListQueue(
     val title: String? = null,
-    val items: List<MediaItem>,
+    val items: List<MediaMetadata>,
     val startIndex: Int = 0,
     val position: Long = 0L,
 ) : Queue {

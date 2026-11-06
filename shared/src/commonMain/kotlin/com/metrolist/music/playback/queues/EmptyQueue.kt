@@ -5,7 +5,6 @@
 
 package com.metrolist.music.playback.queues
 
-import androidx.media3.common.MediaItem
 import com.metrolist.music.models.MediaMetadata
 
 object EmptyQueue : Queue {
@@ -15,5 +14,5 @@ object EmptyQueue : Queue {
 
     override fun hasNextPage() = false
 
-    override suspend fun nextPage() = emptyList<MediaItem>()
+    override suspend fun nextPage() = emptyList<MediaMetadata>()
 }

@@ -200,7 +200,7 @@ fun OnlinePodcastScreen(
                                             playerConnection.togglePlayPause()
                                         } else {
                                             Timber.d("Playing episode: ${episode.title}, index: $index, total episodes: ${filteredEpisodes.size}")
-                                            val mediaItems = filteredEpisodes.map { it.toMediaMetadata().toMediaItem() }
+                                            val mediaItems = filteredEpisodes.map { it.toMediaMetadata() }
                                             Timber.d("Created ${mediaItems.size} media items for queue")
                                             playerConnection.playQueue(
                                                 ListQueue(

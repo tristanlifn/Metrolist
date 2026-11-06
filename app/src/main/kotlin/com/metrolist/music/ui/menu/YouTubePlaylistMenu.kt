@@ -503,7 +503,7 @@ fun YouTubePlaylistMenu(
                                                     songs.map {
                                                         it
                                                             .copy(thumbnail = it.thumbnail.resize(544, 544))
-                                                            .toMediaItem()
+                                                            .toMediaMetadata()
                                                     },
                                                 )
                                             }
@@ -537,7 +537,7 @@ fun YouTubePlaylistMenu(
                                                         .orEmpty()
                                                 }
                                             }.let { songs ->
-                                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                playerConnection.addToQueue(songs.map { it.toMediaMetadata() })
                                             }
                                     }
                                     onDismiss()
