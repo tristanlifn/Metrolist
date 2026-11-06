@@ -79,7 +79,7 @@ class LyricsMenuViewModel(
         lyricsEntity: LyricsEntity?,
     ) {
         database.query {
-            lyricsEntity?.let(::delete)
+            lyricsEntity?.let { delete(it) }
             val lyricsWithProvider =
                 runBlocking {
                     lyricsHelper.getLyrics(mediaMetadata)

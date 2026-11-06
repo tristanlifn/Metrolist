@@ -25,7 +25,6 @@ val workflowDebugKeystoreFile = debugKeystorePathOverride?.let(::file)
 
 plugins {
     id("com.android.application")
-    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.protobuf)
@@ -226,10 +225,6 @@ tasks.named("preBuild") {
     dependsOn(cleanLegacyProtoSources)
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.addAll(
@@ -291,14 +286,12 @@ dependencies {
     "gmsImplementation"(libs.mediarouter)
     "gmsImplementation"(libs.cast.framework)
 
-    implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
     implementation(libs.tinypinyin)
-    ksp(libs.room.compiler)
 
     implementation(libs.koin.android)
 
-    implementation(project(":innertube"))
+    implementation(project(":shared"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)

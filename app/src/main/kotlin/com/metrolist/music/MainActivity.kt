@@ -653,7 +653,7 @@ class MainActivity : FragmentActivity() {
                                             .build(),
                                     )
                                 val extractedColor = result.image?.toBitmap()?.extractThemeColor() ?: selectedThemeColor
-                                themeColorCache[song.thumbnailUrl] = extractedColor
+                                song.thumbnailUrl?.let { themeColorCache[it] = extractedColor }
                                 withFrameNanos { }
                                 themeColor = extractedColor
                             } catch (e: Exception) {

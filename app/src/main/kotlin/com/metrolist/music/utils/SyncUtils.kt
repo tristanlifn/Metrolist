@@ -28,6 +28,7 @@ import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.db.entities.SetVideoIdEntity
 import com.metrolist.music.db.entities.SongEntity
+import com.metrolist.music.db.openHelper
 import com.metrolist.music.extensions.collectLatest
 import com.metrolist.music.extensions.isInternetConnected
 import com.metrolist.music.extensions.isSyncEnabled
@@ -271,10 +272,10 @@ class SyncUtils(
     private fun isPlaylistBeingModified(playlistId: String): Boolean =
         (playlistsBeingModified[playlistId]?.get() ?: 0) > 0
 
-    private fun findSongIdsWithoutArtists(songIds: Collection<String>): Set<String> =
+    private suspend fun findSongIdsWithoutArtists(songIds: Collection<String>): Set<String> =
         songIds
             .chunked(DB_QUERY_BATCH_SIZE)
-            .flatMap(database::songIdsWithoutArtists)
+            .flatMap { database.songIdsWithoutArtists(it) }
             .toSet()
 
     private suspend fun runQueuedPlaylistEdit(block: suspend () -> Unit) {
@@ -652,9 +653,9 @@ class SyncUtils(
         return tables
     }
 
-    private fun safeDeleteTable(tableName: String) {
+    private suspend fun safeDeleteTable(tableName: String) {
         try {
-            database.raw(androidx.sqlite.db.SimpleSQLiteQuery("DELETE FROM $tableName"))
+            database.raw(androidx.room.RoomRawQuery("DELETE FROM $tableName"))
             Timber.d("[LOGOUT_CLEAR] Cleared table: $tableName")
         } catch (e: Exception) {
             Timber.w("[LOGOUT_CLEAR] Table $tableName error: ${e.message}")
@@ -1592,7 +1593,7 @@ class SyncUtils(
                         val setVideoIdRepairs = setVideoIdBackfills(localSongs, songs.map { it.setVideoId })
                         if (metadataRepairs.isNotEmpty() || setVideoIdRepairs.isNotEmpty()) {
                             database.withTransaction {
-                                metadataRepairs.forEach(::insert)
+                                metadataRepairs.forEach { insert(it) }
                                 setVideoIdRepairs.forEach { database.update(it) }
                             }
                         }
@@ -1610,7 +1611,7 @@ class SyncUtils(
 
                     database.withTransaction {
                         database.clearPlaylist(playlistId)
-                        metadataInserts.forEach(database::insert)
+                        metadataInserts.forEach { database.insert(it) }
 
                         val playlistEntity = database.playlistBlocking(playlistId)
                         if (playlistEntity != null) {

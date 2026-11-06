@@ -80,6 +80,8 @@ cast-framework = { module = "com.google.android.gms:play-services-cast-framework
 
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.6.2" }
+compose-runtime-annotation = { module = "androidx.compose.runtime:runtime-annotation", version.ref = "compose" }
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
@@ -100,6 +102,7 @@ desugaring = { module = "com.android.tools:desugar_jdk_libs_nio", version.ref = 
 junit = { module = "junit:junit", version.ref = "junit" }
 
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+core-ktx = { module = "androidx.core:core-ktx", version = "1.18.0" }
 
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex", version.ref = "innertubex" }
 

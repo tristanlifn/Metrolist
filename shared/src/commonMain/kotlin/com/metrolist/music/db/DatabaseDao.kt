@@ -16,7 +16,7 @@ import androidx.room.RoomWarnings
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import androidx.sqlite.db.SupportSQLiteQuery
+import androidx.room.RoomRawQuery
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.pages.AlbumPage
@@ -52,7 +52,6 @@ import com.metrolist.music.db.entities.SongArtistMap
 import com.metrolist.music.db.entities.SongEntity
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.extensions.reversed
-import com.metrolist.music.extensions.toSQLiteQuery
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.ui.utils.resize
@@ -606,7 +605,7 @@ interface DatabaseDao {
     fun getTotalPlayTimeInRange(fromTimeStamp: LocalDateTime, toTimeStamp: LocalDateTime): Flow<Long?>
 
     @Query("SELECT SUM(playTime) FROM event WHERE songId = :songId")
-    fun getTotalPlayTimeForSong(songId: String): Long?
+    suspend fun getTotalPlayTimeForSong(songId: String): Long?
 
     @Query("SELECT COUNT(DISTINCT songId) FROM event WHERE timestamp >= :fromTimeStamp AND timestamp <= :toTimeStamp")
     fun getUniqueSongCountInRange(fromTimeStamp: LocalDateTime, toTimeStamp: LocalDateTime): Flow<Int>
@@ -687,7 +686,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE id = :songId LIMIT 1")
-    fun getSongByIdBlocking(songId: String): Song?
+    suspend fun getSongByIdBlocking(songId: String): Song?
 
     @Transaction
     @Query("SELECT * FROM song WHERE id IN (:songIds)")
@@ -703,7 +702,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song_artist_map WHERE songId = :songId")
-    fun songArtistMap(songId: String): List<SongArtistMap>
+    suspend fun songArtistMap(songId: String): List<SongArtistMap>
 
     @Query(
         """
@@ -714,7 +713,7 @@ interface DatabaseDao {
           )
         """,
     )
-    fun songIdsWithoutArtists(songIds: List<String>): List<String>
+    suspend fun songIdsWithoutArtists(songIds: List<String>): List<String>
 
     @Transaction
     @Query("SELECT * FROM song")
@@ -1090,7 +1089,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM album_artist_map WHERE albumId = :albumId")
-    fun albumArtistMaps(albumId: String): List<AlbumArtistMap>
+    suspend fun albumArtistMaps(albumId: String): List<AlbumArtistMap>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
@@ -1151,16 +1150,16 @@ interface DatabaseDao {
     ): List<String>
 
     @Query("UPDATE playlist SET lastUpdateTime = :now WHERE id = :playlistId")
-    fun updatePlaylistLastUpdated(
+    suspend fun updatePlaylistLastUpdated(
         playlistId: String,
         now: LocalDateTime = LocalDateTime.now(),
     )
 
     @Query("UPDATE playlist_song_map SET position = position + :delta WHERE playlistId = :playlistId")
-    fun shiftPlaylistSongPositions(playlistId: String, delta: Int)
+    suspend fun shiftPlaylistSongPositions(playlistId: String, delta: Int)
 
     @Query("SELECT COALESCE(MAX(position) + 1, 0) FROM playlist_song_map WHERE playlistId = :playlistId")
-    fun nextPlaylistSongPosition(playlistId: String): Int
+    suspend fun nextPlaylistSongPosition(playlistId: String): Int
 
     // This prevents songs from being removed during automatic playlist synchronization
     @Transaction
@@ -1237,14 +1236,14 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId ORDER BY position")
-    fun playlistSongsBlocking(playlistId: String): List<PlaylistSong>
+    suspend fun playlistSongsBlocking(playlistId: String): List<PlaylistSong>
 
     @Transaction
     @Query(
         "SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) " +
                 "AS songCount FROM playlist WHERE id = :playlistId"
     )
-    fun playlistBlocking(playlistId: String): Playlist?
+    suspend fun playlistBlocking(playlistId: String): Playlist?
     @Transaction
     @Query("SELECT * FROM song WHERE isDownloaded = 1 AND (isEpisode = 0 OR isEpisode IS NULL) ORDER BY dateDownload")
     fun downloadedSongsByCreateDateAsc(): Flow<List<Song>>
@@ -1258,13 +1257,13 @@ interface DatabaseDao {
     fun downloadedSongsByPlayTimeAsc(): Flow<List<Song>>
 
     @Query("UPDATE song SET isDownloaded = :downloaded, dateDownload = :date WHERE id = :songId")
-    fun updateDownloadedInfo(songId: String, downloaded: Boolean, date: LocalDateTime?)
+    suspend fun updateDownloadedInfo(songId: String, downloaded: Boolean, date: LocalDateTime?)
 
     @Query("UPDATE song SET playbackPosition = :position WHERE id = :songId")
-    fun updatePlaybackPosition(songId: String, position: Long?)
+    suspend fun updatePlaybackPosition(songId: String, position: Long?)
 
     @Query("SELECT playbackPosition FROM song WHERE id = :songId")
-    fun getPlaybackPosition(songId: String): Long?
+    suspend fun getPlaybackPosition(songId: String): Long?
 
     @Transaction
     @Query("SELECT * FROM song WHERE isUploaded = 1 ORDER BY dateDownload")
@@ -1513,7 +1512,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("DELETE FROM event")
-    fun clearListenHistory()
+    suspend fun clearListenHistory()
 
     @Transaction
     @Query("SELECT * FROM search_history WHERE `query` LIKE :query || '%' ORDER BY id DESC")
@@ -1521,7 +1520,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("DELETE FROM search_history")
-    fun clearSearchHistory()
+    suspend fun clearSearchHistory()
 
     // Recognition History
     @Transaction
@@ -1530,28 +1529,28 @@ interface DatabaseDao {
 
     @Transaction
     @Query("DELETE FROM recognition_history")
-    fun clearRecognitionHistory()
+    suspend fun clearRecognitionHistory()
 
     @Transaction
     @Query("DELETE FROM recognition_history WHERE id = :id")
-    fun deleteRecognitionHistoryById(id: Long)
+    suspend fun deleteRecognitionHistoryById(id: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(recognitionHistory: RecognitionHistory): Long
+    suspend fun insert(recognitionHistory: RecognitionHistory): Long
 
     @Delete
-    fun delete(recognitionHistory: RecognitionHistory)
+    suspend fun delete(recognitionHistory: RecognitionHistory)
 
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
-    fun incrementTotalPlayTime(songId: String, playTime: Long)
+    suspend fun incrementTotalPlayTime(songId: String, playTime: Long)
 
     @Query("UPDATE playCount SET count = count + 1 WHERE song = :songId AND year = :year AND month = :month")
-    fun incrementPlayCount(songId: String, year: Int, month: Int)
+    suspend fun incrementPlayCount(songId: String, year: Int, month: Int)
 
     /**
      * Increment by one the play count with today's year and month.
      */
-    fun incrementPlayCount(songId: String) {
+    suspend fun incrementPlayCount(songId: String) {
         val time = LocalDateTime.now().atOffset(ZoneOffset.UTC)
         var oldCount: Int
         runBlocking {
@@ -1567,14 +1566,14 @@ interface DatabaseDao {
 
     @Transaction
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId")
-    fun inLibrary(
+    suspend fun inLibrary(
         songId: String,
         inLibrary: LocalDateTime?,
     )
 
     @Transaction
     @Query("UPDATE song SET libraryAddToken = :libraryAddToken, libraryRemoveToken = :libraryRemoveToken WHERE id = :songId")
-    fun addLibraryTokens(
+    suspend fun addLibraryTokens(
         songId: String,
         libraryAddToken: String?,
         libraryRemoveToken: String?,
@@ -1582,7 +1581,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT COUNT(1) FROM related_song_map WHERE songId = :songId LIMIT 1")
-    fun hasRelatedSongs(songId: String): Boolean
+    suspend fun hasRelatedSongs(songId: String): Boolean
 
     @Transaction
     @Query(
@@ -1603,7 +1602,7 @@ interface DatabaseDao {
         WHERE songId = :songId
         """
     )
-    fun relatedSongs(songId: String): List<Song>
+    suspend fun relatedSongs(songId: String): List<Song>
 
     @Transaction
     @Query(
@@ -1617,7 +1616,7 @@ interface DatabaseDao {
         WHERE playlistId = :playlistId AND position BETWEEN MIN(:fromPosition, :toPosition) AND MAX(:fromPosition, :toPosition)
     """,
     )
-    fun move(
+    suspend fun move(
         playlistId: String,
         fromPosition: Int,
         toPosition: Int,
@@ -1625,41 +1624,41 @@ interface DatabaseDao {
 
     @Transaction
     @Query("DELETE FROM playlist_song_map WHERE playlistId = :playlistId")
-    fun clearPlaylist(playlistId: String)
+    suspend fun clearPlaylist(playlistId: String)
 
     @Transaction
     @Query("SELECT * FROM artist WHERE name = :name")
-    fun artistByName(name: String): ArtistEntity?
+    suspend fun artistByName(name: String): ArtistEntity?
 
     @Query("SELECT * FROM artist WHERE id = :id LIMIT 1")
-    fun getArtistById(id: String): ArtistEntity?
+    suspend fun getArtistById(id: String): ArtistEntity?
 
     // Writes the one column rather than the whole row: callers reach this holding an artist that
     // came from a relation, and those do not carry cachedPageJson.
     @Query("UPDATE artist SET thumbnailUrl = :thumbnailUrl WHERE id = :artistId")
-    fun updateArtistThumbnail(artistId: String, thumbnailUrl: String)
+    suspend fun updateArtistThumbnail(artistId: String, thumbnailUrl: String)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(song: SongEntity): Long
+    suspend fun insert(song: SongEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(artist: ArtistEntity)
+    suspend fun insert(artist: ArtistEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(album: AlbumEntity): Long
+    suspend fun insert(album: AlbumEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(playlist: PlaylistEntity)
+    suspend fun insert(playlist: PlaylistEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(map: SongArtistMap)
+    suspend fun insert(map: SongArtistMap)
 
     @Transaction
-    fun replaceSongArtists(
+    suspend fun replaceSongArtists(
         songId: String,
         artists: List<ArtistEntity>,
     ) {
-        songArtistMap(songId).forEach(::delete)
+        songArtistMap(songId).forEach { delete(it) }
         artists.distinctBy { it.id }.forEachIndexed { index, artist ->
             insert(artist)
             insert(
@@ -1673,31 +1672,31 @@ interface DatabaseDao {
     }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(map: SongAlbumMap)
+    suspend fun insert(map: SongAlbumMap)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(map: AlbumArtistMap)
+    suspend fun insert(map: AlbumArtistMap)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(map: PlaylistSongMap)
+    suspend fun insert(map: PlaylistSongMap)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(searchHistory: SearchHistory)
+    suspend fun insert(searchHistory: SearchHistory)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(event: Event)
+    suspend fun insert(event: Event)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(map: RelatedSongMap)
+    suspend fun insert(map: RelatedSongMap)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(playCountEntity: PlayCountEntity): Long
+    suspend fun insert(playCountEntity: PlayCountEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(setVideoIdEntity: SetVideoIdEntity)
+    suspend fun insert(setVideoIdEntity: SetVideoIdEntity)
 
     @Transaction
-    fun insert(
+    suspend fun insert(
         mediaMetadata: MediaMetadata,
         block: (SongEntity) -> SongEntity = { it },
     ) {
@@ -1726,7 +1725,7 @@ interface DatabaseDao {
     }
 
     @Transaction
-    fun insert(albumPage: AlbumPage) {
+    suspend fun insert(albumPage: AlbumPage) {
         if (insert(
                 AlbumEntity(
                     id = albumPage.album.browseId,
@@ -1744,7 +1743,7 @@ interface DatabaseDao {
         }
         albumPage.songs
             .map(SongItem::toMediaMetadata)
-            .onEach(::insert)
+            .onEach { insert(it) }
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
@@ -1761,7 +1760,7 @@ interface DatabaseDao {
                     albumId = albumPage.album.browseId,
                     index = index,
                 )
-            }.forEach(::upsert)
+            }.forEach { upsert(it) }
         albumPage.album.artists
             ?.map { artist ->
                 ArtistEntity(
@@ -1769,18 +1768,18 @@ interface DatabaseDao {
                     ?: ArtistEntity.generateArtistId(),
                     name = ArtistNameAliases.resolve(artist.id, artist.name),
                 )
-            }?.onEach(::insert)
+            }?.onEach { insert(it) }
             ?.mapIndexed { index, artist ->
                 AlbumArtistMap(
                     albumId = albumPage.album.browseId,
                     artistId = artist.id,
                     order = index,
                 )
-            }?.forEach(::insert)
+            }?.forEach { insert(it) }
     }
 
     @Transaction
-    fun update(
+    suspend fun update(
         song: Song,
         mediaMetadata: MediaMetadata,
         overwriteTitle: Boolean = true,
@@ -1799,7 +1798,7 @@ interface DatabaseDao {
         )
         if (!overwriteArtists || mediaMetadata.artists.isEmpty()) return
 
-        songArtistMap(song.id).forEach(::delete)
+        songArtistMap(song.id).forEach { delete(it) }
         mediaMetadata.artists.forEachIndexed { index, artist ->
             val artistId = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId()
 
@@ -1821,7 +1820,7 @@ interface DatabaseDao {
     }
 
     @Update
-    fun update(song: SongEntity)
+    suspend fun update(song: SongEntity)
 
     @Query(
         """
@@ -1830,22 +1829,22 @@ interface DatabaseDao {
         WHERE thumbnailUrl LIKE 'https://i.ytimg.com/%/maxresdefault.jpg%'
         """,
     )
-    fun repairMissingVideoThumbnails()
+    suspend fun repairMissingVideoThumbnails()
 
     @Update
-    fun update(artist: ArtistEntity)
+    suspend fun update(artist: ArtistEntity)
 
     @Update
-    fun update(album: AlbumEntity)
+    suspend fun update(album: AlbumEntity)
 
     @Update
-    fun update(playlist: PlaylistEntity)
+    suspend fun update(playlist: PlaylistEntity)
 
     @Update
-    fun update(map: PlaylistSongMap)
+    suspend fun update(map: PlaylistSongMap)
 
     @Transaction
-    fun update(
+    suspend fun update(
         artist: ArtistEntity,
         artistPage: ArtistPage
     ) {
@@ -1859,7 +1858,7 @@ interface DatabaseDao {
     }
 
     @Transaction
-    fun update(
+    suspend fun update(
         album: AlbumEntity,
         albumPage: AlbumPage,
         artists: List<ArtistEntity>? = emptyList(),
@@ -1878,7 +1877,7 @@ interface DatabaseDao {
         )
         albumPage.songs
             .map(SongItem::toMediaMetadata)
-            .onEach(::insert)
+            .onEach { insert(it) }
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
@@ -1895,11 +1894,11 @@ interface DatabaseDao {
                     albumId = albumPage.album.browseId,
                     index = index,
                 )
-            }.forEach(::upsert)
+            }.forEach { upsert(it) }
 
         albumPage.album.artists?.let { artists ->
             // Recreate album artists
-            albumArtistMaps(album.id).forEach(::delete)
+            albumArtistMaps(album.id).forEach { delete(it) }
             artists
                 .map { artist ->
                     ArtistEntity(
@@ -1907,19 +1906,19 @@ interface DatabaseDao {
                         ?: ArtistEntity.generateArtistId(),
                         name = ArtistNameAliases.resolve(artist.id, artist.name),
                     )
-                }.onEach(::insert)
+                }.onEach { insert(it) }
                 .mapIndexed { index, artist ->
                     AlbumArtistMap(
                         albumId = albumPage.album.browseId,
                         artistId = artist.id,
                         order = index,
                     )
-                }.forEach(::insert)
+                }.forEach { insert(it) }
         }
     }
 
     @Update
-    fun update(playlistEntity: PlaylistEntity, playlistItem: PlaylistItem) {
+    suspend fun update(playlistEntity: PlaylistEntity, playlistItem: PlaylistItem) {
         update(
             playlistEntity.copy(
                 name = playlistItem.title,
@@ -1935,31 +1934,31 @@ interface DatabaseDao {
     }
 
     @Upsert
-    fun upsert(map: SongAlbumMap)
+    suspend fun upsert(map: SongAlbumMap)
 
     @Upsert
-    fun upsert(lyrics: LyricsEntity)
+    suspend fun upsert(lyrics: LyricsEntity)
 
     @Upsert
-    fun upsert(format: FormatEntity)
+    suspend fun upsert(format: FormatEntity)
 
     @Query("DELETE FROM format WHERE id = :id")
-    fun deleteFormat(id: String)
+    suspend fun deleteFormat(id: String)
 
     @Upsert
-    fun upsert(song: SongEntity)
+    suspend fun upsert(song: SongEntity)
 
     @Delete
-    fun delete(song: SongEntity)
+    suspend fun delete(song: SongEntity)
 
     @Delete
-    fun delete(songArtistMap: SongArtistMap)
+    suspend fun delete(songArtistMap: SongArtistMap)
 
     @Query("DELETE FROM song WHERE isDownloaded = 0 AND dateDownload IS NULL")
-    fun deleteSongsNotDownloaded()
+    suspend fun deleteSongsNotDownloaded()
 
     @Query("UPDATE artist SET bookmarkedAt = NULL")
-    fun clearArtistBookmarks()
+    suspend fun clearArtistBookmarks()
 
     @Query(
         """
@@ -1969,48 +1968,48 @@ interface DatabaseDao {
         )
         """,
     )
-    fun deleteOrphanArtists()
+    suspend fun deleteOrphanArtists()
 
     @Delete
-    fun delete(artist: ArtistEntity)
+    suspend fun delete(artist: ArtistEntity)
 
     @Delete
-    fun delete(album: AlbumEntity)
+    suspend fun delete(album: AlbumEntity)
 
     @Delete
-    fun delete(albumArtistMap: AlbumArtistMap)
+    suspend fun delete(albumArtistMap: AlbumArtistMap)
 
     @Delete
-    fun delete(playlist: PlaylistEntity)
+    suspend fun delete(playlist: PlaylistEntity)
 
     @Delete
-    fun delete(playlistSongMap: PlaylistSongMap)
+    suspend fun delete(playlistSongMap: PlaylistSongMap)
 
     @Delete
-    fun delete(lyrics: LyricsEntity)
+    suspend fun delete(lyrics: LyricsEntity)
 
     @Delete
-    fun delete(searchHistory: SearchHistory)
+    suspend fun delete(searchHistory: SearchHistory)
 
     @Delete
-    fun delete(event: Event)
+    suspend fun delete(event: Event)
 
     @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE songId = :songId")
-    fun playlistSongMaps(songId: String): List<PlaylistSongMap>
+    suspend fun playlistSongMaps(songId: String): List<PlaylistSongMap>
 
     @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId AND position >= :from ORDER BY position")
-    fun playlistSongMaps(
+    suspend fun playlistSongMaps(
         playlistId: String,
         from: Int,
     ): List<PlaylistSongMap>
 
     @RawQuery
-    fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int
+    suspend fun raw(query: RoomRawQuery): Int
 
-    fun checkpoint() {
-        raw("PRAGMA wal_checkpoint(FULL)".toSQLiteQuery())
+    suspend fun checkpoint() {
+        raw(RoomRawQuery("PRAGMA wal_checkpoint(FULL)"))
     }
 
     // Podcast methods
@@ -2033,14 +2032,14 @@ interface DatabaseDao {
     fun bookmarkedPodcastChannels(): Flow<List<Artist>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(podcast: PodcastEntity): Long
+    suspend fun insert(podcast: PodcastEntity): Long
 
     @Update
-    fun update(podcast: PodcastEntity)
+    suspend fun update(podcast: PodcastEntity)
 
     @Upsert
-    fun upsert(podcast: PodcastEntity)
+    suspend fun upsert(podcast: PodcastEntity)
 
     @Delete
-    fun delete(podcast: PodcastEntity)
+    suspend fun delete(podcast: PodcastEntity)
 }

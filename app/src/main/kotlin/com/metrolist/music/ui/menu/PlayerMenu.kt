@@ -420,13 +420,14 @@ fun PlayerMenu(
                                 ),
                             )
                         }
-                        if (mediaMetadata.album != null) {
+                        val currentAlbum = mediaMetadata.album
+                        if (currentAlbum != null) {
                             add(
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(if (isPodcast) R.string.view_podcast else R.string.view_album)) },
                                     description = {
                                         Text(
-                                            text = mediaMetadata.album.title,
+                                            text = currentAlbum.title,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                         )
@@ -440,9 +441,9 @@ fun PlayerMenu(
                                     },
                                     onClick = {
                                         if (isPodcast) {
-                                            navController.navigate("online_podcast/${mediaMetadata.album.id}")
+                                            navController.navigate("online_podcast/${currentAlbum.id}")
                                         } else {
-                                            navController.navigate("album/${mediaMetadata.album.id}")
+                                            navController.navigate("album/${currentAlbum.id}")
                                         }
                                         playerBottomSheetState.collapseSoft()
                                         onDismiss()

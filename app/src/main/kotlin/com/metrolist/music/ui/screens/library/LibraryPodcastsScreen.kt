@@ -616,7 +616,7 @@ private fun PodcastEpisodePlaylistItem(
             )
             if (!podcast.author.isNullOrBlank()) {
                 Text(
-                    text = podcast.author,
+                    text = podcast.author.orEmpty(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

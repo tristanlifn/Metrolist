@@ -15,6 +15,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import com.metrolist.music.constants.MaxSongCacheSizeKey
 import com.metrolist.music.db.InternalDatabase
 import com.metrolist.music.db.MusicDatabase
+import com.metrolist.music.db.newInternalDatabaseInstance
 import com.metrolist.music.eq.EqualizerService
 import com.metrolist.music.eq.data.EQProfileRepository
 import com.metrolist.music.listentogether.ListenTogetherClient

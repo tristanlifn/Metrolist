@@ -499,13 +499,14 @@ fun QueueMenu(
                             )
                         )
                     }
-                    if (mediaMetadata.album != null) {
+                    val currentAlbum = mediaMetadata.album
+                    if (currentAlbum != null) {
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_album)) },
                                 description = {
                                     Text(
-                                        text = mediaMetadata.album.title,
+                                        text = currentAlbum.title,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -518,7 +519,7 @@ fun QueueMenu(
                                     )
                                 },
                                 onClick = {
-                                    navController.navigate("album/${mediaMetadata.album.id}")
+                                    navController.navigate("album/${currentAlbum.id}")
                                     playerBottomSheetState.collapseSoft()
                                     onDismiss()
                                 }

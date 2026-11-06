@@ -149,8 +149,8 @@ class SongMetadataEditingTest {
             val featured = ArtistEntity(id = "featured", name = "Featured")
             val album = AlbumEntity(id = "album", title = "Album", songCount = 1, duration = 100)
             val otherAlbum = AlbumEntity(id = "other-album", title = "Other album", songCount = 0, duration = 0)
-            listOf(primary, featured).forEach(database.dao::insert)
-            listOf(album, otherAlbum).forEach(database.dao::insert)
+            listOf(primary, featured).forEach { database.dao.insert(it) }
+            listOf(album, otherAlbum).forEach { database.dao.insert(it) }
             database.dao.insert(SongEntity(id = "shared-song", title = "Shared song"))
             database.dao.insert(SongArtistMap(songId = "shared-song", artistId = featured.id, position = 0))
             database.dao.insert(AlbumArtistMap(albumId = album.id, artistId = primary.id, order = 0))

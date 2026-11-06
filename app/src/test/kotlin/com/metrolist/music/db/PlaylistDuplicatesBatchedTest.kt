@@ -7,6 +7,7 @@ package com.metrolist.music.db
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.db.entities.PlaylistSongMap
@@ -50,7 +51,7 @@ class PlaylistDuplicatesBatchedTest {
             assertTrue(MAX_PLAYLIST_DUPLICATES_BATCH_SIZE + 1 <= 999)
 
             val libraryDate = LocalDateTime.of(2026, 1, 1, 0, 0)
-            database.runInTransaction {
+            database.withTransaction {
                 database.dao.insert(PlaylistEntity(id = "full", name = "Full", bookmarkedAt = libraryDate))
                 database.dao.insert(PlaylistEntity(id = "partial", name = "Partial", bookmarkedAt = libraryDate))
                 repeat(1_200) { index ->

@@ -41,6 +41,7 @@ import com.metrolist.music.utils.CrashHandler
 import com.metrolist.music.utils.ArtistNameAliases
 import com.metrolist.music.utils.InnerTubeXPlayer
 import com.metrolist.music.utils.dataStore
+import com.metrolist.music.utils.initialize
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope

@@ -49,7 +49,7 @@ class AlbumViewModel(
                     reportException(it)
                     if (it.message?.contains("NOT_FOUND") == true) {
                         database.query {
-                            album?.album?.let(::delete)
+                            album?.album?.let { delete(it) }
                         }
                     }
                 }

@@ -1722,13 +1722,13 @@ class MusicService :
             database.query {
                 relatedPage.songs
                     .map(SongItem::toMediaMetadata)
-                    .onEach(::insert)
+                    .onEach { insert(it) }
                     .map {
                         RelatedSongMap(
                             songId = mediaId,
                             relatedSongId = it.id,
                         )
-                    }.forEach(::insert)
+                    }.forEach { insert(it) }
             }
         }
     }
@@ -3906,10 +3906,11 @@ class MusicService :
             return null
         }
 
+        val channelId = artist.channelId
         val browseId = when {
-            artist.channelId != null && !artist.channelId.startsWith("LA")
-                && !artist.channelId.startsWith("FEmusic_library_privately_owned") -> {
-                artist.channelId
+            channelId != null && !channelId.startsWith("LA")
+                && !channelId.startsWith("FEmusic_library_privately_owned") -> {
+                channelId
             }
             !artist.id.startsWith("LA")
                 && !artist.id.startsWith("FEmusic_library_privately_owned") -> {

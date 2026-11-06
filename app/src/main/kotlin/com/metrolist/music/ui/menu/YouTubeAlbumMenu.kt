@@ -242,7 +242,7 @@ fun YouTubeAlbumMenu(
             IconButton(
                 onClick = {
                     database.query {
-                        album?.album?.toggleLike()?.let(::update)
+                        album?.album?.toggleLike()?.let { update(it) }
                     }
                 },
             ) {
