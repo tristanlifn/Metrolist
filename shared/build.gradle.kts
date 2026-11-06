@@ -66,11 +66,14 @@ kotlin {
             api(libs.compose.components.resources)
             api(libs.datastore.preferences.core)
             api(libs.kermit)
+            implementation(libs.kuromoji.ipadic)
+            implementation(libs.tinypinyin)
             api(libs.lifecycle.viewmodel)
             api(libs.lifecycle.viewmodel.savedstate)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
+            implementation(libs.ktor.client.encoding)
         }
         androidMain.dependencies {
             implementation(libs.core.ktx)

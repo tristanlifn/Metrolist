@@ -5,9 +5,10 @@
 
 package com.metrolist.music.lyrics
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import co.touchlab.kermit.Logger
 import com.metrolist.music.constants.EnableZemerKey
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -28,7 +29,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -75,11 +75,10 @@ object ZemerLyricsProvider : LyricsProvider {
         }
     }
 
-    override fun isEnabled(context: Context): Boolean =
-        context.dataStore[EnableZemerKey] ?: true
+    override fun isEnabled(dataStore: DataStore<Preferences>): Boolean =
+        dataStore[EnableZemerKey] ?: true
 
     override suspend fun getLyrics(
-        context: Context,
         id: String,
         title: String,
         artist: String,
@@ -89,7 +88,7 @@ object ZemerLyricsProvider : LyricsProvider {
         val resolved = resolve(id) ?: throw IllegalStateException("Zemer has no lyrics for $id")
         for (source in resolved.sources.sortedWith(compareBy({ it.synced != true }, { rank(it) }))) {
             val body = runCatching { fetchBody(source) }
-                .onFailure { Timber.tag("Zemer").d(it, "source ${source.type} failed") }
+                .onFailure { Logger.withTag("Zemer").d(it) { "source ${source.type} failed" } }
                 .getOrNull()
             if (body != null && hasBody(body)) return@runCatching body
         }

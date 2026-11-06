@@ -1,5 +1,6 @@
 package com.metrolist.music.betterlyrics
 
+import co.touchlab.kermit.Logger
 import com.metrolist.music.betterlyrics.models.TTMLResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -12,7 +13,6 @@ import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 
 object BetterLyrics {
     private const val TAG = "BetterLyrics"
@@ -51,7 +51,7 @@ object BetterLyrics {
         duration: Int = -1,
         album: String? = null,
     ): String? = runCatching {
-        Timber.tag(TAG).d("Fetching TTML for: $title by $artist (dur=$duration, album=$album)")
+        Logger.withTag(TAG).d { "Fetching TTML for: $title by $artist (dur=$duration, album=$album)" }
         val response = client.get("/getLyrics") {
             parameter("s", title)
             parameter("a", artist)
@@ -66,11 +66,11 @@ object BetterLyrics {
             val ttml = response.body<TTMLResponse>().ttml?.trim()?.takeIf { it.isNotEmpty() }
             ttml
         } else {
-            Timber.tag(TAG).w("API returned status: ${response.status}")
+            Logger.withTag(TAG).w { "API returned status: ${response.status}" }
             null
         }
     }.getOrElse { e ->
-        Timber.tag(TAG).e(e, "Exception during fetchTTML")
+        Logger.withTag(TAG).e(e) { "Exception during fetchTTML" }
         null
     }
 

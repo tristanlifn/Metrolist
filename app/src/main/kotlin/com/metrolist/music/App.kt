@@ -28,6 +28,7 @@ import com.metrolist.innertube.models.YouTubeLocale
 import com.metrolist.innertube.utils.Logger
 import com.metrolist.kugou.KuGou
 import com.metrolist.lastfm.LastFM
+import com.metrolist.paxsenix.Paxsenix
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.constants.*
 import com.metrolist.music.di.ApplicationScope
@@ -98,6 +99,7 @@ class App :
         // Plant logging before extraction services initialize.
         Timber.plant(Timber.DebugTree())
         Logger.sink = { priority, error, message -> Timber.tag("InnerTube").log(priority, error, message) }
+        Paxsenix.appVersion = BuildConfig.VERSION_NAME
         InnerTubeXPlayer.initialize(this)
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader

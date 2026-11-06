@@ -1139,7 +1139,7 @@ fun OriginalLyrics(
                                             withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight)) {
                                                 append(word.text)
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(
@@ -1215,7 +1215,7 @@ fun OriginalLyrics(
                                             withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                                 append(word.text)
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(
@@ -1287,7 +1287,7 @@ fun OriginalLyrics(
                                             withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                                 append(word.text)
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(
@@ -1371,7 +1371,7 @@ fun OriginalLyrics(
                                                     append(word.text)
                                                 }
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(
@@ -1461,7 +1461,7 @@ fun OriginalLyrics(
                                                     append(word.text)
                                                 }
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(
@@ -1545,7 +1545,7 @@ fun OriginalLyrics(
                                             withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                                 append(word.text)
                                             }
-                                            if (wordIndex < item.words.size - 1) append(" ")
+                                            if (wordIndex < item.words.orEmpty().size - 1) append(" ")
                                         }
                                     }
                                 Text(

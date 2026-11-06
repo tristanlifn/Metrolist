@@ -5,15 +5,15 @@
 
 package com.metrolist.music.lyrics
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 
 interface LyricsProvider {
     val name: String
 
-    fun isEnabled(context: Context): Boolean
+    fun isEnabled(dataStore: DataStore<Preferences>): Boolean
 
     suspend fun getLyrics(
-        context: Context,
         id: String,
         title: String,
         artist: String,
@@ -22,7 +22,6 @@ interface LyricsProvider {
     ): Result<String>
 
     suspend fun getAllLyrics(
-        context: Context,
         id: String,
         title: String,
         artist: String,
@@ -30,6 +29,6 @@ interface LyricsProvider {
         album: String? = null,
         callback: (String) -> Unit,
     ) {
-        getLyrics(context, id, title, artist, duration, album).onSuccess(callback)
+        getLyrics(id, title, artist, duration, album).onSuccess(callback)
     }
 }

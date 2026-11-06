@@ -12,7 +12,7 @@ import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.lyrics.LyricsResult
 import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.utils.NetworkConnectivityObserver
+import com.metrolist.music.utils.NetworkConnectivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import kotlinx.coroutines.runBlocking
 class LyricsMenuViewModel(
     private val lyricsHelper: LyricsHelper,
     val database: MusicDatabase,
-    private val networkConnectivity: NetworkConnectivityObserver,
+    private val networkConnectivity: NetworkConnectivity,
 ) : ViewModel() {
     private var job: Job? = null
     val results = MutableStateFlow(emptyList<LyricsResult>())

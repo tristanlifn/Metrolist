@@ -286,8 +286,6 @@ dependencies {
     "gmsImplementation"(libs.mediarouter)
     "gmsImplementation"(libs.cast.framework)
 
-    implementation(libs.kuromoji.ipadic)
-    implementation(libs.tinypinyin)
 
     implementation(libs.koin.android)
 

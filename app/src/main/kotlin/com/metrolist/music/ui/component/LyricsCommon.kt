@@ -27,17 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.lyrics.LyricsEntry
-
-sealed class LyricsListItem {
-    data class Line(val index: Int, val entry: LyricsEntry) : LyricsListItem()
-    data class Indicator(
-        val afterLineIndex: Int,
-        val gapMs: Long,
-        val gapStartMs: Long,
-        val gapEndMs: Long,
-        val nextAgent: String?
-    ) : LyricsListItem()
-}
+import com.metrolist.music.lyrics.LyricsListItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

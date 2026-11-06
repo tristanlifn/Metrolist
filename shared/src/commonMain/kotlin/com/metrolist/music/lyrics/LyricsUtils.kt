@@ -5,7 +5,6 @@
 
 package com.metrolist.music.lyrics
 
-import android.text.format.DateUtils
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.github.promeg.pinyinhelper.Pinyin
 import kotlinx.coroutines.Dispatchers
@@ -502,7 +501,7 @@ object LyricsUtils {
                 val content = agentMatch.groupValues[5]
                 
                 val millisPart = if (agentMatch.groupValues[3].length == 3) centiseconds else centiseconds * 10
-                val lineTimeMs = minutes * DateUtils.MINUTE_IN_MILLIS + seconds * DateUtils.SECOND_IN_MILLIS + millisPart
+                val lineTimeMs = minutes * 60_000L + seconds * 1_000L + millisPart
                 
                 // Parse word-level timestamps from content
                 val wordTimings = parseRichSyncWords(content, index, lines)
@@ -532,7 +531,7 @@ object LyricsUtils {
 
                 // Convert to milliseconds
                 val millisPart = if (matchResult.groupValues[3].length == 3) centiseconds else centiseconds * 10
-                val lineTimeMs = minutes * DateUtils.MINUTE_IN_MILLIS + seconds * DateUtils.SECOND_IN_MILLIS + millisPart
+                val lineTimeMs = minutes * 60_000L + seconds * 1_000L + millisPart
 
                 var content = matchResult.groupValues[4].trimStart()
 
@@ -796,7 +795,7 @@ object LyricsUtils {
                 if (milString.length == 2) {
                     mil *= 10
                 }
-                val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
+                val time = min * 60_000L + sec * 1_000L + mil
                 LyricsEntry(time, text, words, agent = agent, isBackground = isBackground)
             }.toList()
     }

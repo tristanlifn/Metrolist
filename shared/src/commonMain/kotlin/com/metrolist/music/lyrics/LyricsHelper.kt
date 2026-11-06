@@ -5,13 +5,13 @@
 
 package com.metrolist.music.lyrics
 
-import android.content.Context
-import android.util.LruCache
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import co.touchlab.kermit.Logger
 import com.metrolist.music.constants.LyricsProviderOrderKey
 import com.metrolist.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.utils.NetworkConnectivityObserver
-import com.metrolist.music.utils.dataStore
+import com.metrolist.music.utils.NetworkConnectivity
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -22,34 +22,36 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 
 private const val MAX_LYRICS_FETCH_MS = 25000L
 private const val PER_PROVIDER_TIMEOUT_MS = 8000L
 private const val PROVIDER_NONE = ""
 
 class LyricsHelper(
-    private val context: Context,
-    private val networkConnectivity: NetworkConnectivityObserver,
+    private val dataStore: DataStore<Preferences>,
+    private val networkConnectivity: NetworkConnectivity,
 ) {
     val preferred =
-        context.dataStore.data
+        dataStore.data
             .map { preferences ->
                 resolveLyricsProviders(preferences)
             }.distinctUntilChanged()
 
-    private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
+    private val cache =
+        object : LinkedHashMap<String, List<LyricsResult>>(MAX_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<LyricsResult>>?) = size > MAX_CACHE_SIZE
+        }
     private var currentLyricsJob: Job? = null
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         currentLyricsJob?.cancel()
 
-        val cached = cache.get(mediaMetadata.id)?.firstOrNull()
+        val cached = synchronized(cache) { cache[mediaMetadata.id] }?.firstOrNull()
         if (cached != null) {
             return LyricsWithProvider(cached.lyrics, cached.providerName)
         }
 
-        val orderedProviders = context.dataStore.data
+        val orderedProviders = dataStore.data
             .map { preferences -> resolveLyricsProviders(preferences) }
             .first()
 
@@ -65,17 +67,16 @@ class LyricsHelper(
 
         val result = withTimeoutOrNull(MAX_LYRICS_FETCH_MS) {
             val cleanedTitle = LyricsUtils.cleanTitleForSearch(mediaMetadata.title)
-            val enabledProviders = orderedProviders.filter { it.isEnabled(context) }
+            val enabledProviders = orderedProviders.filter { it.isEnabled(dataStore) }
 
-            Timber.tag("LyricsHelper").d("Starting sequential fetch for: $cleanedTitle by ${mediaMetadata.artists.joinToString { it.name }}")
-            Timber.tag("LyricsHelper").d("Enabled providers in order: ${enabledProviders.joinToString { it.name }}")
+            Logger.withTag("LyricsHelper").d { "Starting sequential fetch for: $cleanedTitle by ${mediaMetadata.artists.joinToString { it.name }}" }
+            Logger.withTag("LyricsHelper").d { "Enabled providers in order: ${enabledProviders.joinToString { it.name }}" }
 
             for (provider in enabledProviders) {
-                Timber.tag("LyricsHelper").d("Trying provider: ${provider.name}")
+                Logger.withTag("LyricsHelper").d { "Trying provider: ${provider.name}" }
                 val providerResult = try {
                     withTimeoutOrNull(PER_PROVIDER_TIMEOUT_MS) {
                         provider.getLyrics(
-                            context,
                             mediaMetadata.id,
                             cleanedTitle,
                             mediaMetadata.artists.joinToString { it.name },
@@ -86,21 +87,21 @@ class LyricsHelper(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    Timber.tag("LyricsHelper").w("${provider.name} threw: ${e.message}")
+                    Logger.withTag("LyricsHelper").w { "${provider.name} threw: ${e.message}" }
                     null
                 }
 
                 if (providerResult != null && providerResult.isSuccess) {
-                    Timber.tag("LyricsHelper").i("Got lyrics from ${provider.name}")
+                    Logger.withTag("LyricsHelper").i { "Got lyrics from ${provider.name}" }
                     val filtered = LyricsUtils.filterLyricsCreditLines(providerResult.getOrNull()!!)
                     return@withTimeoutOrNull LyricsWithProvider(filtered, provider.name)
                 } else {
                     val errorMsg = providerResult?.exceptionOrNull()?.message ?: "timeout or exception"
-                    Timber.tag("LyricsHelper").w("${provider.name} failed: $errorMsg")
+                    Logger.withTag("LyricsHelper").w { "${provider.name} failed: $errorMsg" }
                 }
             }
 
-            Timber.tag("LyricsHelper").w("No lyrics found after checking all providers")
+            Logger.withTag("LyricsHelper").w { "No lyrics found after checking all providers" }
             LyricsWithProvider(LYRICS_NOT_FOUND, PROVIDER_NONE)
         }
 
@@ -118,7 +119,7 @@ class LyricsHelper(
         currentLyricsJob?.cancel()
 
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
-        cache.get(cacheKey)?.let { results ->
+        synchronized(cache) { cache[cacheKey] }?.let { results ->
             results.forEach { callback(it) }
             return
         }
@@ -134,10 +135,10 @@ class LyricsHelper(
         val allResult = mutableListOf<LyricsResult>()
         currentLyricsJob = CoroutineScope(SupervisorJob()).launch {
             val cleanedTitle = LyricsUtils.cleanTitleForSearch(songTitle)
-            val allProviders = context.dataStore.data
+            val allProviders = dataStore.data
                 .map { preferences -> resolveLyricsProviders(preferences) }
                 .first()
-            val enabledProviders = allProviders.filter { it.isEnabled(context) }
+            val enabledProviders = allProviders.filter { it.isEnabled(dataStore) }
 
             val otherProviders = enabledProviders.filter { it.name != "LyricsPlus" }
             val lyricsPlusProvider = enabledProviders.find { it.name == "LyricsPlus" }
@@ -147,7 +148,7 @@ class LyricsHelper(
             val otherJobs = otherProviders.map { provider ->
                 launch {
                     try {
-                        provider.getAllLyrics(context, mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
+                        provider.getAllLyrics(mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
                             val filteredLyrics = LyricsUtils.filterLyricsCreditLines(lyrics)
                             val result = LyricsResult(provider.name, filteredLyrics)
                             synchronized(callbackMutex) {
@@ -168,7 +169,7 @@ class LyricsHelper(
             if (lyricsPlusProvider != null && otherLyricsCount <= 2) {
                 launch {
                     try {
-                        lyricsPlusProvider.getAllLyrics(context, mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
+                        lyricsPlusProvider.getAllLyrics(mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
                             val filteredLyrics = LyricsUtils.filterLyricsCreditLines(lyrics)
                             val result = LyricsResult(lyricsPlusProvider.name, filteredLyrics)
                             synchronized(callbackMutex) {
@@ -184,7 +185,7 @@ class LyricsHelper(
                 }.join()
             }
 
-            cache.put(cacheKey, allResult)
+            synchronized(cache) { cache[cacheKey] = allResult }
         }
 
         currentLyricsJob?.join()

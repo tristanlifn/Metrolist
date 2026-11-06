@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.metrolist.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.metrolist.music.lyrics.LyricsEntry
 import com.metrolist.music.lyrics.LyricsUtils
-import com.metrolist.music.ui.component.LyricsListItem
+import com.metrolist.music.lyrics.LyricsListItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

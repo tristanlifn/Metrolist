@@ -5,10 +5,11 @@
 
 package com.metrolist.music.lyrics
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import co.touchlab.kermit.Logger
 import com.metrolist.music.betterlyrics.TTMLParser
 import com.metrolist.music.constants.EnableLyricsPlus
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -22,7 +23,6 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 
 @Serializable
 private data class AgentInfo(
@@ -167,8 +167,8 @@ object LyricsPlusProvider : LyricsProvider {
         }
     }
 
-    override fun isEnabled(context: Context): Boolean =
-        context.dataStore[EnableLyricsPlus] ?: false
+    override fun isEnabled(dataStore: DataStore<Preferences>): Boolean =
+        dataStore[EnableLyricsPlus] ?: false
 
     private suspend fun fetchFromUrl(
         url: String,
@@ -194,7 +194,7 @@ object LyricsPlusProvider : LyricsProvider {
         album: String?,
     ): LyricsPlusResponse? {
         if (title.isBlank() || artist.isBlank()) {
-            Timber.tag("LyricsPlus").d("Skipping fetch: missing title or artist")
+            Logger.withTag("LyricsPlus").d { "Skipping fetch: missing title or artist" }
             return null
         }
 
@@ -206,7 +206,7 @@ object LyricsPlusProvider : LyricsProvider {
                     return result
                 }
             } catch (e: Exception) {
-                Timber.tag("LyricsPlus").d(e, "Failed to fetch from $baseUrl")
+                Logger.withTag("LyricsPlus").d(e) { "Failed to fetch from $baseUrl" }
             }
         }
         return null
@@ -246,7 +246,7 @@ object LyricsPlusProvider : LyricsProvider {
         } else {
             requestByTrackMetadata()
         } ?: run {
-            Timber.tag("LyricsPlus").w("Binimum API request failed (canUseIsrc=$canUseIsrc, hasMetadata=$hasMetadata)")
+            Logger.withTag("LyricsPlus").w { "Binimum API request failed (canUseIsrc=$canUseIsrc, hasMetadata=$hasMetadata)" }
             return null
         }
 
@@ -271,7 +271,7 @@ object LyricsPlusProvider : LyricsProvider {
         } ?: return null
 
         val parsedLines = runCatching { TTMLParser.parseTTML(ttml) }
-            .onFailure { Timber.tag("LyricsPlus").w(it, "Failed parsing binimum TTML") }
+            .onFailure { Logger.withTag("LyricsPlus").w(it) { "Failed parsing binimum TTML" } }
             .getOrNull()
             ?.takeIf { it.isNotEmpty() } ?: return null
         val lrc = runCatching { TTMLParser.toLRC(parsedLines).trim() }
@@ -406,7 +406,6 @@ object LyricsPlusProvider : LyricsProvider {
     }
 
     override suspend fun getLyrics(
-        context: Context,
         id: String,
         title: String,
         artist: String,
@@ -441,7 +440,6 @@ object LyricsPlusProvider : LyricsProvider {
     }
 
     override suspend fun getAllLyrics(
-        context: Context,
         id: String,
         title: String,
         artist: String,
@@ -449,6 +447,6 @@ object LyricsPlusProvider : LyricsProvider {
         album: String?,
         callback: (String) -> Unit,
     ) {
-        getLyrics(context, id, title, artist, duration, album).onSuccess { callback(it) }
+        getLyrics(id, title, artist, duration, album).onSuccess { callback(it) }
     }
 }
