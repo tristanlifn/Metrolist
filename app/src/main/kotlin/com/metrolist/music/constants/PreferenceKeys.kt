@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 val EnableHighRefreshRateKey = booleanPreferencesKey("enableHighRefreshRate")
 val EnableLandscapeScalingKey = booleanPreferencesKey("enableLandscapeScaling")
@@ -215,8 +214,8 @@ val ScrobbleDelaySecondsKey = intPreferencesKey("scrobbleDelaySeconds")
 val ChipSortTypeKey = stringPreferencesKey("chipSortType")
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
-val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
-val PlaylistSongSortDescendingKey = booleanPreferencesKey("playlistSongSortDescending")
+fun playlistSongSortTypeKey(playlistId: String) = stringPreferencesKey("playlistSongSortType_$playlistId")
+fun playlistSongSortDescendingKey(playlistId: String) = booleanPreferencesKey("playlistSongSortDescending_$playlistId")
 val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
 val ArtistSortDescendingKey = booleanPreferencesKey("artistSortDescending")
 val AlbumSortTypeKey = stringPreferencesKey("albumSortType")
