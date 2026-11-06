@@ -49,8 +49,6 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +62,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.inject.Inject
 import kotlin.random.Random
 
 data class DailyDiscoverItem(
@@ -88,9 +85,8 @@ internal fun buildSpeedDialItems(
         .distinctBy { it.id }
         .take(27)
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(
-    @ApplicationContext val context: Context,
+class HomeViewModel(
+    val context: Context,
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
     val wrappedManager: WrappedManager,

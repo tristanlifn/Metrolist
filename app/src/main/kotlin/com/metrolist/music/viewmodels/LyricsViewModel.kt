@@ -11,8 +11,6 @@ import com.metrolist.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.metrolist.music.lyrics.LyricsEntry
 import com.metrolist.music.lyrics.LyricsUtils
 import com.metrolist.music.ui.component.LyricsListItem
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,8 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@HiltViewModel
-class LyricsViewModel @Inject constructor() : ViewModel() {
+class LyricsViewModel : ViewModel() {
     companion object {
         private val timestampRegex = Regex("\\[\\d{1,2}:\\d{2}")
     }

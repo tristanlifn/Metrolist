@@ -25,7 +25,6 @@ import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.getArtistSeparator
 import com.metrolist.music.utils.joinToArtistString
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,8 +38,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 internal fun canonicalPlaybackQueue(
     currentTrack: TrackInfo,
@@ -71,12 +68,9 @@ internal fun shouldSeekDuringActivePlayback(
  * Manager that bridges the Listen Together WebSocket client with the music player.
  * Handles syncing playback actions between connected users.
  */
-@Singleton
-class ListenTogetherManager
-    @Inject
-    constructor(
+class ListenTogetherManager(
         private val client: ListenTogetherClient,
-        @ApplicationContext private val context: Context,
+        private val context: Context,
     ) {
         companion object {
             private const val TAG = "ListenTogetherManager"

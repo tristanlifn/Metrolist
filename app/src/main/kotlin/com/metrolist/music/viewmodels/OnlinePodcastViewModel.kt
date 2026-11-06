@@ -10,7 +10,6 @@ import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,11 +21,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDateTime
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class OnlinePodcastViewModel @Inject constructor(
+class OnlinePodcastViewModel(
     savedStateHandle: SavedStateHandle,
     val database: MusicDatabase,
     private val syncUtils: SyncUtils,

@@ -18,8 +18,6 @@ import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,11 +30,9 @@ import kotlinx.coroutines.launch
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.innertube.models.Artist
 import com.metrolist.innertube.models.Album
-import javax.inject.Inject
 
-@HiltViewModel
-class OnlinePlaylistViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+class OnlinePlaylistViewModel(
+    private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val database: MusicDatabase
 ) : ViewModel() {

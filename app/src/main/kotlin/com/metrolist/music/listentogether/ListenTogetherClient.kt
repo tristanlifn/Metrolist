@@ -62,8 +62,6 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Connection state for the Listen Together feature
@@ -221,10 +219,7 @@ sealed class ListenTogetherEvent {
 /**
  * WebSocket client for Listen Together feature
  */
-@Singleton
-class ListenTogetherClient
-    @Inject
-    constructor(
+class ListenTogetherClient(
         private val context: Context,
     ) {
         companion object {

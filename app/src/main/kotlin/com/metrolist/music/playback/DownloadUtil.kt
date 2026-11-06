@@ -33,13 +33,10 @@ import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SongEntity
-import com.metrolist.music.di.DownloadCache
-import com.metrolist.music.di.PlayerCache
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.utils.InnerTubeXPlayer
 import com.metrolist.music.utils.enumPreference
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -59,18 +56,13 @@ import timber.log.Timber
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.Executor
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class DownloadUtil
-@Inject
-constructor(
-    @ApplicationContext private val context: Context,
+class DownloadUtil(
+    private val context: Context,
     val database: MusicDatabase,
     val databaseProvider: DatabaseProvider,
-    @DownloadCache val downloadCache: Cache,
-    @PlayerCache val playerCache: Cache,
+    val downloadCache: Cache,
+    val playerCache: Cache,
 ) {
     private val TAG = "DownloadUtil"
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!

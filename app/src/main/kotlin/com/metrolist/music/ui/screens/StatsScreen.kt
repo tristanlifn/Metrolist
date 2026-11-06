@@ -59,7 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.innertube.models.Artist
 import com.metrolist.innertube.models.WatchEndpoint
@@ -101,7 +101,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun StatsScreen(
     navController: NavController,
-    viewModel: StatsViewModel = hiltViewModel(),
+    viewModel: StatsViewModel = koinViewModel(),
 ) {
     val sArtists = viewModel.selectedArtists // SnapshotStateList<Artist>
 

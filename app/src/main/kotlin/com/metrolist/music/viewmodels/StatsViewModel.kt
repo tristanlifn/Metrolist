@@ -25,8 +25,6 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.R
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,17 +42,13 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
-import javax.inject.Inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.collections.emptyList
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class StatsViewModel
-@Inject
-constructor(
-    @ApplicationContext private val context: Context,
+class StatsViewModel(
+    private val context: Context,
     val database: MusicDatabase,
 ) : ViewModel() {
     private val periodicMostPlaylistSyncMutex = Mutex()

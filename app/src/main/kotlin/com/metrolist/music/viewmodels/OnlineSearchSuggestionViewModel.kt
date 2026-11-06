@@ -24,22 +24,16 @@ import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.SearchHistory
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class OnlineSearchSuggestionViewModel
-    @Inject
-    constructor(
-        @ApplicationContext val context: Context,
+class OnlineSearchSuggestionViewModel(
+        val context: Context,
         database: MusicDatabase,
     ) : ViewModel() {
         val query = MutableStateFlow("")

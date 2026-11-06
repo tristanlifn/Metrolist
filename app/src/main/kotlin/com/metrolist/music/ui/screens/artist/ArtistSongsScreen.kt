@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
@@ -62,7 +62,7 @@ import com.metrolist.music.viewmodels.ArtistSongsViewModel
 @Composable
 fun ArtistSongsScreen(
     navController: NavController,
-    viewModel: ArtistSongsViewModel = hiltViewModel(),
+    viewModel: ArtistSongsViewModel = koinViewModel(),
 ) {
     val menuState = LocalMenuState.current
     val queueAllSongsStr = stringResource(R.string.queue_all_songs)

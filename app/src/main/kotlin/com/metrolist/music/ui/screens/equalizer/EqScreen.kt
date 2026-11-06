@@ -43,7 +43,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
@@ -57,7 +57,7 @@ import timber.log.Timber
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun EqScreen(
-    viewModel: EQViewModel = hiltViewModel(),
+    viewModel: EQViewModel = koinViewModel(),
 ) {
     val navController = LocalNavController.current
     val state by viewModel.state.collectAsStateWithLifecycle()

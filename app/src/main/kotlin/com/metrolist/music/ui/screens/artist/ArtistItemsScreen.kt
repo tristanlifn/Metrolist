@@ -33,7 +33,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.ArtistItem
@@ -69,7 +69,7 @@ import com.metrolist.music.viewmodels.ArtistItemsViewModel
 @Composable
 fun ArtistItemsScreen(
     navController: NavController,
-    viewModel: ArtistItemsViewModel = hiltViewModel(),
+    viewModel: ArtistItemsViewModel = koinViewModel(),
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current

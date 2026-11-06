@@ -67,7 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachReversed
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -101,7 +101,7 @@ import com.metrolist.music.viewmodels.AlbumViewModel
 @Composable
 fun AlbumScreen(
     navController: NavController,
-    viewModel: AlbumViewModel = hiltViewModel(),
+    viewModel: AlbumViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current

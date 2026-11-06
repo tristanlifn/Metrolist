@@ -29,8 +29,6 @@ import com.metrolist.music.MainActivity
 import com.metrolist.music.R
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Playlist
-import com.metrolist.music.di.ApplicationScope
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,14 +44,11 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class PlaylistWidgetManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+class PlaylistWidgetManager(
+    private val context: Context,
     private val database: MusicDatabase,
-    @ApplicationScope private val applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope,
 ) {
     private val imageLoader
         get() = context.imageLoader

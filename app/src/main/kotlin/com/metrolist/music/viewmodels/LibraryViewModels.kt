@@ -52,8 +52,6 @@ import com.metrolist.music.utils.PodcastRefreshTrigger
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,13 +67,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class LibrarySongsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibrarySongsViewModel(
+    context: Context,
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
@@ -126,11 +120,8 @@ constructor(
     }
 }
 
-@HiltViewModel
-class LibraryArtistsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibraryArtistsViewModel(
+    context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -197,11 +188,8 @@ constructor(
     }
 }
 
-@HiltViewModel
-class LibraryAlbumsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibraryAlbumsViewModel(
+    context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -263,11 +251,8 @@ constructor(
     }
 }
 
-@HiltViewModel
-class LibraryPlaylistsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibraryPlaylistsViewModel(
+    context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -304,11 +289,8 @@ constructor(
             .distinctUntilChanged()
 }
 
-@HiltViewModel
-class ArtistSongsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class ArtistSongsViewModel(
+    context: Context,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -334,11 +316,8 @@ constructor(
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
-@HiltViewModel
-class LibraryMixViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibraryMixViewModel(
+    context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -449,11 +428,8 @@ constructor(
     }
 }
 
-@HiltViewModel
-class LibraryPodcastsViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
+class LibraryPodcastsViewModel(
+    context: Context,
     private val database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {

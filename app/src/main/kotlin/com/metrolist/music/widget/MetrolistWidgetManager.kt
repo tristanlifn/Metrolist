@@ -26,15 +26,11 @@ import coil3.toBitmap
 import com.metrolist.music.MainActivity
 import com.metrolist.music.R
 import com.metrolist.music.db.MusicDatabase
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class MetrolistWidgetManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+class MetrolistWidgetManager(
+    private val context: Context,
     private val database: MusicDatabase,
     private val playlistWidgetManager: PlaylistWidgetManager,
 ) {

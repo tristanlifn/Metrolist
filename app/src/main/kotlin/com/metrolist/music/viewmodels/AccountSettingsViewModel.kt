@@ -20,15 +20,12 @@ import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class AccountSettingsViewModel @Inject constructor(
+class AccountSettingsViewModel(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
 

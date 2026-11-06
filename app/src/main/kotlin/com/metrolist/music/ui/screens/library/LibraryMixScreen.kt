@@ -54,7 +54,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
@@ -118,7 +118,7 @@ fun LibraryMixScreen(
     filterContent: @Composable () -> Unit,
     viewType: LibraryViewType,
     onViewTypeChange: (LibraryViewType) -> Unit,
-    viewModel: LibraryMixViewModel = hiltViewModel(),
+    viewModel: LibraryMixViewModel = koinViewModel(),
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current

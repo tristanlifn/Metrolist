@@ -25,7 +25,6 @@ val workflowDebugKeystoreFile = debugKeystorePathOverride?.let(::file)
 
 plugins {
     id("com.android.application")
-    alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
@@ -255,7 +254,8 @@ dependencies {
     implementation(libs.coroutines.guava)
 
     implementation(libs.activity)
-    implementation(libs.hilt.navigation)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.navigation.compose)
     implementation(libs.datastore)
 
     implementation(libs.compose.runtime)
@@ -296,8 +296,7 @@ dependencies {
     implementation(libs.tinypinyin)
     ksp(libs.room.compiler)
 
-    implementation(libs.hilt)
-    ksp(libs.hilt.compiler)
+    implementation(libs.koin.android)
 
     implementation(project(":innertube"))
 
@@ -319,4 +318,5 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.koin.test)
 }

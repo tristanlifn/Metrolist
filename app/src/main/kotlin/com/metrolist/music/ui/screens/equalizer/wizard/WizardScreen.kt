@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.LocalPlayerAwareWindowInsets
@@ -27,7 +27,7 @@ import com.metrolist.music.R
  */
 @Composable
 fun WizardScreen(
-    viewModel: WizardViewModel = hiltViewModel(),
+    viewModel: WizardViewModel = koinViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

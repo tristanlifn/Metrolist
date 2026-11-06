@@ -29,19 +29,13 @@ import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class OnlineSearchViewModel
-@Inject
-constructor(
-    @ApplicationContext val context: Context,
+class OnlineSearchViewModel(
+    val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val query = SearchRoutes.decodeQuery(savedStateHandle.get<String>("query").orEmpty())

@@ -15,8 +15,6 @@ import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,14 +27,10 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class HistoryViewModel
-@Inject
-constructor(
-    @ApplicationContext private val context: Context,
+class HistoryViewModel(
+    private val context: Context,
     val database: MusicDatabase,
 ) : ViewModel() {
     var historySource = MutableStateFlow(HistorySource.LOCAL)

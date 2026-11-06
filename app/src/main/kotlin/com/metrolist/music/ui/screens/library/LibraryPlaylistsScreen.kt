@@ -50,7 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.innertube.utils.parseCookieString
@@ -106,7 +106,7 @@ fun LibraryPlaylistsScreen(
     filterContent: @Composable () -> Unit,
     viewType: LibraryViewType,
     onViewTypeChange: (LibraryViewType) -> Unit,
-    viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
+    viewModel: LibraryPlaylistsViewModel = koinViewModel(),
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,
 ) {

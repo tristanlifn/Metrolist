@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.viewmodels.StatsViewModel
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun TimeTransfer(
     onDismiss: () -> Unit,
-    viewModel: StatsViewModel = hiltViewModel()
+    viewModel: StatsViewModel = koinViewModel()
 ) {
     val sourceSong = remember { mutableStateOf<SongWithStats?>(null) }
     val targetSong = remember { mutableStateOf<SongWithStats?>(null) }

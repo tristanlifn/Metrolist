@@ -222,7 +222,6 @@ import com.metrolist.music.widget.MetrolistWidgetManager
 import com.metrolist.music.widget.MusicWidgetReceiver
 import com.metrolist.music.widget.PlaylistWidgetReceiver
 import com.metrolist.music.ui.utils.resize
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
@@ -251,11 +250,11 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
-import javax.inject.Inject
 import kotlin.random.Random
 import java.util.Collections
 
@@ -264,41 +263,29 @@ private const val INSTANT_SILENCE_SKIP_SETTLE_MS = 350L
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @androidx.annotation.OptIn(UnstableApi::class)
-@AndroidEntryPoint
 class MusicService :
     MediaLibraryService(),
     Player.Listener,
     PlaybackStatsListener.Callback {
-    @Inject
-    @com.metrolist.music.di.ApplicationScope
-    lateinit var applicationScope: CoroutineScope
+    val applicationScope: CoroutineScope by inject(com.metrolist.music.di.ApplicationScope)
 
-    @Inject
-    lateinit var database: MusicDatabase
+    val database: MusicDatabase by inject()
 
-    @Inject
-    lateinit var lyricsHelper: LyricsHelper
+    val lyricsHelper: LyricsHelper by inject()
 
-    @Inject
-    lateinit var syncUtils: SyncUtils
+    val syncUtils: SyncUtils by inject()
 
-    @Inject
-    lateinit var downloadUtil: DownloadUtil
+    val downloadUtil: DownloadUtil by inject()
 
-    @Inject
-    lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
+    val mediaLibrarySessionCallback: MediaLibrarySessionCallback by inject()
 
-    @Inject
-    lateinit var equalizerService: EqualizerService
+    val equalizerService: EqualizerService by inject()
 
-    @Inject
-    lateinit var eqProfileRepository: EQProfileRepository
+    val eqProfileRepository: EQProfileRepository by inject()
 
-    @Inject
-    lateinit var widgetManager: MetrolistWidgetManager
+    val widgetManager: MetrolistWidgetManager by inject()
 
-    @Inject
-    lateinit var listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager
+    val listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager by inject()
 
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -394,13 +381,9 @@ class MusicService :
 
     var sleepTimer: SleepTimer? = null
 
-    @Inject
-    @PlayerCache
-    lateinit var playerCache: Cache
+    val playerCache: Cache by inject(PlayerCache)
 
-    @Inject
-    @DownloadCache
-    lateinit var downloadCache: Cache
+    val downloadCache: Cache by inject(DownloadCache)
 
     lateinit var player: ExoPlayer
         private set

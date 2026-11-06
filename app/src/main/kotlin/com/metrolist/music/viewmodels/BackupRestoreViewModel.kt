@@ -43,7 +43,6 @@ import com.metrolist.music.playback.MusicService.Companion.PERSISTENT_PLAYER_STA
 import com.metrolist.music.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.utils.ArtistNameAliases
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -51,7 +50,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import javax.inject.Inject
 
 data class BackupPreviewInfo(
     val hasAuthData: Boolean = false,
@@ -74,8 +72,7 @@ data class ConvertedSongLog(
     val artists: String,
 )
 
-@HiltViewModel
-class BackupRestoreViewModel @Inject constructor(
+class BackupRestoreViewModel(
     val database: MusicDatabase,
 ) : ViewModel() {
     fun backup(context: Context, uri: Uri) {

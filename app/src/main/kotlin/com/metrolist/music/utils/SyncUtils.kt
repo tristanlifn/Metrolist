@@ -32,7 +32,6 @@ import com.metrolist.music.extensions.collectLatest
 import com.metrolist.music.extensions.isInternetConnected
 import com.metrolist.music.extensions.isSyncEnabled
 import com.metrolist.music.models.toMediaMetadata
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -51,8 +50,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import javax.inject.Inject
-import javax.inject.Singleton
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -216,9 +213,8 @@ internal fun setVideoIdUpdatesForAddedSongs(
     return updates
 }
 
-@Singleton
-class SyncUtils @Inject constructor(
-    @ApplicationContext private val context: Context,
+class SyncUtils(
+    private val context: Context,
     private val database: MusicDatabase,
 ) {
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->

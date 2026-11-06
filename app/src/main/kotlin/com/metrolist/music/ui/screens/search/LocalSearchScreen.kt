@@ -44,7 +44,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
@@ -75,7 +75,7 @@ fun LocalSearchScreen(
     onDismiss: () -> Unit,
     isFromCache: Boolean = false,
     pureBlack: Boolean,
-    viewModel: LocalSearchViewModel = hiltViewModel(),
+    viewModel: LocalSearchViewModel = koinViewModel(),
 ) {
     val navController = LocalNavController.current
     val queueSearchedSongsStr = stringResource(R.string.queue_searched_songs)

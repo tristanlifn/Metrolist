@@ -11,17 +11,17 @@ import android.content.Context
 import android.content.Intent
 import com.metrolist.music.MainActivity
 import com.metrolist.music.playback.MusicService
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import timber.log.Timber
 
-@AndroidEntryPoint
-class PlaylistWidgetReceiver : AppWidgetProvider() {
-    @Inject
-    lateinit var playlistWidgetManager: PlaylistWidgetManager
+class PlaylistWidgetReceiver :
+    AppWidgetProvider(),
+    KoinComponent {
+    val playlistWidgetManager: PlaylistWidgetManager by inject()
 
     override fun onUpdate(
         context: Context,

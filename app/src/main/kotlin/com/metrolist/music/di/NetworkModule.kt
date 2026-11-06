@@ -5,22 +5,10 @@
 
 package com.metrolist.music.di
 
-import android.content.Context
 import com.metrolist.music.utils.NetworkConnectivityObserver
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-@Module
-@InstallIn(SingletonComponent::class)
-object NetworkModule {
-
-    @Provides
-    @Singleton
-    fun provideNetworkConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver {
-        return NetworkConnectivityObserver(context)
-    }
+val networkModule = module {
+    singleOf(::NetworkConnectivityObserver)
 }

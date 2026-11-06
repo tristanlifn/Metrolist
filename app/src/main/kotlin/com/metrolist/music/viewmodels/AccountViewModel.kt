@@ -21,8 +21,6 @@ import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,15 +28,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 enum class AccountContentType {
     PLAYLISTS, ALBUMS, ARTISTS, PODCASTS
 }
 
-@HiltViewModel
-class AccountViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+class AccountViewModel(
+    private val context: Context,
     database: MusicDatabase,
 ) : ViewModel() {
     val playlists = MutableStateFlow<List<PlaylistItem>?>(null)

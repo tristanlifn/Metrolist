@@ -13,7 +13,6 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.utils.NetworkConnectivityObserver
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -24,16 +23,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import javax.inject.Inject
 
 private const val MAX_LYRICS_FETCH_MS = 25000L
 private const val PER_PROVIDER_TIMEOUT_MS = 8000L
 private const val PROVIDER_NONE = ""
 
-class LyricsHelper
-@Inject
-constructor(
-    @ApplicationContext private val context: Context,
+class LyricsHelper(
+    private val context: Context,
     private val networkConnectivity: NetworkConnectivityObserver,
 ) {
     val preferred =

@@ -112,7 +112,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.android.ext.android.inject
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
@@ -216,7 +217,6 @@ import com.metrolist.music.utils.setAppLocale
 import com.metrolist.music.viewmodels.HomeViewModel
 import com.metrolist.music.widget.PlaylistWidgetReceiver
 import com.valentinilk.shimmer.LocalShimmerTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -226,7 +226,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
-import javax.inject.Inject
 
 private data class AvailableUpdate(
     val release: ReleaseInfo,
@@ -237,7 +236,6 @@ private data class AvailableUpdate(
 }
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     companion object {
         private const val ACTION_SEARCH = "com.metrolist.music.action.SEARCH"
@@ -249,17 +247,13 @@ class MainActivity : FragmentActivity() {
         const val EXTRA_WIDGET_TARGET_ID = "widget_target_id"
     }
 
-    @Inject
-    lateinit var database: MusicDatabase
+    val database: MusicDatabase by inject()
 
-    @Inject
-    lateinit var downloadUtil: DownloadUtil
+    val downloadUtil: DownloadUtil by inject()
 
-    @Inject
-    lateinit var syncUtils: SyncUtils
+    val syncUtils: SyncUtils by inject()
 
-    @Inject
-    lateinit var listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager
+    val listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager by inject()
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
@@ -727,7 +721,7 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
-                val homeViewModel: HomeViewModel = hiltViewModel()
+                val homeViewModel: HomeViewModel = koinViewModel()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }

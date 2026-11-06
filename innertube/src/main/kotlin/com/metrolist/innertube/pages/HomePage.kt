@@ -18,7 +18,7 @@ import com.metrolist.innertube.models.splitBySeparator
 import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.innertube.utils.parseTime
-import timber.log.Timber
+import com.metrolist.innertube.utils.Logger
 
 data class HomePage(
     val chips: List<Chip>?,
@@ -51,17 +51,17 @@ data class HomePage(
         companion object {
             fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): Section? {
                 val title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
-                Timber.d("HomePage section title: $title, contents: ${renderer.contents.size}")
+                Logger.d("HomePage section title: $title, contents: ${renderer.contents.size}")
 
                 if (title == null) {
-                    Timber.d("HomePage section skipped: no title")
+                    Logger.d("HomePage section skipped: no title")
                     return null
                 }
 
                 val twoRowCount = renderer.contents.count { it.musicTwoRowItemRenderer != null }
                 val multiRowCount = renderer.contents.count { it.musicMultiRowListItemRenderer != null }
                 val responsiveCount = renderer.contents.count { it.musicResponsiveListItemRenderer != null }
-                Timber.d("HomePage section '$title': twoRow=$twoRowCount, multiRow=$multiRowCount, responsive=$responsiveCount")
+                Logger.d("HomePage section '$title': twoRow=$twoRowCount, multiRow=$multiRowCount, responsive=$responsiveCount")
 
                 val items = mutableListOf<YTItem>()
 
@@ -83,10 +83,10 @@ data class HomePage(
                 val podcastCount = items.count { it is PodcastItem }
                 val episodeCount = items.count { it is EpisodeItem }
                 val songCount = items.count { it is SongItem }
-                Timber.d("HomePage section '$title': parsed ${items.size} items (podcasts=$podcastCount, episodes=$episodeCount, songs=$songCount)")
+                Logger.d("HomePage section '$title': parsed ${items.size} items (podcasts=$podcastCount, episodes=$episodeCount, songs=$songCount)")
 
                 if (items.isEmpty()) {
-                    Timber.d("HomePage section '$title' skipped: no items")
+                    Logger.d("HomePage section '$title' skipped: no items")
                     return null
                 }
 
@@ -176,7 +176,7 @@ data class HomePage(
                 val hasWatchEndpoint = renderer.navigationEndpoint.watchEndpoint != null
 
                 if (!renderer.isSong && !renderer.isAlbum && !renderer.isPlaylist && !renderer.isArtist && !renderer.isPodcast && !renderer.isEpisode) {
-                    Timber.d("HomePage twoRow '$title': no type matched - pageType=$pageType, hasWatchEndpoint=$hasWatchEndpoint")
+                    Logger.d("HomePage twoRow '$title': no type matched - pageType=$pageType, hasWatchEndpoint=$hasWatchEndpoint")
                 }
 
                 // Debug for episodes
@@ -186,7 +186,7 @@ data class HomePage(
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchEndpoint?.videoId
                     val browseId = renderer.navigationEndpoint.browseEndpoint?.browseId
-                    Timber.d("HomePage episode '$title': overlayVideoId=$overlayVideoId, browseId=$browseId")
+                    Logger.d("HomePage episode '$title': overlayVideoId=$overlayVideoId, browseId=$browseId")
                 }
 
                 return when {
@@ -312,7 +312,7 @@ data class HomePage(
                         val thumbnail = renderer.thumbnailRenderer.getThumbnailUrl()
 
                         if (videoId == null || titleText == null || thumbnail == null) {
-                            Timber.d("HomePage episode FAILED: videoId=$videoId, title=$titleText, thumbnail=$thumbnail")
+                            Logger.d("HomePage episode FAILED: videoId=$videoId, title=$titleText, thumbnail=$thumbnail")
                             return null
                         }
 
@@ -330,7 +330,7 @@ data class HomePage(
                             )
                         }
 
-                        Timber.d("HomePage episode SUCCESS: '$titleText', podcast: ${podcastAlbum?.name}")
+                        Logger.d("HomePage episode SUCCESS: '$titleText', podcast: ${podcastAlbum?.name}")
                         EpisodeItem(
                             id = videoId,
                             title = titleText,

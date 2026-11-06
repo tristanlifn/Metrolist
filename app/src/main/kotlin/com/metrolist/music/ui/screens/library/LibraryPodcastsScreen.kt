@@ -54,7 +54,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -100,7 +100,7 @@ import kotlinx.coroutines.launch
 fun LibraryPodcastsScreen(
     navController: NavController,
     onDeselect: () -> Unit,
-    viewModel: LibraryPodcastsViewModel = hiltViewModel(),
+    viewModel: LibraryPodcastsViewModel = koinViewModel(),
 ) {
     val downloadedEpisodesStr = stringResource(R.string.downloaded_episodes)
     val database = LocalDatabase.current

@@ -3,7 +3,6 @@ package com.metrolist.music.eq.data
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,8 +11,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Saved EQ Profile with metadata
@@ -36,9 +33,8 @@ data class SavedEQProfile(
  * Repository for managing EQ profiles
  * Handles saving, loading, and activating EQ profiles
  */
-@Singleton
-class EQProfileRepository @Inject constructor(
-    @ApplicationContext private val context: Context
+class EQProfileRepository(
+    private val context: Context
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "nanosonic_eq_profiles",

@@ -25,11 +25,16 @@ import coil3.request.crossfade
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.ArtistConjunctions
 import com.metrolist.innertube.models.YouTubeLocale
+import com.metrolist.innertube.utils.Logger
 import com.metrolist.kugou.KuGou
 import com.metrolist.lastfm.LastFM
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.constants.*
 import com.metrolist.music.di.ApplicationScope
+import com.metrolist.music.di.appModule
+import com.metrolist.music.di.networkModule
+import com.metrolist.music.di.viewModelModule
+import com.metrolist.music.di.wrappedModule
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toInetSocketAddress
 import com.metrolist.music.utils.CrashHandler
@@ -38,7 +43,6 @@ import com.metrolist.music.utils.InnerTubeXPlayer
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,6 +53,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
+import org.koin.android.ext.android.inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -56,18 +63,18 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.Proxy
 import java.util.Locale
-import javax.inject.Inject
 
-@HiltAndroidApp
 class App :
     Application(),
     SingletonImageLoader.Factory {
-    @Inject
-    @ApplicationScope
-    lateinit var applicationScope: CoroutineScope
+    val applicationScope: CoroutineScope by inject(ApplicationScope)
 
     override fun onCreate() {
         super.onCreate()
+        startKoin {
+            androidContext(this@App)
+            modules(appModule, networkModule, wrappedModule, viewModelModule)
+        }
 
         // CrashActivity runs in a separate process. Starting the full app there can make that
         // process claim WebView's data directory and crash the next main-process WebView.
@@ -89,6 +96,7 @@ class App :
 
         // Plant logging before extraction services initialize.
         Timber.plant(Timber.DebugTree())
+        Logger.sink = { priority, error, message -> Timber.tag("InnerTube").log(priority, error, message) }
         InnerTubeXPlayer.initialize(this)
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader

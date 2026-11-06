@@ -157,6 +157,8 @@ import com.metrolist.music.constants.QueuePeekHeight
 import com.metrolist.music.constants.SleepTimerDefaultKey
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
+import org.koin.mp.KoinPlatform
+import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.constants.SliderStyle
 import com.metrolist.music.constants.SliderStyleKey
 import com.metrolist.music.constants.SquigglySliderKey
@@ -189,7 +191,6 @@ import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.safeDataStoreEdit
-import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -2105,12 +2106,7 @@ fun InlineLyricsView(
             delay(500)
             coroutineScope.launch(Dispatchers.IO) {
                 try {
-                    val entryPoint =
-                        EntryPointAccessors.fromApplication(
-                            context.applicationContext,
-                            com.metrolist.music.di.LyricsHelperEntryPoint::class.java,
-                        )
-                    val lyricsHelper = entryPoint.lyricsHelper()
+                    val lyricsHelper = KoinPlatform.getKoin().get<LyricsHelper>()
                     val fetchedLyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
                     database.query {
                         upsert(LyricsEntity(mediaMetadata.id, fetchedLyricsWithProvider.lyrics, fetchedLyricsWithProvider.provider))
@@ -2145,12 +2141,7 @@ fun InlineLyricsView(
             try {
                 val existing = database.lyrics(nextId).first()
                 if (existing != null) return@withContext
-                val entryPoint =
-                    EntryPointAccessors.fromApplication(
-                        context.applicationContext,
-                        com.metrolist.music.di.LyricsHelperEntryPoint::class.java,
-                    )
-                val lyricsHelper = entryPoint.lyricsHelper()
+                val lyricsHelper = KoinPlatform.getKoin().get<LyricsHelper>()
                 val fetched = lyricsHelper.getLyrics(nextMetadata)
                 database.query {
                     upsert(LyricsEntity(nextId, fetched.lyrics, fetched.provider))
