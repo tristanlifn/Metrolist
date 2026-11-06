@@ -22,25 +22,26 @@ class SleepTimer(
     private val scope: CoroutineScope,
     var player: Player,
     private val onVolumeMultiplierChanged: (Float) -> Unit = {},
-) : Player.Listener {
+) : Player.Listener,
+    SleepTimerControl {
     private companion object {
         private const val TIMER_TICK_MS = 1000L
         private const val FADE_OUT_WINDOW_MS = 60_000L
     }
 
     private var sleepTimerJob: Job? = null
-    var triggerTime by mutableLongStateOf(-1L)
+    override var triggerTime by mutableLongStateOf(-1L)
         private set
-    var pauseWhenSongEnd by mutableStateOf(false)
+    override var pauseWhenSongEnd by mutableStateOf(false)
         private set
     var stopAfterCurrentSongOnTimeout by mutableStateOf(false)
         private set
     var fadeOutEnabled by mutableStateOf(false)
         private set
-    val isActive: Boolean
+    override val isActive: Boolean
         get() = triggerTime != -1L || pauseWhenSongEnd
 
-    fun start(minute: Int) {
+    override fun start(minute: Int) {
         start(
             minute = minute,
             stopAfterCurrentSong = false,
@@ -48,7 +49,7 @@ class SleepTimer(
         )
     }
 
-    fun start(
+    override fun start(
         minute: Int,
         stopAfterCurrentSong: Boolean,
         fadeOut: Boolean,
@@ -116,7 +117,7 @@ class SleepTimer(
         }
     }
 
-    fun clear() {
+    override fun clear() {
         sleepTimerJob?.cancel()
         sleepTimerJob = null
         pauseWhenSongEnd = false

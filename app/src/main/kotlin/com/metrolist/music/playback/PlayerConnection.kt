@@ -17,6 +17,7 @@ import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import com.metrolist.music.constants.SleepTimerCustomDaysKey
 import com.metrolist.music.constants.SleepTimerDayTimesKey
 import com.metrolist.music.constants.SleepTimerDefaultKey
@@ -30,6 +31,7 @@ import com.metrolist.music.extensions.currentMetadata
 import com.metrolist.music.extensions.getCurrentQueueIndex
 import com.metrolist.music.extensions.getQueueWindows
 import com.metrolist.music.extensions.metadata
+import com.metrolist.music.extensions.move
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.extensions.togglePlayPause
 import com.metrolist.music.extensions.toggleRepeatMode
@@ -192,7 +194,6 @@ class PlayerConnection(
     override val queueTitle = MutableStateFlow<String?>(null)
     override val queueSessions = service.queueSessions
     override val activeQueueId = service.activeQueueId
-    val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
     override val queue = MutableStateFlow<List<QueueEntry>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
     val currentWindowIndex = MutableStateFlow(-1)
@@ -211,6 +212,13 @@ class PlayerConnection(
         playerException.map { it?.toPlayerError() }.stateIn(scope, SharingStarted.Eagerly, null)
     override val isMuted = service.isMuted
     override val currentStreamClient = service.currentStreamClient
+    override val volume: StateFlow<Float> get() = service.playerVolume
+    override val automixItems: StateFlow<List<MediaMetadata>> =
+        service.automixItems
+            .map { items -> items.mapNotNull { it.metadata } }
+            .stateIn(scope, SharingStarted.Lazily, emptyList())
+    override val sleepTimer: SleepTimerControl? get() = service.sleepTimer
+    override val cast: CastControl? get() = service.castConnectionHandler
 
     val waitingForNetworkConnection = service.waitingForNetworkConnection
 
@@ -287,7 +295,7 @@ class PlayerConnection(
         service.deleteQueue(id)
     }
 
-    fun refreshSongMetadata(song: Song) {
+    override fun refreshSongMetadata(song: Song) {
         val player = getPlayerOrNull() ?: return
         val updatedMetadata = song.toMediaMetadata()
         repeat(player.mediaItemCount) { index ->
@@ -354,6 +362,10 @@ class PlayerConnection(
 
     override fun toggleMute() {
         service.toggleMute()
+    }
+
+    override fun setVolume(volume: Float) {
+        service.playerVolume.value = volume
     }
 
     fun setMuted(muted: Boolean) {
@@ -495,7 +507,6 @@ class PlayerConnection(
 
     override val currentPosition: Long get() = getPlayerOrNull()?.currentPosition ?: 0L
     override val duration: Long get() = getPlayerOrNull()?.duration ?: MusicPlayer.TIME_UNSET
-    override val volume: Float get() = getPlayerOrNull()?.volume ?: 1f
 
     override var playbackSpeed: Float
         get() = getPlayerOrNull()?.playbackParameters?.speed ?: 1f
@@ -509,6 +520,21 @@ class PlayerConnection(
             getPlayerOrNull()?.let { it.playbackParameters = PlaybackParameters(it.playbackParameters.speed, value) }
         }
 
+    override val hasPreviousItem: Boolean get() = getPlayerOrNull()?.hasPreviousMediaItem() ?: false
+    override val hasNextItem: Boolean get() = getPlayerOrNull()?.hasNextMediaItem() ?: false
+
+    override fun skipToNextItem() {
+        getPlayerOrNull()?.seekToNext()
+    }
+
+    override fun skipToPreviousItem() {
+        getPlayerOrNull()?.seekToPreviousMediaItem()
+    }
+
+    override fun retry() {
+        getPlayerOrNull()?.prepare()
+    }
+
     override fun seekToItem(index: Int) {
         getPlayerOrNull()?.seekToDefaultPosition(index)
     }
@@ -517,7 +543,28 @@ class PlayerConnection(
         from: Int,
         to: Int,
     ) {
-        getPlayerOrNull()?.moveMediaItem(from, to)
+        val player = getPlayerOrNull() ?: return
+        if (!player.shuffleModeEnabled) {
+            player.moveMediaItem(from, to)
+        } else {
+            player.setShuffleOrder(
+                DefaultShuffleOrder(
+                    queue.value
+                        .map { it.index }
+                        .toMutableList()
+                        .move(from, to)
+                        .toIntArray(),
+                    System.currentTimeMillis(),
+                ),
+            )
+        }
+    }
+
+    override fun insertItem(
+        index: Int,
+        item: MediaMetadata,
+    ) {
+        getPlayerOrNull()?.addMediaItem(index, item.toMediaItem())
     }
 
     override fun removeItem(index: Int) {
@@ -548,10 +595,24 @@ class PlayerConnection(
         getPlayerOrNull()?.toggleRepeatMode()
     }
 
+    override fun loadAutomix(playlistId: String) {
+        service.getAutomix(playlistId)
+    }
+
+    override fun playNextAutomix(index: Int) {
+        service.automixItems.value.getOrNull(index)?.let { service.playNextAutomix(it, index) }
+    }
+
+    override fun addToQueueAutomix(index: Int) {
+        service.automixItems.value.getOrNull(index)?.let { service.addToQueueAutomix(it, index) }
+    }
+
+    override fun clearAutomix() {
+        service.clearAutomix()
+    }
+
     private fun updateQueue(player: Player) {
-        val windows = player.getQueueWindows()
-        queueWindows.value = windows
-        queue.value = windows.map { QueueEntry(it.uid, it.firstPeriodIndex, it.mediaItem.metadata) }
+        queue.value = player.getQueueWindows().map { QueueEntry(it.uid, it.firstPeriodIndex, it.mediaItem.metadata) }
     }
 
     /** Parses "0=09:00-23:00;1=22:00-06:00" into Map<dayIndex, Pair<start, end>>. */

@@ -66,12 +66,23 @@ interface MusicPlayer {
     val isMuted: StateFlow<Boolean>
     val currentStreamClient: StateFlow<String?>
 
+    /** The user's volume setting, 0 to 1. */
+    val volume: StateFlow<Float>
+
+    /** Songs suggested to follow the queue. */
+    val automixItems: StateFlow<List<MediaMetadata>>
+    val sleepTimer: SleepTimerControl?
+
+    /** Null when the platform or build can't cast. */
+    val cast: CastControl?
+
     // Read on demand (the UI polls these), not observed.
     val currentPosition: Long
     val duration: Long
-    val volume: Float
     var playbackSpeed: Float
     var pitch: Float
+    val hasPreviousItem: Boolean
+    val hasNextItem: Boolean
 
     fun playQueue(queue: Queue)
 
@@ -102,9 +113,24 @@ interface MusicPlayer {
 
     fun seekToPrevious()
 
+    /** Changes song without the restart and auto-play behaviour of [seekToNext]/[seekToPrevious]. */
+    fun skipToNextItem()
+
+    fun skipToPreviousItem()
+
+    /** Prepares the player again after an [error]. */
+    fun retry()
+
+    /** Moves an entry within [queue]; both positions are in playback order. */
     fun moveItem(
         from: Int,
         to: Int,
+    )
+
+    /** Inserts [item] at [index] in the unshuffled queue. */
+    fun insertItem(
+        index: Int,
+        item: MediaMetadata,
     )
 
     fun removeItem(index: Int)
@@ -123,5 +149,18 @@ interface MusicPlayer {
 
     fun toggleMute()
 
+    fun setVolume(volume: Float)
+
     fun startRadioSeamlessly()
+
+    /** Updates queued copies of [song] after its details were edited. */
+    fun refreshSongMetadata(song: Song)
+
+    fun loadAutomix(playlistId: String)
+
+    fun playNextAutomix(index: Int)
+
+    fun addToQueueAutomix(index: Int)
+
+    fun clearAutomix()
 }

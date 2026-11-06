@@ -281,9 +281,7 @@ fun QueueMenu(
                         text = stringResource(R.string.start_radio),
                         onClick = {
                             onDismiss()
-                            val currentMediaId = playerConnection.player.currentMediaItemIndex.let {
-                                playerConnection.player.getMediaItemAt(it).mediaId
-                            }
+                            val currentMediaId = playerConnection.mediaMetadata.value?.id
                             if (mediaMetadata.id == currentMediaId) {
                                 playerConnection.startRadioSeamlessly()
                             } else {

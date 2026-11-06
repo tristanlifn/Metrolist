@@ -63,7 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.lyrics.LyricsEntry
 import com.metrolist.music.lyrics.WordTimestamp
-import com.metrolist.music.playback.PlayerConnection
+import com.metrolist.music.playback.PlaybackState
+import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.ui.screens.settings.LyricsPosition
 import kotlinx.coroutines.isActive
 import kotlin.math.abs
@@ -129,7 +130,7 @@ internal fun LyricsLine(
     isSelectionModeActive: Boolean,
     currentPositionState: Long,
     lyricsOffset: Long,
-    playerConnection: PlayerConnection,
+    playerConnection: MusicPlayer,
     lyricsTextSize: Float,
     lyricsLineSpacing: Float,
     expressiveAccent: Color,
@@ -328,7 +329,7 @@ private fun WordLevelLyrics(
     isActiveLine: Boolean,
     currentPositionState: Long,
     lyricsOffset: Long,
-    playerConnection: PlayerConnection,
+    playerConnection: MusicPlayer,
     lyricStyle: TextStyle,
     lineColor: Color,
     expressiveAccent: Color,
@@ -348,18 +349,18 @@ private fun WordLevelLyrics(
     
     LaunchedEffect(isActiveLine) {
         if (isActiveLine) {
-            var lastPlayerPos = playerConnection.player.currentPosition
+            var lastPlayerPos = playerConnection.currentPosition
             var lastUpdateTime = System.currentTimeMillis()
             while (isActive) {
                 withFrameMillis {
                     val now = System.currentTimeMillis()
-                    val playerPos = playerConnection.player.currentPosition
+                    val playerPos = playerConnection.currentPosition
                     if (playerPos != lastPlayerPos) {
                         lastPlayerPos = playerPos
                         lastUpdateTime = now
                     }
                     val elapsed = now - lastUpdateTime
-                    smoothPosition = lastPlayerPos + lyricsOffset + (if (playerConnection.player.isPlaying) elapsed else 0)
+                    smoothPosition = lastPlayerPos + lyricsOffset + (if (playerConnection.isPlaying.value && playerConnection.playbackState.value == PlaybackState.READY) elapsed else 0)
                 }
             }
         }

@@ -97,9 +97,9 @@ import com.metrolist.music.constants.UseNewMiniPlayerDesignKey
 import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.listentogether.ListenTogetherManager
 import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.playback.CastConnectionHandler
+import com.metrolist.music.playback.CastControl
 import com.metrolist.music.playback.PlaybackState
-import com.metrolist.music.playback.PlayerConnection
+import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinToArtistString
@@ -205,7 +205,7 @@ private fun NewMiniPlayer(
     val castHandler =
         remember(playerConnection) {
             try {
-                playerConnection.service.castConnectionHandler
+                playerConnection.cast
             } catch (e: Exception) {
                 null
             }
@@ -326,8 +326,8 @@ private fun NewMiniPlayer(
                                 onHorizontalDrag = { _, dragAmount ->
                                     val adjustedDragAmount =
                                         if (layoutDirection == LayoutDirection.Rtl) -dragAmount else dragAmount
-                                    val canSkipPrevious = playerConnection.player.previousMediaItemIndex != -1
-                                    val canSkipNext = playerConnection.player.nextMediaItemIndex != -1
+                                    val canSkipPrevious = playerConnection.hasPreviousItem
+                                    val canSkipNext = playerConnection.hasNextItem
                                     val tryingToSwipeRight = adjustedDragAmount > 0
                                     val tryingToSwipeLeft = adjustedDragAmount < 0
                                     val allowLeft = tryingToSwipeLeft && canSkipNext
@@ -357,9 +357,9 @@ private fun NewMiniPlayer(
 
                                     if (shouldChangeSong) {
                                         if (currentOffset > 0 && canSkipPrevious) {
-                                            playerConnection.player.seekToPreviousMediaItem()
+                                            playerConnection.skipToPreviousItem()
                                         } else if (currentOffset <= 0 && canSkipNext) {
-                                            playerConnection.player.seekToNext()
+                                            playerConnection.skipToNextItem()
                                         }
                                     }
                                     coroutineScope.launch {
@@ -501,8 +501,8 @@ private fun NewMiniPlayerPlayButton(
     progressState: ProgressState,
     playbackState: PlaybackState,
     isCasting: Boolean,
-    castHandler: CastConnectionHandler?,
-    playerConnection: PlayerConnection,
+    castHandler: CastControl?,
+    playerConnection: MusicPlayer,
     mediaMetadata: MediaMetadata?,
     primaryColor: Color,
     outlineColor: Color,
@@ -570,8 +570,8 @@ private fun NewMiniPlayerPlayButton(
                         if (isCasting) {
                             if (castIsPlaying) castHandler?.pause() else castHandler?.play()
                         } else if (playbackState == PlaybackState.ENDED) {
-                            playerConnection.player.seekTo(0, 0)
-                            playerConnection.player.playWhenReady = true
+                            playerConnection.seekToItem(0)
+                            playerConnection.play()
                         } else {
                             playerConnection.togglePlayPause()
                         }
@@ -697,7 +697,7 @@ private fun LegacyMiniPlayer(
     val castHandler =
         remember(playerConnection) {
             try {
-                playerConnection.service.castConnectionHandler
+                playerConnection.cast
             } catch (e: Exception) {
                 null
             }
@@ -773,8 +773,8 @@ private fun LegacyMiniPlayer(
                                 onHorizontalDrag = { _, dragAmount ->
                                     val adjustedDragAmount =
                                         if (layoutDirection == LayoutDirection.Rtl) -dragAmount else dragAmount
-                                    val canSkipPrevious = playerConnection.player.previousMediaItemIndex != -1
-                                    val canSkipNext = playerConnection.player.nextMediaItemIndex != -1
+                                    val canSkipPrevious = playerConnection.hasPreviousItem
+                                    val canSkipNext = playerConnection.hasNextItem
                                     val tryingToSwipeRight = adjustedDragAmount > 0
                                     val tryingToSwipeLeft = adjustedDragAmount < 0
                                     val allowLeft = tryingToSwipeLeft && canSkipNext
@@ -804,9 +804,9 @@ private fun LegacyMiniPlayer(
 
                                     if (shouldChangeSong) {
                                         if (currentOffset > 0 && canSkipPrevious) {
-                                            playerConnection.player.seekToPreviousMediaItem()
+                                            playerConnection.skipToPreviousItem()
                                         } else if (currentOffset <= 0 && canSkipNext) {
-                                            playerConnection.player.seekToNext()
+                                            playerConnection.skipToNextItem()
                                         }
                                     }
                                     coroutineScope.launch { offsetXAnimatable.animateTo(0f, animationSpec) }
@@ -895,8 +895,8 @@ private fun LegacyMiniPlayer(
 private fun LegacyPlayPauseButton(
     playbackState: PlaybackState,
     isCasting: Boolean,
-    castHandler: CastConnectionHandler?,
-    playerConnection: PlayerConnection,
+    castHandler: CastControl?,
+    playerConnection: MusicPlayer,
     listenTogetherManager: ListenTogetherManager?,
 ) {
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -914,8 +914,8 @@ private fun LegacyPlayPauseButton(
             if (isCasting) {
                 if (castIsPlaying) castHandler?.pause() else castHandler?.play()
             } else if (playbackState == PlaybackState.ENDED) {
-                playerConnection.player.seekTo(0, 0)
-                playerConnection.player.playWhenReady = true
+                playerConnection.seekToItem(0)
+                playerConnection.play()
             } else {
                 playerConnection.togglePlayPause()
             }
@@ -1111,7 +1111,7 @@ private fun FavoriteButton(
                 ).background(
                     color = if (isLiked) errorColor.copy(alpha = 0.1f) else Color.Transparent,
                     shape = CircleShape,
-                ).clickable { playerConnection.service.toggleLike() },
+                ).clickable { playerConnection.toggleLike() },
     ) {
         Icon(
             painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),

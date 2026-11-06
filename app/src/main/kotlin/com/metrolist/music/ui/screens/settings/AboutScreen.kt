@@ -74,7 +74,7 @@ import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
-import com.metrolist.music.playback.PlayerConnection
+import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
@@ -128,7 +128,7 @@ private fun handleEasterEggClick(
     favoriteSongVideoId: String?,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    playerConnection: PlayerConnection?,
+    playerConnection: MusicPlayer?,
     wannaPlayStr: String,
     yeahStr: String,
     onCountUpdate: (Int) -> Unit

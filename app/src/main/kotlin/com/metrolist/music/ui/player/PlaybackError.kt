@@ -44,6 +44,8 @@ import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.PlayerError
+import com.metrolist.music.utils.NetworkConnectivity
+import org.koin.compose.koinInject
 import java.time.Instant
 
 @Composable
@@ -55,7 +57,7 @@ fun PlaybackError(
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val streamClient by playerConnection.currentStreamClient.collectAsState()
-    val isOnline by playerConnection.service.connectivityObserver.networkStatus.collectAsState()
+    val isOnline by koinInject<NetworkConnectivity>().networkStatus.collectAsState()
     val causes = remember(error) { error.cause.causeChain() }
     val rawErrorMessages =
         remember(causes) {

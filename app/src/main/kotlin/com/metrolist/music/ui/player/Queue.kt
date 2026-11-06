@@ -99,9 +99,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.edit
-import androidx.media3.common.Player
-import androidx.media3.common.Timeline
-import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
@@ -110,11 +107,11 @@ import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.constants.PlayerBackgroundStyle
 import com.metrolist.music.constants.QueueEditLockKey
 import com.metrolist.music.constants.UseNewPlayerDesignKey
-import com.metrolist.music.extensions.metadata
 import com.metrolist.music.extensions.move
 import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.playback.QueueEntry
 import com.metrolist.music.playback.RepeatMode
 import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.BottomSheet
@@ -182,19 +179,19 @@ fun Queue(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val repeatMode by playerConnection.repeatMode.collectAsStateWithLifecycle()
 
-    val currentWindowIndex by playerConnection.currentWindowIndex.collectAsStateWithLifecycle()
+    val currentWindowIndex by playerConnection.currentQueuePosition.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
     val currentFormat by playerConnection.currentFormat.collectAsStateWithLifecycle(initialValue = null)
 
     val selectedSongs = remember { mutableStateListOf<MediaMetadata>() }
-    val selectedItems = remember { mutableStateListOf<Timeline.Window>() }
+    val selectedItems = remember { mutableStateListOf<QueueEntry>() }
 
     // Cast state - safely access castConnectionHandler to prevent crashes during service lifecycle changes
     val castHandler =
         remember(playerConnection) {
             try {
-                playerConnection.service.castConnectionHandler
+                playerConnection.cast
             } catch (e: Exception) {
                 null
             }
@@ -241,10 +238,10 @@ fun Queue(
     val sleepTimerStopAfterCurrentSong by rememberPreference(SleepTimerStopAfterCurrentSongKey, false)
     val sleepTimerFadeOut by rememberPreference(SleepTimerFadeOutKey, false)
     val sleepTimerEnabled = remember(
-        playerConnection.service.sleepTimer?.triggerTime,
-        playerConnection.service.sleepTimer?.pauseWhenSongEnd
+        playerConnection.sleepTimer?.triggerTime,
+        playerConnection.sleepTimer?.pauseWhenSongEnd
     ) {
-        playerConnection.service.sleepTimer?.isActive ?: false
+        playerConnection.sleepTimer?.isActive ?: false
     }
     var sleepTimerTimeLeft by remember { mutableLongStateOf(0L) }
 
@@ -252,10 +249,10 @@ fun Queue(
         if (sleepTimerEnabled) {
             while (isActive) {
                 sleepTimerTimeLeft =
-                    if (playerConnection.service.sleepTimer?.pauseWhenSongEnd == true) {
-                        playerConnection.player.duration - playerConnection.player.currentPosition
+                    if (playerConnection.sleepTimer?.pauseWhenSongEnd == true) {
+                        playerConnection.duration - playerConnection.currentPosition
                     } else {
-                        (playerConnection.service.sleepTimer?.triggerTime ?: 0L) - System.currentTimeMillis()
+                        (playerConnection.sleepTimer?.triggerTime ?: 0L) - System.currentTimeMillis()
                     }
                 delay(1000L)
             }
@@ -319,7 +316,7 @@ fun Queue(
                         icon = R.drawable.bedtime,
                         onClick = {
                             if (sleepTimerEnabled) {
-                                playerConnection.service.sleepTimer?.clear()
+                                playerConnection.sleepTimer?.clear()
                             } else {
                                 showSleepTimerDialog = true
                             }
@@ -340,7 +337,7 @@ fun Queue(
                     PlayerQueueButton(
                         icon = R.drawable.shuffle,
                         onClick = {
-                            playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
+                            playerConnection.setShuffleModeEnabled(!shuffleModeEnabled)
                         },
                         isActive = shuffleModeEnabled,
                         enabled = !isListenTogetherGuest,
@@ -467,7 +464,7 @@ fun Queue(
                         onClick = {
                             if (!isListenTogetherGuest) {
                                 if (sleepTimerEnabled) {
-                                    playerConnection.service.sleepTimer?.clear()
+                                    playerConnection.sleepTimer?.clear()
                                 } else {
                                     showSleepTimerDialog = true
                                 }
@@ -563,7 +560,7 @@ fun Queue(
                     onDismiss = { showSleepTimerDialog = false },
                     onConfirm = {
                         showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer?.start(
+                        playerConnection.sleepTimer?.start(
                             minute = sleepTimerValue.roundToInt(),
                             stopAfterCurrentSong = sleepTimerStopAfterCurrentSong,
                             fadeOut = sleepTimerFadeOut,
@@ -646,7 +643,7 @@ fun Queue(
                                 OutlinedButton(
                                     onClick = {
                                         showSleepTimerDialog = false
-                                        playerConnection.service.sleepTimer?.start(
+                                        playerConnection.sleepTimer?.start(
                                             minute = -1,
                                         )
                                     },
@@ -661,7 +658,7 @@ fun Queue(
         },
     ) {
         val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
-        val queueWindows by playerConnection.queueWindows.collectAsStateWithLifecycle()
+        val queueWindows by playerConnection.queue.collectAsStateWithLifecycle()
         val queueSessions by playerConnection.queueSessions.collectAsStateWithLifecycle()
         val activeQueueId by playerConnection.activeQueueId.collectAsStateWithLifecycle()
         var queueSwitcherOpen by remember { mutableStateOf(false) }
@@ -694,11 +691,11 @@ fun Queue(
                 Text(stringResource(R.string.delete_queue_confirm, session.title ?: stringResource(R.string.untitled_queue)))
             }
         }
-        val automix by playerConnection.service.automixItems.collectAsStateWithLifecycle()
-        val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
+        val automix by playerConnection.automixItems.collectAsStateWithLifecycle()
+        val mutableQueueWindows = remember { mutableStateListOf<QueueEntry>() }
         val queueLength =
             remember(queueWindows) {
-                queueWindows.sumOf { it.mediaItem.metadata!!.duration }
+                queueWindows.sumOf { it.metadata!!.duration }
             }
 
         val coroutineScope = rememberCoroutineScope()
@@ -748,20 +745,7 @@ fun Queue(
                     val safeFrom = (from - headerItems).coerceIn(0, queueWindows.lastIndex)
                     val safeTo = (to - headerItems).coerceIn(0, queueWindows.lastIndex)
 
-                    if (!playerConnection.player.shuffleModeEnabled) {
-                        playerConnection.player.moveMediaItem(safeFrom, safeTo)
-                    } else {
-                        playerConnection.player.setShuffleOrder(
-                            DefaultShuffleOrder(
-                                queueWindows
-                                    .map { it.firstPeriodIndex }
-                                    .toMutableList()
-                                    .move(safeFrom, safeTo)
-                                    .toIntArray(),
-                                System.currentTimeMillis(),
-                            ),
-                        )
-                    }
+                    playerConnection.moveItem(safeFrom, safeTo)
                     dragInfo = null
                 }
             }
@@ -824,7 +808,7 @@ fun Queue(
 
                         var processedDismiss by remember { mutableStateOf(false) }
                         val removedSongMsg =
-                            stringResource(R.string.removed_song_from_playlist, currentItem.mediaItem.metadata?.title ?: "")
+                            stringResource(R.string.removed_song_from_playlist, currentItem.metadata?.title ?: "")
                         val undoStr = stringResource(R.string.undo)
                         LaunchedEffect(dismissBoxState.currentValue) {
                             val dv = dismissBoxState.currentValue
@@ -834,7 +818,7 @@ fun Queue(
                                 )
                             ) {
                                 processedDismiss = true
-                                playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                playerConnection.removeItem(currentItem.index)
                                 dismissJob?.cancel()
                                 dismissJob =
                                     coroutineScope.launch {
@@ -845,11 +829,7 @@ fun Queue(
                                                 duration = SnackbarDuration.Short,
                                             )
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
-                                            playerConnection.player.addMediaItem(currentItem.mediaItem)
-                                            playerConnection.player.moveMediaItem(
-                                                mutableQueueWindows.size,
-                                                currentItem.firstPeriodIndex,
-                                            )
+                                            currentItem.metadata?.let { playerConnection.insertItem(currentItem.index, it) }
                                         }
                                     }
                             }
@@ -860,9 +840,9 @@ fun Queue(
 
                         val onCheckedChange: (Boolean) -> Unit = {
                             if (it) {
-                                selection.add(window.mediaItem.mediaId)
+                                selection.add(window.metadata!!.id)
                             } else {
-                                selection.remove(window.mediaItem.mediaId)
+                                selection.remove(window.metadata!!.id)
                             }
                         }
 
@@ -872,14 +852,14 @@ fun Queue(
                                 modifier = Modifier.animateItem(),
                             ) {
                                 MediaMetadataListItem(
-                                    mediaMetadata = window.mediaItem.metadata!!,
+                                    mediaMetadata = window.metadata!!,
                                     isSelected = false,
                                     isActive = isActive,
                                     isPlaying = isPlaying && isActive,
                                     trailingContent = {
                                         if (inSelectMode) {
                                             Checkbox(
-                                                checked = window.mediaItem.mediaId in selection,
+                                                checked = window.metadata!!.id in selection,
                                                 onCheckedChange = onCheckedChange,
                                             )
                                         } else {
@@ -888,10 +868,10 @@ fun Queue(
                                                     onClick = {
                                                         menuState.show {
                                                             QueueMenu(
-                                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                                mediaMetadata = window.metadata!!,
                                                                 playerBottomSheetState = playerBottomSheetState,
                                                                 onShowDetailsDialog = {
-                                                                    window.mediaItem.mediaId.let {
+                                                                    window.metadata!!.id.let {
                                                                         bottomSheetPageState.show {
                                                                             ShowMediaInfo(it)
                                                                         }
@@ -899,7 +879,7 @@ fun Queue(
                                                                 },
                                                                 onDismiss = menuState::dismiss,
                                                                 onRemoveFromQueue = {
-                                                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                                                    playerConnection.removeItem(currentItem.index)
                                                                 }
                                                             )
                                                         }
@@ -931,7 +911,7 @@ fun Queue(
                                             .combinedClickable(
                                                 onClick = {
                                                     if (inSelectMode) {
-                                                        onCheckedChange(window.mediaItem.mediaId !in selection)
+                                                        onCheckedChange(window.metadata!!.id !in selection)
                                                     } else if (!isListenTogetherGuest) {
                                                         if (index == currentWindowIndex) {
                                                             if (isCasting) {
@@ -945,16 +925,14 @@ fun Queue(
                                                             }
                                                         } else {
                                                             if (isCasting) {
-                                                                val mediaId = window.mediaItem.mediaId
+                                                                val mediaId = window.metadata!!.id
                                                                 val navigated = castHandler?.navigateToMediaIfInQueue(mediaId) ?: false
                                                                 if (!navigated) {
-                                                                    playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                                    playerConnection.seekToItem(window.index)
                                                                 }
                                                             } else {
-                                                                playerConnection.player.seekToDefaultPosition(
-                                                                    window.firstPeriodIndex,
-                                                                )
-                                                                playerConnection.player.playWhenReady = true
+                                                                playerConnection.seekToItem(window.index)
+                                                                playerConnection.play()
                                                             }
                                                         }
                                                     }
@@ -1001,21 +979,18 @@ fun Queue(
 
                     itemsIndexed(
                         items = automix,
-                        key = { _, it -> it.mediaId },
+                        key = { _, it -> it.id },
                     ) { index, item ->
                         Row(
                             horizontalArrangement = Arrangement.Center,
                         ) {
                             MediaMetadataListItem(
-                                mediaMetadata = item.metadata!!,
+                                mediaMetadata = item,
                                 trailingContent = {
                                     if (!isListenTogetherGuest) {
                                         IconButton(
                                             onClick = {
-                                                playerConnection.service.playNextAutomix(
-                                                    item,
-                                                    index,
-                                                )
+                                                playerConnection.playNextAutomix(index)
                                             },
                                         ) {
                                             Icon(
@@ -1025,10 +1000,7 @@ fun Queue(
                                         }
                                         IconButton(
                                             onClick = {
-                                                playerConnection.service.addToQueueAutomix(
-                                                    item,
-                                                    index,
-                                                )
+                                                playerConnection.addToQueueAutomix(index)
                                             },
                                         ) {
                                             Icon(
@@ -1046,10 +1018,10 @@ fun Queue(
                                             onLongClick = {
                                                 menuState.show {
                                                     QueueMenu(
-                                                        mediaMetadata = item.metadata!!,
+                                                        mediaMetadata = item,
                                                         playerBottomSheetState = playerBottomSheetState,
                                                         onShowDetailsDialog = {
-                                                            item.mediaId.let {
+                                                            item.id.let {
                                                                 bottomSheetPageState.show {
                                                                     ShowMediaInfo(it)
                                                                 }
@@ -1216,12 +1188,12 @@ fun Queue(
                 val selectedSongs =
                     remember(selection.toList(), mutableQueueWindows) {
                         mutableQueueWindows
-                            .filter { it.mediaItem.mediaId in selection }
-                            .mapNotNull { it.mediaItem.metadata }
+                            .filter { it.metadata?.id in selection }
+                            .mapNotNull { it.metadata }
                     }
                 val selectedItems =
                     remember(selection.toList(), mutableQueueWindows) {
-                        mutableQueueWindows.filter { it.mediaItem.mediaId in selection }
+                        mutableQueueWindows.filter { it.metadata?.id in selection }
                     }
                 val count = selection.size
                 Row(
@@ -1250,7 +1222,7 @@ fun Queue(
                             } else {
                                 selection.clear()
                                 mutableQueueWindows.forEach {
-                                    selection.add(it.mediaItem.mediaId)
+                                    it.metadata?.let { metadata -> selection.add(metadata.id) }
                                 }
                             }
                         },
@@ -1315,11 +1287,10 @@ fun Queue(
                     coroutineScope
                         .launch {
                             lazyListState.animateScrollToItem(
-                                if (playerConnection.player.shuffleModeEnabled) playerConnection.player.currentMediaItemIndex else 0,
+                                if (shuffleModeEnabled) playerConnection.queue.value.getOrNull(currentWindowIndex)?.index ?: 0 else 0,
                             )
                         }.invokeOnCompletion {
-                            playerConnection.player.shuffleModeEnabled =
-                                !playerConnection.player.shuffleModeEnabled
+                            playerConnection.setShuffleModeEnabled(!playerConnection.shuffleModeEnabled.value)
                         }
                 },
             ) {

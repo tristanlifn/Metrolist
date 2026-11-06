@@ -5,6 +5,10 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import androidx.media3.datasource.cache.Cache
+import com.metrolist.music.di.DownloadCache
+import com.metrolist.music.di.PlayerCache
+import org.koin.compose.koinInject
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,7 +52,6 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.MaxImageCacheSizeKey
@@ -78,8 +81,8 @@ fun StorageSettings(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val imageDiskCache = context.imageLoader.diskCache ?: return
-    val playerCache = LocalPlayerConnection.current?.service?.playerCache ?: return
-    val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
+    val playerCache = koinInject<Cache>(PlayerCache)
+    val downloadCache = koinInject<Cache>(DownloadCache)
 
     val coroutineScope = rememberCoroutineScope()
     val songCacheString = stringResource(R.string.song_cache).lowercase()

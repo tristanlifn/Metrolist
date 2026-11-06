@@ -64,9 +64,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
+import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.playback.MusicPlayer
+import com.metrolist.music.playback.QueueEntry
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -104,7 +104,7 @@ data class ThumbnailDimensions(
  */
 @Immutable
 data class MediaItemsData(
-    val items: List<MediaItem>,
+    val items: List<MediaMetadata>,
     val currentIndex: Int
 )
 
@@ -136,48 +136,18 @@ private fun calculateThumbnailDimensions(
 }
 
 /**
- * Get media items for the thumbnail carousel.
- * Calculates previous, current, and next items based on shuffle mode.
+ * Get media items for the thumbnail carousel: previous, current and next in playback order.
  */
 @Stable
 private fun getMediaItems(
-    player: Player,
+    queue: List<QueueEntry>,
+    position: Int,
     swipeThumbnail: Boolean
 ): MediaItemsData {
-    val timeline = player.currentTimeline
-    val currentIndex = player.currentMediaItemIndex
-    val shuffleModeEnabled = player.shuffleModeEnabled
-    
-    val currentMediaItem = try {
-        player.currentMediaItem
-    } catch (e: Exception) { null }
-    
-    val previousMediaItem = if (swipeThumbnail && !timeline.isEmpty) {
-        val previousIndex = timeline.getPreviousWindowIndex(
-            currentIndex,
-            Player.REPEAT_MODE_OFF,
-            shuffleModeEnabled
-        )
-        if (previousIndex != C.INDEX_UNSET) {
-            try { player.getMediaItemAt(previousIndex) } catch (e: Exception) { null }
-        } else null
-    } else null
-
-    val nextMediaItem = if (swipeThumbnail && !timeline.isEmpty) {
-        val nextIndex = timeline.getNextWindowIndex(
-            currentIndex,
-            Player.REPEAT_MODE_OFF,
-            shuffleModeEnabled
-        )
-        if (nextIndex != C.INDEX_UNSET) {
-            try { player.getMediaItemAt(nextIndex) } catch (e: Exception) { null }
-        } else null
-    } else null
-
-    val items = listOfNotNull(previousMediaItem, currentMediaItem, nextMediaItem)
-    val currentMediaIndex = items.indexOf(currentMediaItem)
-    
-    return MediaItemsData(items, currentMediaIndex)
+    val current = queue.getOrNull(position)?.metadata ?: return MediaItemsData(emptyList(), -1)
+    val previous = if (swipeThumbnail) queue.getOrNull(position - 1)?.metadata else null
+    val next = if (swipeThumbnail) queue.getOrNull(position + 1)?.metadata else null
+    return MediaItemsData(listOfNotNull(previous, current, next), if (previous != null) 1 else 0)
 }
 
 /**
@@ -232,15 +202,10 @@ fun Thumbnail(
     val thumbnailLazyGridState = rememberLazyGridState()
     
     // Calculate media items data - memoized
-    val mediaItemsData by remember(
-        playerConnection.player.currentMediaItemIndex,
-        playerConnection.player.shuffleModeEnabled,
-        swipeThumbnail,
-        mediaMetadata
-    ) {
-        derivedStateOf {
-            getMediaItems(playerConnection.player, swipeThumbnail)
-        }
+    val queue by playerConnection.queue.collectAsStateWithLifecycle()
+    val queuePosition by playerConnection.currentQueuePosition.collectAsStateWithLifecycle()
+    val mediaItemsData = remember(queue, queuePosition, swipeThumbnail) {
+        getMediaItems(queue, queuePosition, swipeThumbnail)
     }
     
     val mediaItems = mediaItemsData.items
@@ -266,9 +231,9 @@ fun Thumbnail(
         if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0 || currentMediaIndex < 0) return@LaunchedEffect
 
         if (currentItem > currentMediaIndex && canSkipNext) {
-            playerConnection.player.seekToNext()
+            playerConnection.skipToNextItem()
         } else if (currentItem < currentMediaIndex && canSkipPrevious) {
-            playerConnection.player.seekToPreviousMediaItem()
+            playerConnection.skipToPreviousItem()
         }
     }
 
@@ -284,7 +249,7 @@ fun Thumbnail(
         }
     }
 
-    LaunchedEffect(playerConnection.player.currentMediaItemIndex) {
+    LaunchedEffect(queuePosition) {
         val index = mediaItemsData.currentIndex
         if (index >= 0 && index != currentItem) {
             thumbnailLazyGridState.scrollToItem(index)
@@ -314,7 +279,7 @@ fun Thumbnail(
             error?.let { playbackError ->
                 PlaybackError(
                     error = playbackError,
-                    retry = playerConnection.player::prepare,
+                    retry = playerConnection::retry,
                 )
             }
         }
@@ -387,7 +352,7 @@ fun Thumbnail(
                         items(
                             items = mediaItems,
                             key = { item -> 
-                                item.mediaId.ifEmpty { "unknown_${item.hashCode()}" }
+                                item.id.ifEmpty { "unknown_${item.hashCode()}" }
                             }
                         ) { item ->
                             ThumbnailItem(
@@ -488,14 +453,14 @@ private fun ThumbnailHeader(
  */
 @Composable
 private fun ThumbnailItem(
-    item: MediaItem,
+    item: MediaMetadata,
     dimensions: ThumbnailDimensions,
     hidePlayerThumbnail: Boolean,
     cropAlbumArt: Boolean,
     textBackgroundColor: Color,
     layoutDirection: LayoutDirection,
     onSeek: (String, Boolean) -> Unit,
-    playerConnection: com.metrolist.music.playback.PlayerConnection,
+    playerConnection: MusicPlayer,
     context: android.content.Context,
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
@@ -528,8 +493,8 @@ private fun ThumbnailItem(
                     onDoubleTap = { offset ->
                         if (isListenTogetherGuest) return@detectTapGestures
 
-                        val currentPosition = playerConnection.player.currentPosition
-                        val duration = playerConnection.player.duration
+                        val currentPosition = playerConnection.currentPosition
+                        val duration = playerConnection.duration
 
                         val now = System.currentTimeMillis()
                         if (incrementalSeekSkipEnabled && now - lastTapTime < 1000) {
@@ -545,10 +510,10 @@ private fun ThumbnailItem(
                                 (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
 
                         if (isLeftSide) {
-                            playerConnection.player.seekTo((currentPosition - skipAmount).coerceAtLeast(0))
+                            playerConnection.seekTo((currentPosition - skipAmount).coerceAtLeast(0))
                             onSeek(context.getString(R.string.seek_backward_dynamic, skipAmount / 1000), true)
                         } else {
-                            playerConnection.player.seekTo((currentPosition + skipAmount).coerceAtMost(duration))
+                            playerConnection.seekTo((currentPosition + skipAmount).coerceAtMost(duration))
                             onSeek(context.getString(R.string.seek_forward_dynamic, skipAmount / 1000), true)
                         }
                     }
@@ -564,10 +529,10 @@ private fun ThumbnailItem(
             if (hidePlayerThumbnail) {
                 HiddenThumbnailPlaceholder(textBackgroundColor = textBackgroundColor)
             } else {
-                val artworkUriToUse = if (item.mediaId == currentMediaId && !currentMediaThumbnail.isNullOrBlank()) {
+                val artworkUriToUse = if (item.id == currentMediaId && !currentMediaThumbnail.isNullOrBlank()) {
                     currentMediaThumbnail
                 } else {
-                    item.mediaMetadata.artworkUri?.toString()
+                    item.thumbnailUrl
                 }
 
                 ThumbnailImage(

@@ -40,8 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.Player
-import androidx.media3.common.Timeline
+import com.metrolist.music.playback.QueueEntry
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.innertube.YouTube
@@ -659,7 +658,7 @@ fun SelectionSongMenu(
 @Composable
 fun SelectionMediaMetadataMenu(
     songSelection: List<MediaMetadata>,
-    currentItems: List<Timeline.Window>,
+    currentItems: List<QueueEntry>,
     onDismiss: () -> Unit,
     clearAction: () -> Unit,
 ) {
@@ -788,12 +787,7 @@ fun SelectionMediaMetadataMenu(
                                         onDismiss()
                                         var i = 0
                                         currentItems.forEach { cur ->
-                                            if (playerConnection.player.availableCommands.contains(
-                                                    Player.COMMAND_CHANGE_MEDIA_ITEMS,
-                                                )
-                                            ) {
-                                                playerConnection.player.removeMediaItem(cur.firstPeriodIndex - i++)
-                                            }
+                                            playerConnection.removeItem(cur.index - i++)
                                         }
                                         clearAction()
                                     },

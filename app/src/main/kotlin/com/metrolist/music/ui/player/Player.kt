@@ -127,9 +127,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.media3.common.C
-import androidx.media3.common.Player
-import androidx.media3.common.Player.STATE_ENDED
 import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
 import com.metrolist.music.LocalNavController
@@ -157,6 +154,7 @@ import com.metrolist.music.constants.QueuePeekHeight
 import com.metrolist.music.constants.SleepTimerDefaultKey
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
+import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.playback.RepeatMode
 import org.koin.mp.KoinPlatform
@@ -167,9 +165,6 @@ import com.metrolist.music.constants.SquigglySliderKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.constants.UseNewPlayerDesignKey
 import com.metrolist.music.db.entities.LyricsEntity
-import com.metrolist.music.extensions.metadata
-import com.metrolist.music.extensions.togglePlayPause
-import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.ui.component.BottomSheet
@@ -327,7 +322,7 @@ fun BottomSheetPlayer(
     val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsStateWithLifecycle(initialValue = null)
-    val automix by playerConnection.service.automixItems.collectAsStateWithLifecycle()
+    val automix by playerConnection.automixItems.collectAsStateWithLifecycle()
     val repeatMode by playerConnection.repeatMode.collectAsStateWithLifecycle()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsStateWithLifecycle()
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
@@ -345,7 +340,7 @@ fun BottomSheetPlayer(
     val castHandler =
         remember(playerConnection) {
             try {
-                playerConnection.service.castConnectionHandler
+                playerConnection.cast
             } catch (e: Exception) {
                 null
             }
@@ -376,11 +371,11 @@ fun BottomSheetPlayer(
     // Seed from the player's current values so re-entering composition on resume shows the real
     // time immediately instead of flashing 0:00 until the first poll fires. runCatching guards the
     // player-not-ready race; the poll loop corrects duration if it isn't known yet.
-    val positionState = remember { mutableLongStateOf(runCatching { playerConnection.player.currentPosition }.getOrDefault(0L)) }
+    val positionState = remember { mutableLongStateOf(playerConnection.currentPosition) }
     val durationState = remember {
         mutableLongStateOf(
             (mediaMetadata?.duration?.takeIf { it > 0 }?.toLong()?.times(1000L))
-                ?: runCatching { playerConnection.player.duration }.getOrDefault(0L).coerceAtLeast(0L),
+                ?: playerConnection.duration.coerceAtLeast(0L),
         )
     }
 
@@ -410,7 +405,7 @@ fun BottomSheetPlayer(
     val gradientColorsCache = remember { mutableMapOf<String, List<Color>>() }
 
     if (!canSkipNext && automix.isNotEmpty()) {
-        playerConnection.service.addToQueueAutomix(automix[0], 0)
+        playerConnection.addToQueueAutomix(0)
     }
 
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
@@ -596,10 +591,10 @@ fun BottomSheetPlayer(
 
     val sleepTimerEnabled =
         remember(
-            playerConnection.service.sleepTimer?.triggerTime,
-            playerConnection.service.sleepTimer?.pauseWhenSongEnd,
+            playerConnection.sleepTimer?.triggerTime,
+            playerConnection.sleepTimer?.pauseWhenSongEnd,
         ) {
-            playerConnection.service.sleepTimer?.isActive ?: false
+            playerConnection.sleepTimer?.isActive ?: false
         }
 
     var sleepTimerTimeLeft by remember {
@@ -610,10 +605,10 @@ fun BottomSheetPlayer(
         if (sleepTimerEnabled) {
             while (isActive) {
                 sleepTimerTimeLeft =
-                    if (playerConnection.service.sleepTimer?.pauseWhenSongEnd == true) {
-                        playerConnection.player.duration - playerConnection.player.currentPosition
+                    if (playerConnection.sleepTimer?.pauseWhenSongEnd == true) {
+                        playerConnection.duration - playerConnection.currentPosition
                     } else {
-                        (playerConnection.service.sleepTimer?.triggerTime ?: 0L) - System.currentTimeMillis()
+                        (playerConnection.sleepTimer?.triggerTime ?: 0L) - System.currentTimeMillis()
                     }
                 delay(1000L)
             }
@@ -650,7 +645,7 @@ fun BottomSheetPlayer(
                 TextButton(
                     onClick = {
                         showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer?.start(
+                        playerConnection.sleepTimer?.start(
                             minute = sleepTimerValue.roundToInt(),
                             stopAfterCurrentSong = sleepTimerStopAfterCurrentSong,
                             fadeOut = sleepTimerFadeOut,
@@ -733,7 +728,7 @@ fun BottomSheetPlayer(
                         OutlinedIconButton(
                             onClick = {
                                 showSleepTimerDialog = false
-                                playerConnection.service.sleepTimer?.start(minute = -1)
+                                playerConnection.sleepTimer?.start(minute = -1)
                             },
                         ) {
                             Text(stringResource(R.string.end_of_song))
@@ -756,9 +751,9 @@ fun BottomSheetPlayer(
             while (isActive) {
                 delay(100) // Update more frequently for smoother progress bar
                 if (sliderPosition == null) { // Only update if user isn't dragging
-                    position = playerConnection.player.currentPosition
+                    position = playerConnection.currentPosition
                     // Don't clobber a valid (metadata-derived) duration with 0/UNSET mid-resolve.
-                    playerConnection.player.duration.takeIf { it > 0 }?.let { duration = it }
+                    playerConnection.duration.takeIf { it > 0 }?.let { duration = it }
                 }
             }
         }
@@ -767,12 +762,12 @@ fun BottomSheetPlayer(
     // Also update position when playback state changes (e.g., song change, seek)
     LaunchedEffect(playbackState, mediaMetadata?.id) {
         if (!isCasting) {
-            position = playerConnection.player.currentPosition
+            position = playerConnection.currentPosition
             // Prefer the song's known duration (from metadata, available instantly from the restored
             // queue) so the slider range is right even when restored paused / before the stream
             // resolves; fall back to the player's duration once it is known.
             duration = (mediaMetadata?.duration?.takeIf { it > 0 }?.toLong()?.times(1000L))
-                ?: playerConnection.player.duration
+                ?: playerConnection.duration
         }
     }
 
@@ -791,7 +786,7 @@ fun BottomSheetPlayer(
             playbackState == PlaybackState.ENDED &&
             repeatMode == RepeatMode.ONE &&
             !isListenTogetherGuest) {
-            playerConnection.player.setRepeatMode(Player.REPEAT_MODE_ALL)
+            playerConnection.setRepeatMode(RepeatMode.ALL)
         }
 
         previousMediaId = currentId
@@ -927,9 +922,8 @@ fun BottomSheetPlayer(
         onDismiss =
             if (!isListenTogetherGuest) {
                 {
-                    playerConnection.service.clearAutomix()
-                    playerConnection.player.stop()
-                    playerConnection.player.clearMediaItems()
+                    playerConnection.clearAutomix()
+                    playerConnection.clearQueue()
                 }
             } else {
                 null
@@ -999,8 +993,8 @@ fun BottomSheetPlayer(
                                             } else if (isCasting) {
                                                 if (castIsPlaying) castHandler?.pause() else castHandler?.play()
                                             } else if (playbackState == PlaybackState.ENDED) {
-                                                playerConnection.player.seekTo(0, 0)
-                                                playerConnection.player.playWhenReady = true
+                                                playerConnection.seekToItem(0)
+                                                playerConnection.play()
                                             } else {
                                                 playerConnection.togglePlayPause()
                                             }
@@ -1440,7 +1434,7 @@ fun BottomSheetPlayer(
                 SliderStyle.DEFAULT -> {
                     Slider(
                         value = (sliderPosition ?: effectivePosition).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        valueRange = 0f..(if (duration == MusicPlayer.TIME_UNSET) 0f else duration.toFloat()),
                         onValueChange = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition = it.toLong()
@@ -1453,7 +1447,7 @@ fun BottomSheetPlayer(
                                         castHandler?.seekTo(it)
                                         lastManualSeekTime = System.currentTimeMillis()
                                     } else {
-                                        playerConnection.player.seekTo(it)
+                                        playerConnection.seekTo(it)
                                     }
                                     position = it
                                 }
@@ -1470,7 +1464,7 @@ fun BottomSheetPlayer(
                     if (squigglySlider) {
                         SquigglySlider(
                             value = (sliderPosition ?: effectivePosition).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            valueRange = 0f..(if (duration == MusicPlayer.TIME_UNSET) 0f else duration.toFloat()),
                             onValueChange = {
                                 sliderPosition = it.toLong()
                             },
@@ -1480,7 +1474,7 @@ fun BottomSheetPlayer(
                                         castHandler?.seekTo(it)
                                         lastManualSeekTime = System.currentTimeMillis()
                                     } else {
-                                        playerConnection.player.seekTo(it)
+                                        playerConnection.seekTo(it)
                                     }
                                     position = it
                                 }
@@ -1493,7 +1487,7 @@ fun BottomSheetPlayer(
                     } else {
                         WavySlider(
                             value = (sliderPosition ?: effectivePosition).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            valueRange = 0f..(if (duration == MusicPlayer.TIME_UNSET) 0f else duration.toFloat()),
                             onValueChange = {
                                 sliderPosition = it.toLong()
                             },
@@ -1503,7 +1497,7 @@ fun BottomSheetPlayer(
                                         castHandler?.seekTo(it)
                                         lastManualSeekTime = System.currentTimeMillis()
                                     } else {
-                                        playerConnection.player.seekTo(it)
+                                        playerConnection.seekTo(it)
                                     }
                                     position = it
                                 }
@@ -1518,7 +1512,7 @@ fun BottomSheetPlayer(
 
                 SliderStyle.SLIM -> {
                     val sliderValue = (sliderPosition ?: effectivePosition).toFloat()
-                    val sliderRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat())
+                    val sliderRange = 0f..(if (duration == MusicPlayer.TIME_UNSET) 0f else duration.toFloat())
                     val sliderState = remember(sliderRange) {
                         SliderState(value = sliderValue, trackRange = sliderRange)
                     }
@@ -1537,7 +1531,7 @@ fun BottomSheetPlayer(
                                         castHandler?.seekTo(it)
                                         lastManualSeekTime = System.currentTimeMillis()
                                     } else {
-                                        playerConnection.player.seekTo(it)
+                                        playerConnection.seekTo(it)
                                     }
                                     position = it
                                 }
@@ -1576,7 +1570,7 @@ fun BottomSheetPlayer(
                 )
 
                 Text(
-                    text = if (duration != C.TIME_UNSET) makeTimeString(duration) else "",
+                    text = if (duration != MusicPlayer.TIME_UNSET) makeTimeString(duration) else "",
                     style = MaterialTheme.typography.labelMedium,
                     color = TextBackgroundColor,
                     maxLines = 1,
@@ -1697,8 +1691,8 @@ fun BottomSheetPlayer(
                                             castHandler?.play()
                                         }
                                     } else if (playbackState == PlaybackState.ENDED) {
-                                        playerConnection.player.seekTo(0, 0)
-                                        playerConnection.player.playWhenReady = true
+                                        playerConnection.seekToItem(0)
+                                        playerConnection.play()
                                     } else {
                                         playerConnection.togglePlayPause()
                                     }
@@ -1800,7 +1794,7 @@ fun BottomSheetPlayer(
                                             ),
                                     enabled = !isListenTogetherGuest,
                                     onClick = {
-                                        playerConnection.player.toggleRepeatMode()
+                                        playerConnection.toggleRepeatMode()
                                     },
                                 )
                             }
@@ -1839,10 +1833,10 @@ fun BottomSheetPlayer(
                                                     castHandler?.play()
                                                 }
                                             } else if (playbackState == PlaybackState.ENDED) {
-                                                playerConnection.player.seekTo(0, 0)
-                                                playerConnection.player.playWhenReady = true
+                                                playerConnection.seekToItem(0)
+                                                playerConnection.play()
                                             } else {
-                                                playerConnection.player.togglePlayPause()
+                                                playerConnection.togglePlayPause()
                                             }
                                         }
                                         .focusRequester(focusRequester),
@@ -2071,8 +2065,8 @@ fun InlineLyricsView(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentLyrics by playerConnection.currentLyrics.collectAsStateWithLifecycle(initialValue = null)
-    val queueWindows by playerConnection.queueWindows.collectAsStateWithLifecycle(initialValue = emptyList())
-    val currentWindowIndex by playerConnection.currentWindowIndex.collectAsStateWithLifecycle(initialValue = -1)
+    val queueWindows by playerConnection.queue.collectAsStateWithLifecycle()
+    val currentWindowIndex by playerConnection.currentQueuePosition.collectAsStateWithLifecycle()
     val lyrics = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -2096,7 +2090,7 @@ fun InlineLyricsView(
     val nextMetadata =
         remember(queueWindows, currentWindowIndex) {
             if (currentWindowIndex >= 0 && currentWindowIndex + 1 < queueWindows.size) {
-                queueWindows[currentWindowIndex + 1].mediaItem.metadata
+                queueWindows[currentWindowIndex + 1].metadata
             } else {
                 null
             }

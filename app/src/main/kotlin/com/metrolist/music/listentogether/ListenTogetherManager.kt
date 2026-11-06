@@ -20,6 +20,7 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.MediaMetadata.Album
 import com.metrolist.music.models.MediaMetadata.Artist
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.QueueEntry
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.utils.dataStore
@@ -1854,7 +1855,7 @@ class ListenTogetherManager(
             val currentQueue =
                 try {
                     playerConnection?.let { connection ->
-                        upcomingQueueItems(connection.queueWindows.value, connection.currentWindowIndex.value)
+                        upcomingQueueItems(connection.queue.value, connection.currentQueuePosition.value)
                             .map { it.toTrackInfo() }
                     }
                 } catch (e: Exception) {
@@ -1885,7 +1886,7 @@ class ListenTogetherManager(
                 scope.launch {
                     playerConnection
                         ?.let { connection ->
-                            combine(connection.queueWindows, connection.currentWindowIndex) { windows, currentIndex ->
+                            combine(connection.queue, connection.currentQueuePosition) { windows, currentIndex ->
                                 upcomingQueueItems(windows, currentIndex).map { it.toTrackInfo() }
                             }
                         }?.distinctUntilChanged()
@@ -1939,8 +1940,8 @@ class ListenTogetherManager(
             lastSyncedVolume = null
         }
 
-        private fun androidx.media3.common.Timeline.Window.toTrackInfo(): TrackInfo {
-            val metadata = mediaItem.metadata ?: return TrackInfo("unknown", "Unknown", "Unknown", "", 0, "")
+        private fun QueueEntry.toTrackInfo(): TrackInfo {
+            val metadata = metadata ?: return TrackInfo("unknown", "Unknown", "Unknown", "", 0, "")
             val durationMs = if (metadata.duration > 0) metadata.duration.toLong() * 1000 else 180000L
             return TrackInfo(
                 id = metadata.id,

@@ -87,6 +87,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
+import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.R
 import com.metrolist.music.constants.AiProviderKey
 import com.metrolist.music.constants.AiSystemPromptKey
@@ -340,7 +341,7 @@ fun ExperimentalLyrics(
             return@LaunchedEffect
         }
         
-        var lastPlayerPos = playerConnection.player.currentPosition
+        var lastPlayerPos = playerConnection.currentPosition
         var lastUpdateTime = System.currentTimeMillis()
         
         while (isActive) {
@@ -352,13 +353,13 @@ fun ExperimentalLyrics(
             val position = if (isSeeking) {
                 sliderPosition!!
             } else {
-                val playerPos = playerConnection.player.currentPosition
+                val playerPos = playerConnection.currentPosition
                 if (playerPos != lastPlayerPos) {
                     lastPlayerPos = playerPos
                     lastUpdateTime = now
                 }
                 val elapsed = now - lastUpdateTime
-                lastPlayerPos + (if (playerConnection.player.isPlaying) elapsed else 0)
+                lastPlayerPos + (if (playerConnection.isPlaying.value && playerConnection.playbackState.value == PlaybackState.READY) elapsed else 0)
             }
             
             currentPositionState = position
@@ -784,7 +785,7 @@ fun ExperimentalLyrics(
                                                 } else if (selectedIndices.size < maxSelectionLimit) selectedIndices.add(index)
                                                 else showMaxSelectionToast = true
                                             } else if (changeLyrics && !isGuest) {
-                                                if (item.time < playerConnection.player.duration + 30000L) {
+                                                if (item.time < playerConnection.duration + 30000L) {
                                                     playerConnection.seekTo((item.time - (currentSong?.song?.lyricsOffset ?: 0)).coerceAtLeast(0))
                                                 } else {
                                                     scrollTargetIndex = index

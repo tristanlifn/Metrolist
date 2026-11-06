@@ -174,7 +174,7 @@ fun ShowMediaInfo(videoId: String) {
                                 String.format(LocalLocale.current.platformLocale, "%.2f dB", it - targetLufs)
                             },
                             stringResource(R.string.loudness_level) to getLoudnessLevelLabel(loudnessLevel),
-                            stringResource(R.string.volume) to if (playerConnection != null) "${(playerConnection.player.volume * 100).toInt()}%" else null,
+                            stringResource(R.string.volume) to if (playerConnection != null) "${(playerConnection.volume.value * 100).toInt()}%" else null,
                             stringResource(R.string.file_size) to
                                     currentFormat?.contentLength?.let {
                                         Formatter.formatShortFileSize(

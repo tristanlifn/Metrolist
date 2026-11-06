@@ -336,7 +336,7 @@ fun AlbumScreen(
                         Surface(
                             onClick = {
                                 if (!isListenTogetherGuest) {
-                                    playerConnection.service.getAutomix(playlistId)
+                                    playerConnection.loadAutomix(playlistId)
                                     playerConnection.playQueue(
                                         LocalAlbumRadio(albumWithSongs),
                                     )
@@ -447,7 +447,7 @@ fun AlbumScreen(
                                             if (song.id == mediaMetadata?.id) {
                                                 playerConnection.togglePlayPause()
                                             } else {
-                                                playerConnection.service.getAutomix(playlistId)
+                                                playerConnection.loadAutomix(playlistId)
                                                 playerConnection.playQueue(
                                                     LocalAlbumRadio(albumWithSongs, startIndex = index),
                                                 )

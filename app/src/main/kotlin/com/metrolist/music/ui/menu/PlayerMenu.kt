@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.menu
 
+import com.metrolist.music.playback.PlayerConnection
 import android.content.Context
 import android.content.Intent
 import android.media.audiofx.AudioEffect
@@ -73,7 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.C
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.music.LocalNavController
@@ -117,13 +117,13 @@ fun PlayerMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val playerVolume = playerConnection.service.playerVolume.collectAsStateWithLifecycle()
+    val playerVolume = playerConnection.volume.collectAsStateWithLifecycle()
 
     // Cast state for volume control - safely access castConnectionHandler to prevent crashes
     val castHandler =
         remember(playerConnection) {
             try {
-                playerConnection.service.castConnectionHandler
+                playerConnection.cast
             } catch (e: Exception) {
                 null
             }
@@ -284,7 +284,7 @@ fun PlayerMenu(
                         if (isCasting) {
                             castHandler?.setVolume(volume)
                         } else {
-                            playerConnection.service.playerVolume.value = volume
+                            playerConnection.setVolume(volume)
                         }
                     },
                     modifier = Modifier.weight(1f),
@@ -704,7 +704,7 @@ fun PlayerMenu(
                                         )
                                     },
                                     onClick = {
-                                        val audioSessionId = playerConnection.player.audioSessionId
+                                        val audioSessionId = (playerConnection as? PlayerConnection)?.player?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
                                         if (audioSessionId != C.AUDIO_SESSION_ID_UNSET && audioSessionId > 0) {
                                             val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
                                                 putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionId)
@@ -747,14 +747,14 @@ fun PlayerMenu(
 fun TempoPitchDialog(onDismiss: () -> Unit) {
     val playerConnection = LocalPlayerConnection.current ?: return
     var tempo by remember {
-        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
+        mutableFloatStateOf(playerConnection.playbackSpeed)
     }
     var transposeValue by remember {
-        mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
+        mutableIntStateOf(round(12 * log2(playerConnection.pitch)).toInt())
     }
     val updatePlaybackParameters = {
-        playerConnection.player.playbackParameters =
-            PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))
+        playerConnection.playbackSpeed = tempo
+        playerConnection.pitch = 2f.pow(transposeValue.toFloat() / 12)
     }
     val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
     val isInRoom = listenTogetherManager?.isInRoom ?: false
@@ -817,11 +817,11 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
 fun SpeedDialog(onDismiss: () -> Unit) {
     val playerConnection = LocalPlayerConnection.current ?: return
     var speed by remember {
-        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
+        mutableFloatStateOf(playerConnection.playbackSpeed)
     }
     val updatePlaybackParameters = {
-        playerConnection.player.playbackParameters =
-            PlaybackParameters(speed, speed)
+        playerConnection.playbackSpeed = speed
+        playerConnection.pitch = speed
     }
     val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
 

@@ -30,27 +30,27 @@ class CastConnectionHandler(
     private val context: Context,
     private val scope: CoroutineScope,
     private val musicService: MusicService,
-) {
+) : CastControl {
     private val _isCasting = MutableStateFlow(false)
-    val isCasting: StateFlow<Boolean> = _isCasting.asStateFlow()
+    override val isCasting: StateFlow<Boolean> = _isCasting.asStateFlow()
 
     private val _castDeviceName = MutableStateFlow<String?>(null)
-    val castDeviceName: StateFlow<String?> = _castDeviceName.asStateFlow()
+    override val castDeviceName: StateFlow<String?> = _castDeviceName.asStateFlow()
 
     private val _castPosition = MutableStateFlow(0L)
-    val castPosition: StateFlow<Long> = _castPosition.asStateFlow()
+    override val castPosition: StateFlow<Long> = _castPosition.asStateFlow()
 
     private val _castDuration = MutableStateFlow(0L)
-    val castDuration: StateFlow<Long> = _castDuration.asStateFlow()
+    override val castDuration: StateFlow<Long> = _castDuration.asStateFlow()
 
     private val _castIsPlaying = MutableStateFlow(false)
-    val castIsPlaying: StateFlow<Boolean> = _castIsPlaying.asStateFlow()
+    override val castIsPlaying: StateFlow<Boolean> = _castIsPlaying.asStateFlow()
 
     private val _castIsBuffering = MutableStateFlow(false)
     val castIsBuffering: StateFlow<Boolean> = _castIsBuffering.asStateFlow()
 
     private val _castVolume = MutableStateFlow(1f)
-    val castVolume: StateFlow<Float> = _castVolume.asStateFlow()
+    override val castVolume: StateFlow<Float> = _castVolume.asStateFlow()
 
     @Volatile
     var isSyncingFromCast = false
@@ -186,25 +186,25 @@ class CastConnectionHandler(
             }
     }
 
-    fun play() {
+    override fun play() {
         castPlayer?.play()
     }
 
-    fun pause() {
+    override fun pause() {
         castPlayer?.pause()
     }
 
-    fun seekTo(position: Long) {
+    override fun seekTo(position: Long) {
         castPlayer?.seekTo(position)
     }
 
-    fun setVolume(volume: Float) {
+    override fun setVolume(volume: Float) {
         val player = castPlayer ?: return
         val maxVolume = player.deviceInfo.maxVolume.takeIf { it > 0 } ?: return
         player.setDeviceVolume((volume.coerceIn(0f, 1f) * maxVolume).roundToInt(), 0)
     }
 
-    fun navigateToMediaIfInQueue(mediaId: String): Boolean {
+    override fun navigateToMediaIfInQueue(mediaId: String): Boolean {
         val player = castPlayer ?: return false
         repeat(player.mediaItemCount) { index ->
             if (player.getMediaItemAt(index).mediaId == mediaId) {

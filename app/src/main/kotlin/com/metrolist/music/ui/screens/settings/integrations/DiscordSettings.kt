@@ -126,7 +126,7 @@ fun DiscordSettings(
     val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
 
     var position by rememberSaveable(playbackState) {
-        mutableLongStateOf(playerConnection.player.currentPosition)
+        mutableLongStateOf(playerConnection.currentPosition)
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -212,7 +212,7 @@ fun DiscordSettings(
         if (playbackState == PlaybackState.READY) {
             while (isActive) {
                 delay(100)
-                position = playerConnection.player.currentPosition
+                position = playerConnection.currentPosition
             }
         }
     }
