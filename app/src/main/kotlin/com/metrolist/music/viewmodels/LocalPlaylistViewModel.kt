@@ -12,9 +12,9 @@ import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.music.constants.HideVideoSongsKey
-import com.metrolist.music.constants.PlaylistSongSortDescendingKey
+import com.metrolist.music.constants.playlistSongSortDescendingKey
 import com.metrolist.music.constants.PlaylistSongSortType
-import com.metrolist.music.constants.PlaylistSongSortTypeKey
+import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.extensions.reversed
@@ -59,8 +59,8 @@ constructor(
             context.dataStore.data
                 .map {
                     Triple(
-                        it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM),
-                        it[PlaylistSongSortDescendingKey] ?: true,
+                        it[playlistSongSortTypeKey(playlistId = playlistId)].toEnum(PlaylistSongSortType.CUSTOM),
+                        it[playlistSongSortDescendingKey(playlistId = playlistId)] ?: true,
                         it[HideVideoSongsKey] ?: false
                     )
                 }.distinctUntilChanged(),

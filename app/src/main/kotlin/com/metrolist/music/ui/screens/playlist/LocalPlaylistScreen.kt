@@ -111,13 +111,12 @@ import com.metrolist.music.LocalSyncUtils
 import com.metrolist.music.R
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PlaylistEditLockKey
-import com.metrolist.music.constants.PlaylistSongSortDescendingKey
+import com.metrolist.music.constants.playlistSongSortDescendingKey
 import com.metrolist.music.constants.PlaylistSongSortType
-import com.metrolist.music.constants.PlaylistSongSortTypeKey
+import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.constants.SwipeToRemoveSongKey
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistSong
-import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.extensions.move
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.ExoDownloadService
@@ -143,11 +142,11 @@ import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
+import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.viewmodels.LocalPlaylistViewModel
 import com.yalantis.ucrop.UCrop
 import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
@@ -179,13 +178,15 @@ fun LocalPlaylistScreen(
         }
     val (sortType, onSortTypeChange) =
         rememberEnumPreference(
-            PlaylistSongSortTypeKey,
+            playlistSongSortTypeKey(playlistId = viewModel.playlistId),
             PlaylistSongSortType.CUSTOM,
+            removeIfDefault = true
         )
     val (sortDescending, onSortDescendingChange) =
         rememberPreference(
-            PlaylistSongSortDescendingKey,
+            playlistSongSortDescendingKey(playlistId = viewModel.playlistId),
             true,
+            removeIfDefault = true
         )
     var locked by rememberPreference(PlaylistEditLockKey, defaultValue = true)
 
@@ -402,6 +403,11 @@ fun LocalPlaylistScreen(
                         }
                         viewModel.viewModelScope.launch(Dispatchers.IO) {
                             playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
+
+                            context.safeDataStoreEdit {
+                                it.remove(playlistSongSortTypeKey(playlistId = playlist?.id ?: ""))
+                                it.remove(playlistSongSortDescendingKey(playlistId = playlist?.id ?: ""))
+                            }
                         }
                         navController.popBackStack()
                     },

@@ -14,6 +14,7 @@ import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.constants.SongSortTypeKey
+import com.metrolist.music.constants.playlistSongSortDescendingKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
@@ -53,8 +54,7 @@ constructor(
         context.dataStore.data
             .map {
                 Triple(
-                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-                        ?: true),
+                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[playlistSongSortDescendingKey(playlist)] ?: true),
                     it[HideExplicitKey] ?: false,
                     it[HideVideoSongsKey] ?: false
                 )
