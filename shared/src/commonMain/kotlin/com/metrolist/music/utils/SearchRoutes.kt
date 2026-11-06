@@ -5,8 +5,6 @@
 
 package com.metrolist.music.utils
 
-import android.net.Uri
-
 object SearchRoutes {
     const val ROUTE = "search/{query}"
 
@@ -16,10 +14,23 @@ object SearchRoutes {
 
     // Encode the prefixed query as a route path segment before navigating.
     fun resultRoute(query: String): String =
-        "search/${Uri.encode(QUERY_ROUTE_PREFIX + query)}"
+        "search/${encodeUriComponent(QUERY_ROUTE_PREFIX + query)}"
 
     // Navigation already decodes path segments once, so only strip the prefix.
     // Decoding again would turn literal input like "%2F" into "/".
     fun decodeQuery(rawQuery: String): String =
         rawQuery.removePrefix(QUERY_ROUTE_PREFIX)
 }
+
+/** Percent-encodes [value] like Android's Uri.encode: UTF-8, keeping only letters, digits and _-!.~'()*. */
+internal fun encodeUriComponent(value: String): String =
+    buildString {
+        value.encodeToByteArray().forEach { byte ->
+            val char = (byte.toInt() and 0xFF).toChar()
+            if (char.isLetterOrDigit() && char.code < 0x80 || char in "_-!.~'()*") {
+                append(char)
+            } else {
+                append('%').append("%02X".format(byte.toInt() and 0xFF))
+            }
+        }
+    }

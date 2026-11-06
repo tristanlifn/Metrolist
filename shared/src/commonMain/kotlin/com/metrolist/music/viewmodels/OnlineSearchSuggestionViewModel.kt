@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -22,7 +23,6 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.SearchHistory
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OnlineSearchSuggestionViewModel(
-        val context: Context,
+        private val dataStore: DataStore<Preferences>,
         database: MusicDatabase,
     ) : ViewModel() {
         val query = MutableStateFlow("")
@@ -70,8 +70,8 @@ class OnlineSearchSuggestionViewModel(
                                     }
                             } else {
                                 val result = YouTube.searchSuggestions(query).getOrNull()
-                                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                                val hideExplicit = dataStore.get(HideExplicitKey, false)
+                                val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
 
                                 database
                                     .searchHistory(query)

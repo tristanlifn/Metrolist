@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +17,6 @@ import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.models.ItemsPage
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ArtistItemsViewModel(
-    val context: Context,
+    private val dataStore: DataStore<Preferences>,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val browseId = savedStateHandle.get<String>("browseId")!!
@@ -43,8 +43,8 @@ class ArtistItemsViewModel(
                     ),
                 )                .onSuccess { artistItemsPage ->
                     val resolvedItems = YouTube.resolveArtistIds(artistItemsPage.items)
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                    val hideExplicit = dataStore.get(HideExplicitKey, false)
+                    val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
                     title.value = artistItemsPage.title
                     itemsPage.value =
                         ItemsPage(
@@ -68,8 +68,8 @@ class ArtistItemsViewModel(
                 .artistItemsContinuation(continuation)
                 .onSuccess { artistItemsContinuationPage ->
                     val resolvedItems = YouTube.resolveArtistIds(artistItemsContinuationPage.items)
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                    val hideExplicit = dataStore.get(HideExplicitKey, false)
+                    val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
                     itemsPage.update {
                         ItemsPage(
                             items =

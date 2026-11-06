@@ -64,6 +64,10 @@ kotlin {
             api(libs.room.runtime)
             api(libs.compose.multiplatform.runtime)
             api(libs.compose.components.resources)
+            api(libs.datastore.preferences.core)
+            api(libs.kermit)
+            api(libs.lifecycle.viewmodel)
+            api(libs.lifecycle.viewmodel.savedstate)
         }
         androidMain.dependencies {
             implementation(libs.core.ktx)

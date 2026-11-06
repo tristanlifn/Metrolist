@@ -5,14 +5,14 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.MyTopFilter
 import com.metrolist.music.db.MusicDatabase
-import com.metrolist.music.utils.dataStore
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class TopPlaylistViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -36,7 +36,7 @@ class TopPlaylistViewModel(
     val topSongs =
         combine(
             topPeriod,
-            context.dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
+            dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
         ) { period, hideVideoSongs -> period to hideVideoSongs }
             .flatMapLatest { (period, hideVideoSongs) ->
                 val now = LocalDateTime.now()

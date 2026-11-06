@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.music.constants.HideVideoSongsKey
@@ -15,7 +16,6 @@ import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.LocalItem
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.Song
-import com.metrolist.music.utils.dataStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocalSearchViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
 ) : ViewModel() {
     val query = MutableStateFlow("")
@@ -38,7 +38,7 @@ class LocalSearchViewModel(
         combine(
             query,
             filter,
-            context.dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
+            dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
         ) { query, filter, hideVideoSongs ->
             Triple(query, filter, hideVideoSongs)
         }.flatMapLatest { (query, filter, hideVideoSongs) ->

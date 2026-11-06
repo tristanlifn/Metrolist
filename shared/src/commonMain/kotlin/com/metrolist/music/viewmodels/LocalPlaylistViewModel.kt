@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,6 @@ import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.extensions.reversed
 import com.metrolist.music.extensions.toEnum
-import com.metrolist.music.utils.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,7 +35,7 @@ import java.text.Collator
 import java.util.Locale
 
 class LocalPlaylistViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -50,7 +50,7 @@ class LocalPlaylistViewModel(
     val playlistSongs: StateFlow<List<PlaylistSong>> =
         combine(
             database.playlistSongs(playlistId),
-            context.dataStore.data
+            dataStore.data
                 .map {
                     Triple(
                         it[playlistSongSortTypeKey(playlistId = playlistId)].toEnum(PlaylistSongSortType.CUSTOM),

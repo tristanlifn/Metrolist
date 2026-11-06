@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -13,7 +14,6 @@ import com.metrolist.innertube.pages.HistoryPage
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.db.MusicDatabase
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +30,7 @@ import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HistoryViewModel(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     val database: MusicDatabase,
 ) : ViewModel() {
     var historySource = MutableStateFlow(HistorySource.LOCAL)
@@ -42,7 +42,7 @@ class HistoryViewModel(
     val historyPage = MutableStateFlow<HistoryPage?>(null)
 
     val events =
-        context.dataStore.data
+        dataStore.data
             .map { it[HideVideoSongsKey] ?: false }
             .distinctUntilChanged()
             .flatMapLatest { hideVideoSongs ->

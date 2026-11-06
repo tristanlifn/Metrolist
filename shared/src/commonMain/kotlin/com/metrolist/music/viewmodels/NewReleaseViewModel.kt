@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -13,7 +14,6 @@ import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.db.MusicDatabase
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class NewReleaseViewModel(
-    val context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
 ) : ViewModel() {
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
@@ -58,7 +58,7 @@ class NewReleaseViewModel(
                                         }
                                     } ?: Int.MAX_VALUE
                                 firstArtistKey
-                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                            }.filterExplicit(dataStore.get(HideExplicitKey, false))
                 }.onFailure {
                     reportException(it)
                 }

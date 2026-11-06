@@ -5,7 +5,6 @@
 
 package com.metrolist.music.extensions
 
-import androidx.sqlite.db.SimpleSQLiteQuery
 import java.net.InetSocketAddress
 import java.net.InetSocketAddress.createUnresolved
 import java.text.Normalizer
@@ -22,8 +21,6 @@ inline fun <reified T : Enum<T>> String?.toEnum(defaultValue: T): T =
             defaultValue
         }
     }
-
-fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
 
 fun String.normalizeForSearch(): String =
     Normalizer

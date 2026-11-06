@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -18,7 +19,6 @@ import com.metrolist.music.constants.HideYoutubeShortsKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.ui.utils.resize
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ enum class AccountContentType {
 }
 
 class AccountViewModel(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
 ) : ViewModel() {
     val playlists = MutableStateFlow<List<PlaylistItem>?>(null)
@@ -54,7 +54,7 @@ class AccountViewModel(
     val selectedContentType = MutableStateFlow(AccountContentType.PLAYLISTS)
 
     private suspend fun loadPlaylists() {
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
         YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
             val all = it.items.filterIsInstance<PlaylistItem>()
             // Extract SE playlist separately for Podcasts tab
@@ -102,7 +102,7 @@ class AccountViewModel(
 
         // Listen for HideYoutubeShorts preference changes and reload playlists instantly
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.data
+            dataStore.data
                 .map { it[HideYoutubeShortsKey] ?: false }
                 .distinctUntilChanged()
                 .collect {

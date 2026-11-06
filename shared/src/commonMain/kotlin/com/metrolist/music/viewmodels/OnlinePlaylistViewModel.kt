@@ -5,17 +5,18 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.MusicDatabase
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,7 @@ import com.metrolist.innertube.models.Artist
 import com.metrolist.innertube.models.Album
 
 class OnlinePlaylistViewModel(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     savedStateHandle: SavedStateHandle,
     private val database: MusicDatabase
 ) : ViewModel() {
@@ -107,10 +108,10 @@ class OnlinePlaylistViewModel(
                     }
             }
             "SE" -> {
-                timber.log.Timber.d("[SE_LOCAL] Fetching SE playlist...")
+                Logger.d("[SE_LOCAL] Fetching SE playlist...")
                 val result = YouTube.episodesForLater()
                 val episodes = result.getOrNull() ?: emptyList()
-                timber.log.Timber.d("[SE_LOCAL] YouTube API result: ${if (result.isSuccess) "success" else "failed"}, ${episodes.size} episodes")
+                Logger.d("[SE_LOCAL] YouTube API result: ${if (result.isSuccess) "success" else "failed"}, ${episodes.size} episodes")
 
                 if (result.isSuccess && episodes.isNotEmpty()) {
                     // Use YouTube episodes
@@ -128,7 +129,7 @@ class OnlinePlaylistViewModel(
                     _isLoading.value = false
                 } else {
                     // Fall back to local saved episodes when API fails or returns empty
-                    timber.log.Timber.d("[SE_LOCAL] Falling back to local saved episodes")
+                    Logger.d("[SE_LOCAL] Falling back to local saved episodes")
                     loadLocalSavedEpisodes()
                 }
             }
@@ -157,11 +158,11 @@ class OnlinePlaylistViewModel(
     }
 
     private suspend fun loadLocalSavedEpisodes() {
-        timber.log.Timber.d("[SE_LOCAL] loadLocalSavedEpisodes called")
+        Logger.d("[SE_LOCAL] loadLocalSavedEpisodes called")
         val savedEpisodes = database.savedPodcastEpisodes(SongSortType.CREATE_DATE, true).firstOrNull() ?: emptyList()
-        timber.log.Timber.d("[SE_LOCAL] Found ${savedEpisodes.size} saved episodes")
+        Logger.d("[SE_LOCAL] Found ${savedEpisodes.size} saved episodes")
         savedEpisodes.forEachIndexed { index, ep ->
-            timber.log.Timber.d("[SE_LOCAL] Episode $index: id=${ep.song.id}, title=${ep.song.title}, isEpisode=${ep.song.isEpisode}, inLibrary=${ep.song.inLibrary}")
+            Logger.d("[SE_LOCAL] Episode $index: id=${ep.song.id}, title=${ep.song.title}, isEpisode=${ep.song.isEpisode}, inLibrary=${ep.song.inLibrary}")
         }
         if (savedEpisodes.isNotEmpty()) {
             // Convert local Song entities to SongItem format
@@ -177,7 +178,7 @@ class OnlinePlaylistViewModel(
                     endpoint = null,
                 )
             }
-            timber.log.Timber.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
+            Logger.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
             playlist.value = PlaylistItem(
                 id = playlistId,
                 title = "Episodes for Later",
@@ -189,12 +190,12 @@ class OnlinePlaylistViewModel(
                 radioEndpoint = null,
             )
             val filtered = applySongFilters(songItems)
-            timber.log.Timber.d("[SE_LOCAL] After filter: ${filtered.size} episodes, setting playlistSongs")
+            Logger.d("[SE_LOCAL] After filter: ${filtered.size} episodes, setting playlistSongs")
             playlistSongs.value = filtered
             _isLoading.value = false
-            timber.log.Timber.d("[SE_LOCAL] Done, isLoading=false")
+            Logger.d("[SE_LOCAL] Done, isLoading=false")
         } else {
-            timber.log.Timber.d("[SE_LOCAL] No saved episodes found")
+            Logger.d("[SE_LOCAL] No saved episodes found")
             _error.value = "No saved episodes"
             _isLoading.value = false
         }
@@ -262,7 +263,7 @@ class OnlinePlaylistViewModel(
     }
 
     private fun applySongFilters(songs: List<SongItem>): List<SongItem> {
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
         return songs
             .distinctBy { it.id }
             .filterVideoSongs(hideVideoSongs)

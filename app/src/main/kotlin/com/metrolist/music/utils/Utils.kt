@@ -22,10 +22,6 @@ fun <T> List<T>.joinToArtistString(
     else -> dropLast(1).joinToString(", ") { transform(it) } + "$conjunction${transform(last())}"
 }
 
-fun reportException(throwable: Throwable) {
-    throwable.printStackTrace()
-}
-
 @Suppress("DEPRECATION")
 fun setAppLocale(context: Context, locale: Locale) {
     val config = Configuration(context.resources.configuration)

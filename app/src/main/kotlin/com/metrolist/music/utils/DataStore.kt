@@ -43,9 +43,15 @@ val Context.dataStore: DataStore<Preferences>
             // deep sleep, causing IOException in FileStorageConnection.writeScope()
             // that crashes the process and triggers a soft reboot.
             File(filesDir, "datastore").mkdirs()
-            return preferencesDataStore(name = "settings")
-                .getValue(this, ::dataStore)
-                .also { dataStoreInstance = it }
+            val dataStoreDir = File(filesDir, "datastore")
+            val dataStore = preferencesDataStore(name = "settings").getValue(this, ::dataStore)
+            return object : DataStore<Preferences> by dataStore {
+                override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
+                    // Same Samsung workaround as above, re-applied before every write.
+                    dataStoreDir.mkdirs()
+                    return dataStore.updateData(transform)
+                }
+            }.also { dataStoreInstance = it }
         }
     }
 
@@ -56,30 +62,7 @@ val Context.dataStore: DataStore<Preferences>
  */
 suspend fun Context.safeDataStoreEdit(
     transform: suspend (MutablePreferences) -> Unit,
-): Boolean {
-    return try {
-        File(filesDir, "datastore").mkdirs()
-        dataStore.edit(transform)
-        true
-    } catch (e: IOException) {
-        Timber.e(e, "DataStore edit failed")
-        reportException(e)
-        false
-    }
-}
-
-operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key]
-    }
-
-fun <T> DataStore<Preferences>.get(
-    key: Preferences.Key<T>,
-    defaultValue: T,
-): T =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key] ?: defaultValue
-    }
+): Boolean = dataStore.safeEdit(transform)
 
 fun <T> preference(
     context: Context,

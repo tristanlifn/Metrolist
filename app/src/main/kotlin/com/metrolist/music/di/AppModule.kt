@@ -6,6 +6,8 @@
 package com.metrolist.music.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.Cache
@@ -37,6 +39,8 @@ import org.koin.dsl.module
 
 val appModule = module {
     single<CoroutineScope>(ApplicationScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+
+    single<DataStore<Preferences>> { get<Context>().dataStore }
 
     single { InternalDatabase.newInternalDatabaseInstance(get()) }
     single { get<InternalDatabase>().dao }
