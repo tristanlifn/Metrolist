@@ -7,7 +7,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.music.constants.AddToPlaylistSortDescendingKey
@@ -16,7 +17,6 @@ import com.metrolist.music.constants.PlaylistSortType
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.utils.SyncUtils
-import com.metrolist.music.utils.dataStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -25,12 +25,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class PlaylistsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val allPlaylists =
-        context.dataStore.data
+        dataStore.data
             .map {
                 it[AddToPlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[AddToPlaylistSortDescendingKey]
                     ?: true)

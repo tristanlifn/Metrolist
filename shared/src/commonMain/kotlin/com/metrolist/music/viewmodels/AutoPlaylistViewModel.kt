@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +21,6 @@ import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.utils.SyncUtils
-import com.metrolist.music.utils.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AutoPlaylistViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
     private val syncUtils: SyncUtils,
@@ -45,7 +45,7 @@ class AutoPlaylistViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Triple(
                     it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[playlistSongSortDescendingKey(playlist)] ?: true),

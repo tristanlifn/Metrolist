@@ -6,9 +6,11 @@
 package com.metrolist.music.di
 
 import com.metrolist.music.utils.NetworkConnectivityObserver
+import com.metrolist.music.utils.NetworkConnectivity
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val networkModule = module {
-    singleOf(::NetworkConnectivityObserver)
+    singleOf(::NetworkConnectivityObserver) bind NetworkConnectivity::class
 }

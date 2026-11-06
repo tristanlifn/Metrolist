@@ -2005,6 +2005,9 @@ interface DatabaseDao {
         from: Int,
     ): List<PlaylistSongMap>
 
+    @Query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    suspend fun userTableNames(): List<String>
+
     @RawQuery
     suspend fun raw(query: RoomRawQuery): Int
 

@@ -7,10 +7,12 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.innertube.utils.completed
@@ -47,10 +49,8 @@ import com.metrolist.music.extensions.filterYoutubeShorts
 import com.metrolist.music.extensions.matchesNormalizedQuery
 import com.metrolist.music.extensions.normalizeForSearch
 import com.metrolist.music.extensions.toEnum
-import com.metrolist.music.playback.DownloadUtil
 import com.metrolist.music.utils.PodcastRefreshTrigger
 import com.metrolist.music.utils.SyncUtils
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -69,9 +69,8 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 class LibrarySongsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
-    downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
@@ -85,7 +84,7 @@ class LibrarySongsViewModel(
     }
 
     val allSongs =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Triple(
                     Triple(
@@ -121,7 +120,7 @@ class LibrarySongsViewModel(
 }
 
 class LibraryArtistsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -136,7 +135,7 @@ class LibraryArtistsViewModel(
     }
 
     val allArtists =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Triple(
                     it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
@@ -189,7 +188,7 @@ class LibraryArtistsViewModel(
 }
 
 class LibraryAlbumsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -204,7 +203,7 @@ class LibraryAlbumsViewModel(
     }
 
     val allAlbums =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Pair(
                     Triple(
@@ -252,7 +251,7 @@ class LibraryAlbumsViewModel(
 }
 
 class LibraryPlaylistsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -267,7 +266,7 @@ class LibraryPlaylistsViewModel(
     }
 
     val allPlaylists =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Triple(
                     it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE),
@@ -284,13 +283,13 @@ class LibraryPlaylistsViewModel(
     }
 
     val topValue =
-        context.dataStore.data
+        dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
 }
 
 class ArtistSongsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -301,7 +300,7 @@ class ArtistSongsViewModel(
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val songs =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Triple(
                     it[ArtistSongSortTypeKey].toEnum(ArtistSongSortType.CREATE_DATE) to (it[ArtistSongSortDescendingKey]
@@ -317,7 +316,7 @@ class ArtistSongsViewModel(
 }
 
 class LibraryMixViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -349,7 +348,7 @@ class LibraryMixViewModel(
     }
 
     val topValue =
-        context.dataStore.data
+        dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
     var artists =
@@ -358,13 +357,13 @@ class LibraryMixViewModel(
                 ArtistSortType.CREATE_DATE,
                 true,
             ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var albums = context.dataStore.data
+    var albums = dataStore.data
         .map { it[HideExplicitKey] ?: false }
         .distinctUntilChanged()
         .flatMapLatest { hideExplicit ->
             database.albumsLiked(AlbumSortType.CREATE_DATE, true).map { it.filterExplicitAlbums(hideExplicit) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var songs = context.dataStore.data
+    var songs = dataStore.data
         .map { Triple(it[HideExplicitKey] ?: false, it[HideVideoSongsKey] ?: false, it[HideYoutubeShortsKey] ?: false) }
         .distinctUntilChanged()
         .flatMapLatest { (hideExplicit, hideVideoSongs, _) ->
@@ -378,7 +377,7 @@ class LibraryMixViewModel(
                     .filterVideoSongs(hideVideoSongs)
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var playlists = context.dataStore.data
+    var playlists = dataStore.data
         .map { it[HideYoutubeShortsKey] ?: false }
         .distinctUntilChanged()
         .flatMapLatest { hideYoutubeShorts ->
@@ -429,7 +428,7 @@ class LibraryMixViewModel(
 }
 
 class LibraryPodcastsViewModel(
-    context: Context,
+    private val dataStore: DataStore<Preferences>,
     private val database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
@@ -473,7 +472,7 @@ class LibraryPodcastsViewModel(
 
     // Downloaded podcast episodes
     val downloadedEpisodes =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Pair(
                     it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey] ?: true),
@@ -487,7 +486,7 @@ class LibraryPodcastsViewModel(
 
     // Saved podcast episodes (in library, not necessarily downloaded)
     val savedEpisodes =
-        context.dataStore.data
+        dataStore.data
             .map {
                 Pair(
                     it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey] ?: true),
@@ -505,7 +504,7 @@ class LibraryPodcastsViewModel(
                 .filterIsInstance<com.metrolist.innertube.models.PlaylistItem>()
                 .find { it.id == "SE" }
         }.onFailure {
-            timber.log.Timber.e(it, "[PODCAST] Failed to fetch SE playlist")
+            Logger.e(it) { "[PODCAST] Failed to fetch SE playlist" }
         }
     }
 
@@ -513,18 +512,18 @@ class LibraryPodcastsViewModel(
         YouTube.libraryPodcastChannels().onSuccess { page ->
             val channels = page.items.filterIsInstance<ArtistItem>()
             _apiPodcastChannels.value = channels
-            timber.log.Timber.d("[PODCAST] Fetched ${channels.size} podcast channels from YT Music")
+            Logger.d { "[PODCAST] Fetched ${channels.size} podcast channels from YT Music" }
         }.onFailure {
-            timber.log.Timber.e(it, "[PODCAST] Failed to fetch podcast channels")
+            Logger.e(it) { "[PODCAST] Failed to fetch podcast channels" }
         }
     }
 
     private suspend fun fetchRdpnPlaylist() {
         YouTube.newEpisodesPlaylistInfo().onSuccess { item ->
             _rdpnPlaylist.value = item
-            timber.log.Timber.d("[PODCAST] RDPN playlist: ${item.title}, thumbnail: ${item.thumbnail}")
+            Logger.d { "[PODCAST] RDPN playlist: ${item.title}, thumbnail: ${item.thumbnail}" }
         }.onFailure {
-            timber.log.Timber.e(it, "[PODCAST] Failed to fetch RDPN playlist info")
+            Logger.e(it) { "[PODCAST] Failed to fetch RDPN playlist info" }
         }
     }
 

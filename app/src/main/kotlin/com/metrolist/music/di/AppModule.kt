@@ -71,7 +71,7 @@ val appModule = module {
 
     singleOf(::ListenTogetherClient)
     singleOf(::ListenTogetherManager)
-    singleOf(::SyncUtils)
+    single { SyncUtils(get<Context>().filesDir, get(), get(), get()) }
     singleOf(::EqualizerService)
     singleOf(::EQProfileRepository)
     single { PlaylistWidgetManager(get(), get(), get(ApplicationScope)) }

@@ -68,6 +68,9 @@ kotlin {
             api(libs.kermit)
             api(libs.lifecycle.viewmodel)
             api(libs.lifecycle.viewmodel.savedstate)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.json)
         }
         androidMain.dependencies {
             implementation(libs.core.ktx)

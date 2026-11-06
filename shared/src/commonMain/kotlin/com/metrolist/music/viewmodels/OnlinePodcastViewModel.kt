@@ -3,6 +3,7 @@ package com.metrolist.music.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.EpisodeItem
 import com.metrolist.innertube.models.PodcastItem
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,24 +44,24 @@ class OnlinePodcastViewModel(
     val error = _error.asStateFlow()
 
     init {
-        Timber.d("ViewModel init with podcastId: $podcastId")
+        Logger.d { "ViewModel init with podcastId: $podcastId" }
         fetchPodcastData()
     }
 
     private fun fetchPodcastData() {
         viewModelScope.launch(Dispatchers.IO) {
-            Timber.d("fetchPodcastData called for: $podcastId")
+            Logger.d { "fetchPodcastData called for: $podcastId" }
             _isLoading.value = true
             _error.value = null
 
             YouTube.podcast(podcastId)
                 .onSuccess { podcastPage ->
-                    Timber.d("Success! Podcast: ${podcastPage.podcast.title}, Episodes: ${podcastPage.episodes.size}")
+                    Logger.d { "Success! Podcast: ${podcastPage.podcast.title}, Episodes: ${podcastPage.episodes.size}" }
                     podcast.value = podcastPage.podcast
                     episodes.value = podcastPage.episodes
                     _isLoading.value = false
                 }.onFailure { throwable ->
-                    Timber.e(throwable, "Failed to load podcast: ${throwable.message}")
+                    Logger.e(throwable) { "Failed to load podcast: ${throwable.message}" }
                     _error.value = throwable.message ?: "Failed to load podcast"
                     _isLoading.value = false
                     reportException(throwable)
@@ -74,7 +74,7 @@ class OnlinePodcastViewModel(
      */
     fun toggleSubscription() {
         val currentPodcast = podcast.value ?: run {
-            Timber.d("[PODCAST_TOGGLE] No podcast loaded, returning")
+            Logger.d { "[PODCAST_TOGGLE] No podcast loaded, returning" }
             return
         }
         val existingEntity = libraryPodcast.value
@@ -82,14 +82,14 @@ class OnlinePodcastViewModel(
         val shouldBeSaved = !isCurrentlySaved
 
         val channelId = currentPodcast.channelId ?: currentPodcast.author?.id
-        Timber.d("[PODCAST_TOGGLE] toggleSubscription called: podcastId=${currentPodcast.id}, channelId=$channelId, authorId=${currentPodcast.author?.id}, isCurrentlySaved=$isCurrentlySaved, shouldBeSaved=$shouldBeSaved")
+        Logger.d { "[PODCAST_TOGGLE] toggleSubscription called: podcastId=${currentPodcast.id}, channelId=$channelId, authorId=${currentPodcast.author?.id}, isCurrentlySaved=$isCurrentlySaved, shouldBeSaved=$shouldBeSaved" }
 
         viewModelScope.launch(Dispatchers.IO) {
-            Timber.d("[PODCAST_TOGGLE] Inside coroutine, updating database...")
+            Logger.d { "[PODCAST_TOGGLE] Inside coroutine, updating database..." }
 
             if (existingEntity != null) {
                 val updated = existingEntity.toggleBookmark()
-                Timber.d("[PODCAST_TOGGLE] Updating existing entity: bookmarkedAt=${updated.bookmarkedAt}")
+                Logger.d { "[PODCAST_TOGGLE] Updating existing entity: bookmarkedAt=${updated.bookmarkedAt}" }
                 database.update(updated)
             } else {
                 val newEntity = PodcastEntity(
@@ -100,11 +100,11 @@ class OnlinePodcastViewModel(
                     channelId = channelId,
                     bookmarkedAt = LocalDateTime.now(),
                 )
-                Timber.d("[PODCAST_TOGGLE] Inserting new entity: ${newEntity.id}")
+                Logger.d { "[PODCAST_TOGGLE] Inserting new entity: ${newEntity.id}" }
                 database.insert(newEntity)
             }
 
-            Timber.d("[PODCAST_TOGGLE] Database updated, calling syncUtils.savePodcast(${currentPodcast.id}, $shouldBeSaved)")
+            Logger.d { "[PODCAST_TOGGLE] Database updated, calling syncUtils.savePodcast(${currentPodcast.id}, $shouldBeSaved)" }
             // Sync with YouTube (handles login check internally)
             syncUtils.savePodcast(currentPodcast.id, shouldBeSaved)
         }

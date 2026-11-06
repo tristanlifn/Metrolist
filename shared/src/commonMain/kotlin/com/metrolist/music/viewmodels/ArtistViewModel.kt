@@ -5,13 +5,15 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.EpisodeItem
@@ -34,7 +36,6 @@ import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterExplicitAlbums
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.ArtistNameAliases
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
@@ -49,12 +50,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import com.metrolist.music.extensions.filterVideoSongs as filterVideoSongsLocal
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ArtistViewModel(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     private val database: MusicDatabase,
     private val syncUtils: SyncUtils,
     savedStateHandle: SavedStateHandle,
@@ -77,14 +77,14 @@ class ArtistViewModel(
         val locallyBookmarked = localArtist?.artist?.bookmarkedAt != null
         locallyBookmarked || (apiState == true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-    val librarySongs = context.dataStore.data
+    val librarySongs = dataStore.data
         .map { (it[HideExplicitKey] ?: false) to (it[HideVideoSongsKey] ?: false) }
         .distinctUntilChanged()
         .flatMapLatest { (hideExplicit, hideVideoSongs) ->
             database.artistSongsPreview(artistId).map { it.filterExplicit(hideExplicit).filterVideoSongsLocal(hideVideoSongs) }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val libraryAlbums = context.dataStore.data
+    val libraryAlbums = dataStore.data
         .map { it[HideExplicitKey] ?: false }
         .distinctUntilChanged()
         .flatMapLatest { hideExplicit ->
@@ -97,7 +97,7 @@ class ArtistViewModel(
             // Load cached page first for instant display, then fetch fresh data
             loadCachedPage()
 
-            context.dataStore.data
+            dataStore.data
                 .map {
                     Triple(
                         it[HideExplicitKey] ?: false,
@@ -118,9 +118,9 @@ class ArtistViewModel(
             if (cachedJson != null) {
                 val cachedDto = withContext(Dispatchers.IO) { deserializeArtistPage(cachedJson) }
                 val page = cachedDto.toArtistPage()
-                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                val hideExplicit = dataStore.get(HideExplicitKey, false)
+                val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+                val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
 
                 val filteredSections = page.sections
                     .map { section ->
@@ -138,9 +138,9 @@ class ArtistViewModel(
 
     fun fetchArtistsFromYTM() {
         viewModelScope.launch {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+            val hideExplicit = dataStore.get(HideExplicitKey, false)
+            val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+            val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
             YouTube.artist(artistId)
                 .onSuccess { page ->
                     // Collect all items from all sections and resolve artist IDs once
@@ -262,17 +262,17 @@ class ArtistViewModel(
         val isCurrentlySubscribed = isChannelSubscribed.value
         val shouldBeSubscribed = !isCurrentlySubscribed
 
-        Timber.d("[CHANNEL_TOGGLE] toggleChannelSubscription called: artistId=$artistId, channelId=$channelId, isCurrentlySubscribed=$isCurrentlySubscribed, shouldBeSubscribed=$shouldBeSubscribed")
+        Logger.d { "[CHANNEL_TOGGLE] toggleChannelSubscription called: artistId=$artistId, channelId=$channelId, isCurrentlySubscribed=$isCurrentlySubscribed, shouldBeSubscribed=$shouldBeSubscribed" }
 
         // Optimistically update API state for immediate UI feedback
         _apiSubscribed.value = shouldBeSubscribed
 
         viewModelScope.launch(Dispatchers.IO) {
-            Timber.d("[CHANNEL_TOGGLE] Inside coroutine, updating database...")
+            Logger.d { "[CHANNEL_TOGGLE] Inside coroutine, updating database..." }
             // Update local database first (optimistic update)
             // Call DAO methods directly - they're synchronous on IO dispatcher
             val artist = libraryArtist.value?.artist
-            Timber.d("[CHANNEL_TOGGLE] libraryArtist.value?.artist = $artist")
+            Logger.d { "[CHANNEL_TOGGLE] libraryArtist.value?.artist = $artist" }
             if (artist != null) {
                 val newBookmark = if (shouldBeSubscribed) {
                     artist.bookmarkedAt ?: java.time.LocalDateTime.now()
@@ -284,10 +284,10 @@ class ArtistViewModel(
                     bookmarkedAt = newBookmark,
                     isPodcastChannel = if (shouldBeSubscribed && isPodcastChannel) true else artist.isPodcastChannel
                 )
-                Timber.d("[CHANNEL_TOGGLE] Updating existing artist: ${artist.id} -> bookmarkedAt=$newBookmark, isPodcastChannel=${updatedArtist.isPodcastChannel}")
+                Logger.d { "[CHANNEL_TOGGLE] Updating existing artist: ${artist.id} -> bookmarkedAt=$newBookmark, isPodcastChannel=${updatedArtist.isPodcastChannel}" }
                 database.update(updatedArtist)
             } else if (shouldBeSubscribed) {
-                Timber.d("[CHANNEL_TOGGLE] No existing artist, inserting new one")
+                Logger.d { "[CHANNEL_TOGGLE] No existing artist, inserting new one" }
                 artistPage?.artist?.let {
                     database.insert(
                         ArtistEntity(
@@ -299,13 +299,13 @@ class ArtistViewModel(
                             isPodcastChannel = isPodcastChannel,
                         )
                     )
-                    Timber.d("[CHANNEL_TOGGLE] Inserted new artist: $artistId, isPodcastChannel=$isPodcastChannel")
-                } ?: Timber.d("[CHANNEL_TOGGLE] artistPage?.artist is null, cannot insert")
+                    Logger.d { "[CHANNEL_TOGGLE] Inserted new artist: $artistId, isPodcastChannel=$isPodcastChannel" }
+                } ?: Logger.d { "[CHANNEL_TOGGLE] artistPage?.artist is null, cannot insert" }
             } else {
-                Timber.d("[CHANNEL_TOGGLE] No artist and shouldBeSubscribed=false, nothing to do")
+                Logger.d { "[CHANNEL_TOGGLE] No artist and shouldBeSubscribed=false, nothing to do" }
             }
 
-            Timber.d("[CHANNEL_TOGGLE] Calling syncUtils.subscribeChannel($channelId, $shouldBeSubscribed)")
+            Logger.d { "[CHANNEL_TOGGLE] Calling syncUtils.subscribeChannel($channelId, $shouldBeSubscribed)" }
             // Sync with YouTube (handles login check internally)
             syncUtils.subscribeChannel(channelId, shouldBeSubscribed)
         }
