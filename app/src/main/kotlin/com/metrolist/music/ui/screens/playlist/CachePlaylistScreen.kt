@@ -80,6 +80,7 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.constants.SongSortTypeKey
+import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
@@ -115,8 +116,9 @@ fun CachePlaylistScreen(
     val cachedSongs by viewModel.cachedSongs.collectAsStateWithLifecycle()
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
-        SongSortTypeKey,
-        SongSortType.CREATE_DATE
+        playlistSongSortTypeKey(playlistId = "cached"),
+        SongSortType.CREATE_DATE,
+        removeIfDefault = true
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)

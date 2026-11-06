@@ -49,6 +49,8 @@ import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.constants.playlistSongSortDescendingKey
+import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.db.entities.Song
@@ -67,6 +69,7 @@ import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.ui.menu.ExportDialog
 import com.metrolist.music.utils.PlaylistExporter
 import com.metrolist.music.utils.getExportFileUri
+import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.saveToPublicDocuments
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -251,6 +254,11 @@ fun PlaylistMenu(
 
                         coroutineScope.launch(Dispatchers.IO) {
                             playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
+
+                            context.safeDataStoreEdit {
+                                it.remove(playlistSongSortTypeKey(playlistId = playlist.playlist.id))
+                                it.remove(playlistSongSortDescendingKey(playlistId = playlist.playlist.id))
+                            }
                         }
                     },
                 ) {

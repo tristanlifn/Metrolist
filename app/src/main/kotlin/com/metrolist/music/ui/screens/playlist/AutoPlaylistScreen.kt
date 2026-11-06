@@ -100,6 +100,8 @@ import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.constants.SongSortTypeKey
 import com.metrolist.music.constants.YtmSyncKey
+import com.metrolist.music.constants.playlistSongSortDescendingKey
+import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.fileNameAndSize
 import com.metrolist.music.extensions.toMediaItem
@@ -212,10 +214,16 @@ fun AutoPlaylistScreen(
 
     val (sortType, onSortTypeChange) =
         rememberEnumPreference(
-            SongSortTypeKey,
+            playlistSongSortTypeKey(playlist),
             SongSortType.CREATE_DATE,
+            removeIfDefault = true
         )
-    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
+    val (sortDescending, onSortDescendingChange) =
+        rememberPreference(
+            playlistSongSortDescendingKey(playlist),
+            true,
+            removeIfDefault = true
+        )
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {

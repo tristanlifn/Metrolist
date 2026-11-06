@@ -17,6 +17,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.protobuf.value
 import com.metrolist.music.extensions.toEnum
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -96,6 +97,7 @@ inline fun <reified T : Enum<T>> enumPreference(
 fun <T> rememberPreference(
     key: Preferences.Key<T>,
     defaultValue: T,
+    removeIfDefault: Boolean = false
 ): MutableState<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -107,14 +109,17 @@ fun <T> rememberPreference(
                 .distinctUntilChanged()
         }.collectAsStateWithLifecycle(defaultValue)
 
-    return remember {
+    return remember(key) {
         object : MutableState<T> {
             override var value: T
                 get() = state.value
                 set(value) {
                     coroutineScope.launch {
                         context.safeDataStoreEdit {
-                            it[key] = value
+                            if (removeIfDefault  && value == defaultValue)
+                                it.remove(key)
+                            else
+                                it[key] = value
                         }
                     }
                 }
@@ -130,6 +135,7 @@ fun <T> rememberPreference(
 inline fun <reified T : Enum<T>> rememberEnumPreference(
     key: Preferences.Key<String>,
     defaultValue: T,
+    removeIfDefault: Boolean = false
 ): MutableState<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -141,14 +147,17 @@ inline fun <reified T : Enum<T>> rememberEnumPreference(
                 .distinctUntilChanged()
         }.collectAsStateWithLifecycle(defaultValue)
 
-    return remember {
+    return remember(key) {
         object : MutableState<T> {
             override var value: T
                 get() = state.value
                 set(value) {
                     coroutineScope.launch {
                         context.safeDataStoreEdit {
-                            it[key] = value.name
+                            if (removeIfDefault  && value == defaultValue)
+                                it.remove(key)
+                            else
+                                it[key] = value.name
                         }
                     }
                 }
