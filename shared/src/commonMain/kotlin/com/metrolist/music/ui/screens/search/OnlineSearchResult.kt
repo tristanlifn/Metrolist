@@ -90,7 +90,6 @@ import com.metrolist.music.constants.MiniPlayerHeight
 import com.metrolist.music.constants.NavigationBarHeight
 import com.metrolist.music.constants.PauseSearchHistoryKey
 import com.metrolist.music.db.entities.SearchHistory
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -139,6 +138,7 @@ import com.metrolist.music.resources.top_result
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.metrolist.music.ui.utils.BackHandler
+import androidx.savedstate.read
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -192,7 +192,7 @@ fun OnlineSearchResult(
     }
 
     // Extract query from navigation arguments
-    val encodedQuery = navController.currentBackStackEntry?.arguments?.getString("query") ?: ""
+    val encodedQuery = navController.currentBackStackEntry?.arguments?.read { getStringOrNull("query") } ?: ""
     val decodedQuery = remember(encodedQuery) { SearchRoutes.decodeQuery(encodedQuery) }
 
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {

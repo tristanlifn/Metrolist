@@ -57,8 +57,6 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.constants.InnerTubeCookieKey
-import com.metrolist.music.extensions.metadata
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -532,8 +530,7 @@ fun HistoryScreen(
                                         allEvents
                                             .find { it.event.id == eventId }
                                             ?.song
-                                            ?.toMediaItem()
-                                            ?.metadata
+                                            ?.toMediaMetadata()
                                     },
                                 onDismiss = menuState::dismiss,
                                 clearAction = onExitSelectionMode,

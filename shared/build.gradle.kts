@@ -12,7 +12,7 @@ plugins {
 val syncAppResources = tasks.register<Sync>("syncAppResources") {
     val appRes = rootProject.layout.projectDirectory.dir("app/src/main/res")
     from(appRes) {
-        include("values*/strings.xml", "values*/metrolist_strings.xml", "values*/app_name.xml", "drawable/*.png", "drawable/*.xml")
+        include("values*/strings.xml", "values*/metrolist_strings.xml", "values*/app_name.xml", "drawable/*.png", "drawable/*.xml", "font/*.ttf")
         // Compose resources only load vector XML; shapes and layer lists are Android widget backgrounds.
         // App-colour references (@color/) only appear in home screen widget icons, which the shared UI never shows.
         eachFile {

@@ -11,5 +11,5 @@ import org.koin.dsl.module
 val wrappedModule = module {
     singleOf(::WrappedManager)
     singleOf(::WrappedAudioService)
-    singleOf(::AndroidWrappedPreloader) bind WrappedPreloader::class
+    single<WrappedPreloader> { AndroidWrappedPreloader(get(), get(), get(ApplicationScope)) }
 }

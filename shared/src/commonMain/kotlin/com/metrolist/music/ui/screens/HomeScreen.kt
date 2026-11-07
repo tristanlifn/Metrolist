@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens
 
-import com.metrolist.music.ui.screens.wrapped.WrappedManager
 import org.koin.compose.koinInject
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -78,10 +77,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -109,7 +106,6 @@ import com.metrolist.music.LocalArtistNameAliases
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
@@ -127,7 +123,6 @@ import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.db.entities.Song
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.LocalAlbumRadio
@@ -206,6 +201,10 @@ import com.metrolist.music.resources.your_shows
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.metrolist.music.ui.utils.BackHandler
+import coil3.compose.LocalPlatformContext
+import com.metrolist.music.resources.bbh_bartle_regular
+import com.metrolist.music.utils.WrappedPreloader
+import org.jetbrains.compose.resources.Font
 
 sealed class HomeSection(
     val id: String,
@@ -580,7 +579,7 @@ fun DailyDiscoverCard(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(dailyDiscover.recommendation.thumbnail?.resize(1080, 1080))
                         .crossfade(true)
                         .build(),
@@ -731,8 +730,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) { viewModel.loadHomeData() }
 
     val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsStateWithLifecycle()
-    val wrappedState by koinInject<WrappedManager>().state.collectAsStateWithLifecycle()
-    val isWrappedDataReady = wrappedState.isDataReady
+    val isWrappedDataReady by koinInject<WrappedPreloader>().isDataReady.collectAsStateWithLifecycle()
 
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -1425,12 +1423,7 @@ fun HomeScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (isWrappedDataReady) {
-                                        val bbhFont =
-                                            try {
-                                                FontFamily(Font(R.font.bbh_bartle_regular))
-                                            } catch (e: Exception) {
-                                                FontFamily.Default
-                                            }
+                                        val bbhFont = FontFamily(Font(Res.font.bbh_bartle_regular))
                                         Column(
                                             modifier = Modifier.padding(16.dp),
                                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -2063,7 +2056,7 @@ fun HomeScreen(
                                                 AsyncImage(
                                                     model =
                                                         ImageRequest
-                                                            .Builder(LocalContext.current)
+                                                            .Builder(LocalPlatformContext.current)
                                                             .data(url)
                                                             .diskCachePolicy(CachePolicy.ENABLED)
                                                             .diskCacheKey(url)

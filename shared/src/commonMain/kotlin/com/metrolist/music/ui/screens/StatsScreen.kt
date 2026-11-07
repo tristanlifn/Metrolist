@@ -50,7 +50,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -62,11 +61,9 @@ import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_ARTIST
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.StatPeriod
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -119,6 +116,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import com.metrolist.music.ui.utils.BackHandler
+import com.metrolist.music.resources.most_played_songs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -145,7 +143,7 @@ fun StatsScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val mostPlayedSongsTitle = stringResource(Res.string.most_played_songs)
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection =
@@ -461,7 +459,7 @@ fun StatsScreen(
                                 {
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = context.getString(R.string.most_played_songs),
+                                            title = mostPlayedSongsTitle,
                                             items = orderedMostPlayedSongs.map { it.toMediaMetadata() },
                                         ),
                                     )
@@ -685,7 +683,7 @@ fun StatsScreen(
                 onClick = {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.most_played_songs),
+                            title = mostPlayedSongsTitle,
                             items = orderedMostPlayedSongs.map { it.toMediaMetadata() }.shuffled(),
                         ),
                     )

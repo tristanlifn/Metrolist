@@ -5,8 +5,12 @@
 
 package com.metrolist.music.utils
 
+import kotlinx.coroutines.flow.StateFlow
+
 /** Loads the yearly Wrapped data ahead of time so its screens open without waiting. */
 interface WrappedPreloader {
+    val isDataReady: StateFlow<Boolean>
+
     suspend fun preload()
 
     fun dispose()

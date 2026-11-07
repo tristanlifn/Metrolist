@@ -6,12 +6,22 @@
 package com.metrolist.music.ui.screens.wrapped
 
 import com.metrolist.music.utils.WrappedPreloader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class AndroidWrappedPreloader(
     private val wrappedManager: WrappedManager,
     private val wrappedAudioService: WrappedAudioService,
+    scope: CoroutineScope,
 ) : WrappedPreloader {
+    override val isDataReady =
+        wrappedManager.state
+            .map { it.isDataReady }
+            .stateIn(scope, SharingStarted.Eagerly, wrappedManager.state.value.isDataReady)
+
     override suspend fun preload() {
         if (wrappedManager.state.value.isDataReady) return
         wrappedManager.prepare()
