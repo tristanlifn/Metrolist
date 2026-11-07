@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens
 
-import android.app.Activity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,22 +14,19 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
+import androidx.savedstate.read
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PureBlackKey
 import com.metrolist.music.ui.screens.artist.ArtistAlbumsScreen
 import com.metrolist.music.ui.screens.artist.ArtistItemsScreen
 import com.metrolist.music.ui.screens.artist.ArtistScreen
 import com.metrolist.music.ui.screens.artist.ArtistSongsScreen
-import com.metrolist.music.ui.screens.equalizer.EqScreen
-import com.metrolist.music.ui.screens.equalizer.wizard.WizardScreen
 import com.metrolist.music.ui.screens.library.LibraryScreen
 import com.metrolist.music.ui.screens.playlist.AutoPlaylistScreen
 import com.metrolist.music.ui.screens.playlist.CachePlaylistScreen
@@ -38,15 +34,11 @@ import com.metrolist.music.ui.screens.playlist.LocalPlaylistScreen
 import com.metrolist.music.ui.screens.playlist.OnlinePlaylistScreen
 import com.metrolist.music.ui.screens.playlist.TopPlaylistScreen
 import com.metrolist.music.ui.screens.podcast.OnlinePodcastScreen
-import com.metrolist.music.ui.screens.recognition.RecognitionHistoryScreen
-import com.metrolist.music.ui.screens.recognition.RecognitionScreen
 import com.metrolist.music.ui.screens.search.OnlineSearchResult
 import com.metrolist.music.ui.screens.search.SearchScreen
 import com.metrolist.music.ui.screens.settings.AboutScreen
 import com.metrolist.music.ui.screens.settings.AiSettings
-import com.metrolist.music.ui.screens.settings.AndroidAutoSettings
 import com.metrolist.music.ui.screens.settings.AppearanceSettings
-import com.metrolist.music.ui.screens.settings.BackupAndRestore
 import com.metrolist.music.ui.screens.settings.ContentSettings
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.screens.settings.PlayerSettings
@@ -56,23 +48,22 @@ import com.metrolist.music.ui.screens.settings.SettingsScreen
 import com.metrolist.music.ui.screens.settings.StorageSettings
 import com.metrolist.music.ui.screens.settings.ThemeScreen
 import com.metrolist.music.ui.screens.settings.UpdaterScreen
-import com.metrolist.music.ui.screens.settings.integrations.DiscordSettings
 import com.metrolist.music.ui.screens.settings.integrations.IntegrationScreen
 import com.metrolist.music.ui.screens.settings.integrations.LastFMSettings
-import com.metrolist.music.ui.screens.settings.integrations.ListenTogetherSettings
 
-import com.metrolist.music.ui.screens.wrapped.WrappedScreen
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
-import com.metrolist.music.ui.screens.settings.AlarmSettingsSection
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     latestVersionName: String,
-    activity: Activity,
     snackbarHostState: SnackbarHostState,
+    // Platform-only settings appended to the player settings screen.
+    playerSettingsPlatformSection: @Composable () -> Unit = {},
 ) {
     composable(Screens.Home.route) {
         HomeScreen(snackbarHostState = snackbarHostState)
@@ -98,16 +89,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable(Screens.Library.route) {
         LibraryScreen()
-    }
-
-    composable(Screens.ListenTogether.route) {
-        ListenTogetherScreen(navController, showTopBar = false)
-    }
-
-    composable(
-        route = "listen_together_from_topbar",
-    ) {
-        ListenTogetherScreen(navController, showTopBar = true)
     }
 
     composable("history") {
@@ -145,7 +126,7 @@ fun NavGraphBuilder.navigationBuilder(
     ) {
         BrowseScreen(
             navController,
-            it.arguments?.getString("browseId"),
+            it.arguments?.read { getStringOrNull("browseId") },
         )
     }
 
@@ -370,7 +351,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/player") {
-        PlayerSettings(navController) { AlarmSettingsSection() }
+        PlayerSettings(navController, playerSettingsPlatformSection)
     }
 
     composable("settings/storage") {
@@ -381,24 +362,12 @@ fun NavGraphBuilder.navigationBuilder(
         PrivacySettings(navController)
     }
 
-    composable("settings/backup_restore") {
-        BackupAndRestore(navController)
-    }
-
     composable("settings/integrations") {
         IntegrationScreen(navController)
     }
 
-    composable("settings/integrations/discord") {
-        DiscordSettings(navController)
-    }
-
     composable("settings/integrations/lastfm") {
         LastFMSettings(navController)
-    }
-
-    composable(route = "settings/integrations/listen_together") {
-        ListenTogetherSettings(navController)
     }
 
     composable("settings/updater") {
@@ -407,50 +376,5 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/about") {
         AboutScreen(navController)
-    }
-
-    composable("login") {
-        LoginScreen(navController)
-    }
-
-    composable("switch_channel") {
-        LoginScreen(
-            navController = navController,
-            isSwitchingChannel = true,
-        )
-    }
-
-    composable("wrapped") {
-        WrappedScreen()
-    }
-
-    composable("equalizer") {
-        EqScreen()
-    }
-
-    composable("eq_wizard") {
-        WizardScreen(onNavigateBack = {
-            navController.popBackStack()
-        })
-    }
-
-    composable(
-        route = "recognition?autoStart={autoStart}",
-        arguments =
-            listOf(
-                navArgument("autoStart") {
-                    type = NavType.BoolType
-                    defaultValue = false
-                },
-            ),
-    ) {
-        RecognitionScreen(navController, it.arguments?.getBoolean("autoStart") ?: false)
-    }
-
-    composable("recognition_history") {
-        RecognitionHistoryScreen(navController)
-    }
-    composable("settings/android_auto") {
-        AndroidAutoSettings(navController)
     }
 }

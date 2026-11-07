@@ -75,3 +75,12 @@ actual suspend fun artworkVibrantColors(
     val vibrant = Color(ranked.first())
     return vibrant to (ranked.getOrNull(1)?.let(::Color) ?: gradientFrom(vibrant)[1])
 }
+
+actual suspend fun artworkThemeColor(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Color? {
+    val counts = artworkColorCounts(context, url) ?: return null
+    return Color(Score.score(counts, 1, fallbackColor, true).first())
+}

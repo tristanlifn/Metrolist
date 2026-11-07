@@ -98,6 +98,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.filter
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.flow.drop
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -243,7 +244,9 @@ fun Thumbnail(
     val latestCanSkipPrevious by rememberUpdatedState(canSkipPrevious)
     LaunchedEffect(thumbnailLazyGridState, swipeThumbnail) {
         if (!swipeThumbnail) return@LaunchedEffect
+        // drop(1): the first value is the idle state at composition, not the end of a scroll.
         snapshotFlow { thumbnailLazyGridState.isScrollInProgress }
+            .drop(1)
             .filter { inProgress -> !inProgress }
             .collect {
                 val settledItem = thumbnailLazyGridState.firstVisibleItemIndex

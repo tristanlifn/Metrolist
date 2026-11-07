@@ -44,6 +44,13 @@ private fun Color.saturation(): Float {
     return if (max == 0f) 0f else (max - min) / max
 }
 
+/** The app theme seed picked from the artwork at [url], or null when the image can't be loaded. */
+expect suspend fun artworkThemeColor(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Color?
+
 internal fun gradientFrom(primaryColor: Color): List<Color> =
     listOf(
         primaryColor,

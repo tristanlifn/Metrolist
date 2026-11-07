@@ -58,6 +58,8 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -174,6 +176,11 @@ class PlayerConnection(
         )
 
     override val mediaMetadata = MutableStateFlow(getPlayerOrNull()?.currentMetadata)
+
+    override val isReady: StateFlow<Boolean> get() = service.isPlayerReady
+
+    private val _newQueueStarted = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    override val newQueueStarted: Flow<Unit> = _newQueueStarted
     // stateIn so the latest DB result is cached and shared: on resume / re-subscription the value
     // is available immediately instead of re-running the Room query (which delayed now-playing
     // details, format and like-state on every foreground). Lazily keeps it hot across lifecycle
@@ -764,6 +771,9 @@ class PlayerConnection(
         reason: Int,
     ) {
         mediaMetadata.value = mediaItem?.metadata
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
+            _newQueueStarted.tryEmit(Unit)
+        }
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()

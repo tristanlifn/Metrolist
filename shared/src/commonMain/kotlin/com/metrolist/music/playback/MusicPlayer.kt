@@ -12,6 +12,7 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.QueueSession
 import com.metrolist.music.playback.queues.Queue
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 enum class PlaybackState { IDLE, BUFFERING, READY, ENDED }
 
@@ -41,6 +42,12 @@ interface MusicPlayer {
     }
 
     val mediaMetadata: StateFlow<MediaMetadata?>
+
+    /** False until the underlying player has been created and can take commands. */
+    val isReady: StateFlow<Boolean>
+
+    /** Emits when playback moves to a freshly started queue, as opposed to the next song in the same one. */
+    val newQueueStarted: Flow<Unit>
     val isPlaying: StateFlow<Boolean>
 
     /** Like [isPlaying], but follows the remote device while casting. */

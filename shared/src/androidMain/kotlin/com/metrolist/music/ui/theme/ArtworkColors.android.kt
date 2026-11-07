@@ -11,6 +11,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
 import coil3.toBitmap
 import com.materialkolor.score.Score
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +74,26 @@ actual suspend fun artworkVibrantColors(
     artworkPalette(context, url)?.let { palette ->
         Color(palette.getVibrantColor(fallbackColor)) to Color(palette.getDarkVibrantColor(fallbackColor))
     }
+
+actual suspend fun artworkThemeColor(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Color? {
+    val request =
+        ImageRequest
+            .Builder(context)
+            .data(url)
+            .allowHardware(false)
+            .crossfade(false)
+            .build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    return withContext(Dispatchers.Default) {
+        Color(Palette.from(bitmap).maximumColorCount(8).generate().rankedColors(1, fallbackColor).first())
+    }
+}
 
 fun Palette.rankedColors(
     desiredColorCount: Int,
