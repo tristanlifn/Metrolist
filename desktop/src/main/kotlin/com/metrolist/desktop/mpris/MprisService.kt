@@ -103,7 +103,7 @@ class MprisService private constructor(
                     "CanRaise" to Variant(true),
                     "HasTrackList" to Variant(false),
                     "Identity" to Variant("Metrolist"),
-                    "DesktopEntry" to Variant("metrolist"),
+                    "DesktopEntry" to Variant("com.metrolist.music"),
                     "SupportedUriSchemes" to Variant(emptyList<String>(), "as"),
                     "SupportedMimeTypes" to Variant(emptyList<String>(), "as"),
                 )

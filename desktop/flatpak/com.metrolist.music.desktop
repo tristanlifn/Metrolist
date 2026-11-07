@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Metrolist
+Comment=YouTube Music client
+Exec=metrolist
+Icon=com.metrolist.music
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=music;youtube;player;
+StartupWMClass=com-metrolist-desktop-MainKt

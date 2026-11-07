@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.metrolist.music</id>
+  <name>Metrolist</name>
+  <summary>YouTube Music client</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>A Material 3 YouTube Music client.</p>
+  </description>
+  <launchable type="desktop-id">com.metrolist.music.desktop</launchable>
+  <url type="homepage">https://github.com/MetrolistGroup/Metrolist</url>
+  <content_rating type="oars-1.1"/>
+</component>
