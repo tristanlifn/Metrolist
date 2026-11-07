@@ -53,6 +53,7 @@ import com.metrolist.music.utils.safeEdit
 import org.koin.compose.koinInject
 import org.koin.core.context.startKoin
 import java.io.File
+import java.util.Properties
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.system.exitProcess
 
@@ -65,7 +66,7 @@ fun main(args: Array<String>) {
         baseVersionName = DESKTOP_VERSION,
         versionCode = 0,
         architecture = System.getProperty("os.arch"),
-        isDebug = true,
+        isDebug = DESKTOP_VERSION.endsWith("-dev"),
         castAvailable = false,
         updaterAvailable = false,
         platformDetails = listOf("OS: ${System.getProperty("os.name")} ${System.getProperty("os.version")}"),
@@ -168,4 +169,8 @@ private fun DesktopApp() {
     }
 }
 
-private const val DESKTOP_VERSION = "0.1.0-dev"
+// Written into the jar by the build; see desktopVersion in desktop/build.gradle.kts.
+private val DESKTOP_VERSION: String =
+    object {}.javaClass.getResourceAsStream("/metrolist-desktop.properties")?.use { stream ->
+        Properties().apply { load(stream) }.getProperty("version")
+    } ?: "0.1.0-dev"

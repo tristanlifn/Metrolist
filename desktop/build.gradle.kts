@@ -19,6 +19,21 @@ dependencies {
     implementation(libs.dbus.java.transport)
 }
 
+// Release builds pass -PdesktopVersion; local builds report a dev version.
+val desktopVersion = providers.gradleProperty("desktopVersion").orElse("0.1.0-dev")
+val generateVersionResource by tasks.registering {
+    val version = desktopVersion
+    val outputDir = layout.buildDirectory.dir("generated/version")
+    inputs.property("version", version)
+    outputs.dir(outputDir)
+    doLast {
+        outputDir.get().file("metrolist-desktop.properties").asFile.writeText("version=${version.get()}\n")
+    }
+}
+sourceSets.main {
+    resources.srcDir(generateVersionResource)
+}
+
 compose.desktop {
     application {
         mainClass = "com.metrolist.desktop.MainKt"
