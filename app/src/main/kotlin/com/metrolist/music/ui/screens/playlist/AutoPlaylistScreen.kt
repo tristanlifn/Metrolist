@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.playlist
 
 import android.net.Uri
+import com.metrolist.music.ui.utils.okLabel
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -74,7 +75,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -438,7 +438,7 @@ fun AutoPlaylistScreen(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )

@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.menu
 
 import android.annotation.SuppressLint
+import com.metrolist.music.ui.utils.okLabel
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
@@ -49,7 +50,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
@@ -344,7 +344,7 @@ fun YouTubePlaylistMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )

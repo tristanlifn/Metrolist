@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.player
 
 import androidx.activity.compose.BackHandler
+import com.metrolist.music.ui.utils.okLabel
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -101,7 +102,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
@@ -681,7 +681,7 @@ fun BottomSheetPlayer(
                         )
                     },
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
             dismissButton = {

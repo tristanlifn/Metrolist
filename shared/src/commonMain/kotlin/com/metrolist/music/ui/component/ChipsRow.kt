@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -94,7 +93,6 @@ fun <E> ChipsRow(
     }
 }
 
-@SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 fun <Int> ChoiceChipsRow(
     chips: List<Pair<Int, String>>,

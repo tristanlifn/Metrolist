@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.component
 
 import androidx.compose.foundation.clickable
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -56,8 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.metrolist.music.LocalNavController
-import com.metrolist.music.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
 import com.metrolist.music.resources.Res
 import com.metrolist.music.resources.cancel
@@ -140,51 +138,6 @@ fun DefaultDialog(
     }
 }
 
-@Composable
-fun AccountSettingsDialog(
-    onDismiss: () -> Unit,
-    latestVersionName: String,
-) {
-    val navController = LocalNavController.current
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties =
-            DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnClickOutside = true,
-            ),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = { onDismiss() }
-                        )
-                    },
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Surface(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 72.dp, start = 16.dp, end = 16.dp)
-                        .clip(RoundedCornerShape(28.dp)),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-            ) {
-                AccountSettings(
-                    navController = navController,
-                    onClose = onDismiss,
-                    latestVersionName = latestVersionName,
-                )
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionPromptDialog(
@@ -235,7 +188,7 @@ fun ActionPromptDialog(
             TextButton(
                 onClick = { onConfirm() },
             ) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
     ) {
@@ -348,7 +301,7 @@ fun TextFieldDialog(
                     }
                 },
             ) {
-                Text(text = stringResource(android.R.string.ok))
+                Text(text = okLabel())
             }
         },
     ) {

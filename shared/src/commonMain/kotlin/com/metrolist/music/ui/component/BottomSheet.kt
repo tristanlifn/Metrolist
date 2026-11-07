@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
@@ -26,6 +25,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.navigationevent.compose.rememberNavigationEventState
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.NavigationEventTransitionState
+import androidx.navigationevent.NavigationEventInfo
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -47,7 +52,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.constants.NavigationBarAnimationSpec
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.pow
@@ -114,20 +118,29 @@ fun BottomSheet(
             }
     ) {
         if (!state.isCollapsed && !state.isDismissed) {
-            PredictiveBackHandler { progress ->
-                val initialValue = state.value
-                try {
+            val backState = rememberNavigationEventState(NavigationEventInfo.None)
+            var backStartValue by remember { mutableStateOf<Dp?>(null) }
+            val backTransition = backState.transitionState
+            LaunchedEffect(backTransition) {
+                if (backTransition is NavigationEventTransitionState.InProgress) {
+                    val initialValue = backStartValue ?: state.value.also { backStartValue = it }
                     val range = initialValue - state.collapsedBound
-                    progress.collect { event ->
-                        state.snapToAndWait(
-                            initialValue - range * event.progress.coerceIn(0f, 1f)
-                        )
-                    }
-                    state.collapseSoft()
-                } catch (_: CancellationException) {
-                    state.expandSoft()
+                    state.snapToAndWait(
+                        initialValue - range * backTransition.latestEvent.progress.coerceIn(0f, 1f)
+                    )
                 }
             }
+            NavigationBackHandler(
+                state = backState,
+                onBackCancelled = {
+                    backStartValue = null
+                    state.expandSoft()
+                },
+                onBackCompleted = {
+                    backStartValue = null
+                    state.collapseSoft()
+                },
+            )
         }
 
         // main content

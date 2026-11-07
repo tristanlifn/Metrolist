@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import androidx.compose.foundation.layout.Arrangement
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -453,7 +453,7 @@ fun LastFMSettings(
                             showMinTrackDurationDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.ok))
+                        Text(okLabel())
                     }
                 }
             ) {
@@ -518,7 +518,7 @@ fun LastFMSettings(
                             showScrobbleDelayPercentDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.ok))
+                        Text(okLabel())
                     }
                 }
             ) {
@@ -583,7 +583,7 @@ fun LastFMSettings(
                             showScrobbleDelaySecondsDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.ok))
+                        Text(okLabel())
                     }
                 }
             ) {

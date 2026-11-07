@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.menu
 
 import android.app.SearchManager
+import com.metrolist.music.ui.utils.okLabel
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -54,7 +55,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -266,7 +266,7 @@ fun LyricsMenu(
                         }
                     },
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
         ) {

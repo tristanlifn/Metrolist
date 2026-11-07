@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.menu
 
 import androidx.compose.foundation.layout.PaddingValues
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
@@ -29,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
@@ -226,7 +226,7 @@ fun YouTubeSelectionSongMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )

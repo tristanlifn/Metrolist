@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.playlist
 
 import android.annotation.SuppressLint
+import com.metrolist.music.ui.utils.okLabel
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -79,7 +80,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -394,7 +394,7 @@ fun LocalPlaylistScreen(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )
@@ -442,7 +442,7 @@ fun LocalPlaylistScreen(
                         navController.popBackStack()
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )

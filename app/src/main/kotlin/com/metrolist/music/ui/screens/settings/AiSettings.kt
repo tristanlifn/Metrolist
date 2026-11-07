@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +33,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -225,7 +225,7 @@ fun AiSettings(navController: NavController) {
             onDismissRequest = { showProviderHelpDialog = false },
             confirmButton = {
                 TextButton(onClick = { showProviderHelpDialog = false }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
             icon = { Icon(painterResource(Res.drawable.info), null) },
@@ -292,7 +292,7 @@ fun AiSettings(navController: NavController) {
             onDismissRequest = { showTranslateModeHelpDialog = false },
             confirmButton = {
                 TextButton(onClick = { showTranslateModeHelpDialog = false }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
             icon = { Icon(painterResource(Res.drawable.info), null) },

@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.menu
 
 import android.content.Intent
+import com.metrolist.music.ui.utils.okLabel
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -246,7 +246,7 @@ fun PlaylistMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )
@@ -299,7 +299,7 @@ fun PlaylistMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = okLabel())
                 }
             },
         )

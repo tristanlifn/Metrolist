@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import android.app.Activity
+import com.metrolist.music.ui.utils.okLabel
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -61,7 +62,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 
@@ -960,7 +960,7 @@ private fun TemplateFieldDialog(
                 onDone(text)
                 onDismiss()
             }) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
     ) {

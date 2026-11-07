@@ -5,6 +5,7 @@
 package com.metrolist.music.ui.component
 
 import androidx.compose.foundation.clickable
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -605,7 +605,7 @@ fun SleepTimerDialog(
                             onDismiss()
                         },
                     ) {
-                        Text(stringResource(android.R.string.ok))
+                        Text(okLabel())
                     }
             }
         }
@@ -669,7 +669,7 @@ fun SleepTimerTimePickerDialog(
                 val hour = timePickerState.hour.toString().padStart(2, '0')
                 val minute = timePickerState.minute.toString().padStart(2, '0')
                 onConfirm("$hour:$minute")
-            }) { Text(stringResource(android.R.string.ok)) }
+            }) { Text(okLabel()) }
         },
     ) { TimePicker(state = timePickerState) }
 }

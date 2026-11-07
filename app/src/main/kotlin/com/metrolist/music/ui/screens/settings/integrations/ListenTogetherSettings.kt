@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import android.widget.Toast
+import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -67,7 +68,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -247,7 +247,7 @@ fun ListenTogetherSettings(navController: NavController) {
                     username = tempUsername.trim()
                     showUsernameDialog = false
                 }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
         ) {
@@ -621,7 +621,7 @@ fun LogsDialog(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
     ) {
@@ -845,7 +845,7 @@ fun BlockedUsersDialog(
         title = { Text(stringResource(Res.string.listen_together_blocked_users)) },
         buttons = {
             Button(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
     ) {

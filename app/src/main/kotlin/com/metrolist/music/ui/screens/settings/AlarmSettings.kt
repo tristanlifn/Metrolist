@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.screens.settings
 
 import android.app.AlarmManager
+import com.metrolist.music.ui.utils.okLabel
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
@@ -46,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.metrolist.music.LocalDatabase
@@ -329,7 +329,7 @@ private fun AlarmTimePickerDialog(
                 Text(stringResource(Res.string.cancel))
             }
             TextButton(onClick = { onConfirm(timePickerState.hour, timePickerState.minute) }) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         }
     ) {
@@ -405,7 +405,7 @@ private fun AlarmEditorDialog(
             title = { Text(stringResource(Res.string.alarm_playlist)) },
             buttons = {
                 TextButton(onClick = { showPlaylistDialog = false }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         ) {

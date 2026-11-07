@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.screens.equalizer
 
 import android.annotation.SuppressLint
+import com.metrolist.music.ui.utils.okLabel
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
@@ -165,7 +165,7 @@ fun EqScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showError = null }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         )
@@ -183,7 +183,7 @@ fun EqScreen(
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearError() }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         )
@@ -416,7 +416,7 @@ private fun EQProfileItem(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
             dismissButton = {

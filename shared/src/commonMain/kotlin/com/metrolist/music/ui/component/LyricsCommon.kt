@@ -31,7 +31,7 @@ import com.metrolist.music.lyrics.LyricsListItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun IntervalIndicator(
+fun IntervalIndicator(
     gapStartMs: Long,
     gapEndMs: Long,
     currentPositionMs: Long,

@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.menu
 
 import com.metrolist.music.playback.PlayerConnection
+import com.metrolist.music.ui.utils.okLabel
 import android.content.Context
 import android.content.Intent
 import android.media.audiofx.AudioEffect
@@ -64,7 +65,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -880,7 +880,7 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
         text = {
@@ -945,7 +945,7 @@ fun SpeedDialog(onDismiss: () -> Unit) {
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
         text = {
@@ -1069,7 +1069,7 @@ fun ListenTogetherDialog(
                                 containerColor = MaterialTheme.colorScheme.primary,
                             ),
                     ) {
-                        Text(stringResource(android.R.string.ok))
+                        Text(okLabel())
                     }
                 }
             }
