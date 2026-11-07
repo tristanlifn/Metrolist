@@ -9,6 +9,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.metrolist.desktop.playback.DesktopMusicPlayer
+import com.metrolist.desktop.playback.DesktopSongDownloads
 import com.metrolist.desktop.playback.StreamResolver
 import com.metrolist.music.db.InternalDatabase
 import com.metrolist.music.db.MusicDatabase
@@ -40,11 +41,12 @@ val desktopModule = module {
     single<NetworkConnectivity> { DesktopNetworkConnectivity() }
     single { SyncUtils(DesktopPaths.dataDir, get(), get(), get()) }
     single<SongCache> { NoSongCache() }
-    single<SongCache>(DownloadSongCache) { NoSongCache() }
-    single<SongDownloads> { NoSongDownloads() }
+    single { StreamResolver() }
+    single { DesktopSongDownloads(get(), get(), DesktopPaths.dataDir.resolve("downloads")) } bind SongDownloads::class
+    single<SongCache>(DownloadSongCache) { get<DesktopSongDownloads>() }
     single<WrappedPreloader> { NoWrappedPreloader() }
     single<LyricsImageSharer> { NoLyricsImageSharer() }
     single<AppSession> { DesktopAppSession(get()) }
     factoryOf(::LyricsHelper)
-    single { DesktopMusicPlayer(get(), get(), get(), StreamResolver(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
+    single { DesktopMusicPlayer(get(), get(), get(), get(), get(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
 }

@@ -17,10 +17,7 @@ import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.lyrics.LyricsImageSharer
-import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.playback.DownloadState
 import com.metrolist.music.playback.SongCache
-import com.metrolist.music.playback.SongDownloads
 import com.metrolist.music.ui.component.LyricsBackgroundStyle
 import com.metrolist.music.ui.screens.settings.LyricsPosition
 import com.metrolist.music.utils.AppSession
@@ -52,16 +49,6 @@ class NoSongCache : SongCache {
     override val size = 0L
 
     override fun clear() = Unit
-}
-
-class NoSongDownloads : SongDownloads {
-    override val downloads: StateFlow<Map<String, DownloadState>> = MutableStateFlow(emptyMap<String, DownloadState>()).asStateFlow()
-
-    override fun download(mediaMetadata: MediaMetadata) = Unit
-
-    override fun download(songId: String) = Unit
-
-    override fun remove(songId: String) = Unit
 }
 
 class NoWrappedPreloader : WrappedPreloader {

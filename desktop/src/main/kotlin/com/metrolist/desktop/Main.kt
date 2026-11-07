@@ -37,7 +37,6 @@ import com.metrolist.desktop.login.runLoginCheck
 import com.metrolist.desktop.mpris.MprisService
 import androidx.navigation.compose.composable
 import com.metrolist.desktop.playback.DesktopMusicPlayer
-import com.metrolist.desktop.playback.StreamResolver
 import com.metrolist.music.MetrolistApp
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.di.sharedViewModelModule
@@ -72,7 +71,7 @@ fun main(args: Array<String>) {
     val koin = startKoin { modules(desktopModule, sharedViewModelModule) }.koin
     CoroutineScope(SupervisorJob() + Dispatchers.IO).syncInnerTubeSettings(koin.get<DataStore<Preferences>>())
 
-    if (args.firstOrNull() == "--player-check") return runPlayerCheck(DesktopMusicPlayer(koin.get(), koin.get(), koin.get(), StreamResolver(), sessionsFile = null), args.drop(1))
+    if (args.firstOrNull() == "--player-check") return runPlayerCheck(DesktopMusicPlayer(koin.get(), koin.get(), koin.get(), koin.get(), koin.get(), sessionsFile = null), args.drop(1))
 
     if (args.firstOrNull() == "--snapshot") {
         // Snapshots show the app itself, not the first-run changelog sheet.

@@ -69,6 +69,7 @@ class DesktopMusicPlayer(
     private val dataStore: DataStore<Preferences>,
     private val syncUtils: SyncUtils,
     private val streamResolver: StreamResolver,
+    private val downloads: DesktopSongDownloads,
     // Where queue sessions are kept between runs; null keeps them in memory only.
     private val sessionsFile: File?,
 ) : MusicPlayer {
@@ -586,6 +587,18 @@ class DesktopMusicPlayer(
                 if (database.song(metadata.id).first() == null) {
                     database.insert(metadata)
                 }
+                // Downloaded songs play from disk, so they work offline.
+                val localFile = downloads.file(metadata.id)
+                // Shown as the stream title in volume mixers instead of the stream URL.
+                mpv.setProperty("force-media-title", "${metadata.title} – ${metadata.artists.joinToString { it.name }}")
+                mpv.setProperty("start", if (startMs > 0) "+${startMs / 1000.0}" else "none")
+                mpv.setProperty("pause", if (playWhenReady) "no" else "yes")
+                if (localFile != null) {
+                    currentStreamClient.value = null
+                    mpv.setProperty("http-header-fields", "")
+                    mpv.command("loadfile", localFile.path, "replace")
+                    return@launch
+                }
                 val stream =
                     runCatching { streamResolver.resolve(metadata.id) }
                         .onFailure { Logger.withTag("DesktopPlayer").e(it) { "Stream extraction failed for ${metadata.id}" } }
@@ -601,10 +614,6 @@ class DesktopMusicPlayer(
                     // change-list append adds one entry as-is, so header values may contain commas.
                     mpv.command("change-list", "http-header-fields", "append", "$key: $value")
                 }
-                // Shown as the stream title in volume mixers instead of the stream URL.
-                mpv.setProperty("force-media-title", "${metadata.title} – ${metadata.artists.joinToString { it.name }}")
-                mpv.setProperty("start", if (startMs > 0) "+${startMs / 1000.0}" else "none")
-                mpv.setProperty("pause", if (playWhenReady) "no" else "yes")
                 mpv.command("loadfile", stream.url, "replace")
             }
         maybeLoadMore()
