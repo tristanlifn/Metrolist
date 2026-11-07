@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.player
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -178,9 +177,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.metrolist.music.utils.safeEdit
 import com.metrolist.music.ui.utils.BackHandler
-
-
-@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Queue(

@@ -120,13 +120,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
-import androidx.palette.graphics.Palette
 import com.metrolist.music.LocalNavController
 import coil3.compose.AsyncImage
-import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
-import coil3.toBitmap
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
@@ -170,7 +167,6 @@ import com.metrolist.music.ui.component.WavySlider
 import com.metrolist.music.ui.component.rememberBottomSheetState
 import com.metrolist.music.ui.menu.PlayerMenu
 import com.metrolist.music.ui.screens.settings.DarkMode
-import com.metrolist.music.ui.theme.PlayerColorExtractor
 import com.metrolist.music.ui.theme.PlayerSliderColors
 import com.metrolist.music.ui.utils.ShowMediaInfo
 import com.metrolist.music.ui.utils.ShowOffsetDialog
@@ -228,6 +224,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.metrolist.music.utils.safeEdit
 import com.metrolist.music.ui.utils.BackHandler
+import com.metrolist.music.ui.theme.artworkGradientColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -443,43 +440,24 @@ fun BottomSheetPlayer(
     LaunchedEffect(mediaMetadata?.id, playerBackground) {
         if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
             val currentMetadata = mediaMetadata
-            if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
+            val thumbnailUrl = currentMetadata?.thumbnailUrl
+            if (currentMetadata != null && thumbnailUrl != null) {
                 val cachedColors = gradientColorsCache[currentMetadata.id]
                 if (cachedColors != null) {
                     gradientColors = cachedColors
                     return@LaunchedEffect
                 }
-                withContext(Dispatchers.IO) {
-                    val request =
-                        ImageRequest
-                            .Builder(context)
-                            .data(currentMetadata.thumbnailUrl)
-                            .size(100, 100)
-                            .allowHardware(false)
-                            .memoryCacheKey("gradient_${currentMetadata.id}")
-                            .build()
-
-                    val result = runCatching { context.imageLoader.execute(request) }.getOrNull()
-                    if (result != null) {
-                        val bitmap = result.image?.toBitmap()
-                        if (bitmap != null) {
-                            val palette =
-                                withContext(Dispatchers.Default) {
-                                    Palette
-                                        .from(bitmap)
-                                        .maximumColorCount(8)
-                                        .resizeBitmapArea(100 * 100)
-                                        .generate()
-                                }
-                            val extractedColors =
-                                PlayerColorExtractor.extractGradientColors(
-                                    palette = palette,
-                                    fallbackColor = fallbackColor,
-                                )
-                            gradientColorsCache[currentMetadata.id] = extractedColors
-                            withContext(Dispatchers.Main) { gradientColors = extractedColors }
-                        }
-                    }
+                val extractedColors = withContext(Dispatchers.IO) {
+                    artworkGradientColors(
+                        context,
+                        thumbnailUrl,
+                        fallbackColor = fallbackColor,
+                        memoryCacheKey = "gradient_${currentMetadata.id}",
+                    )
+                }
+                if (extractedColors != null) {
+                    gradientColorsCache[currentMetadata.id] = extractedColors
+                    gradientColors = extractedColors
                 }
             }
         } else {

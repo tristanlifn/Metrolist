@@ -7,8 +7,10 @@
 
 package com.metrolist.music.ui.player
 
-import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import org.koin.compose.koinInject
+import com.metrolist.music.utils.PlatformActions
+import coil3.compose.LocalPlatformContext
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -68,7 +70,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -78,7 +79,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
@@ -111,15 +111,9 @@ import com.metrolist.music.constants.MiniPlayerBackgroundStyle
 import com.metrolist.music.constants.MiniPlayerBackgroundStyleKey
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
-import androidx.palette.graphics.Palette
-import coil3.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.metrolist.music.ui.theme.PlayerColorExtractor
 import com.metrolist.music.resources.Res
 import com.metrolist.music.resources.and
 import com.metrolist.music.resources.cast_connected
@@ -138,6 +132,7 @@ import com.metrolist.music.resources.volume_off
 import com.metrolist.music.resources.volume_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.ui.theme.artworkGradientColors
 
 /**
  * Stable wrapper for progress state - reads values only during draw phase
@@ -201,7 +196,8 @@ private fun NewMiniPlayer(
         MiniPlayerBackgroundStyleKey,
         defaultValue = MiniPlayerBackgroundStyle.DEFAULT,
     )
-    val context = LocalContext.current
+    val context = LocalPlatformContext.current
+    val platformActions = koinInject<PlatformActions>()
     var gradientColors by remember { mutableStateOf<List<Color>>(emptyList()) }
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -240,11 +236,10 @@ private fun NewMiniPlayer(
     val coroutineScope = rememberCoroutineScope()
 
     val windowInfo = LocalWindowInfo.current
-    val configuration = LocalConfiguration.current
     val density = LocalDensity.current
     val isTabletLandscape =
-        remember(windowInfo.containerSize.width, configuration.orientation) {
-            (windowInfo.containerSize.width / density.density) >= 600f && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        remember(windowInfo.containerSize) {
+            (windowInfo.containerSize.width / density.density) >= 600f && windowInfo.containerSize.width > windowInfo.containerSize.height
         }
 
     // Swipe animation state
@@ -267,34 +262,10 @@ private fun NewMiniPlayer(
         if (miniPlayerBackground == MiniPlayerBackgroundStyle.GRADIENT) {
             val url = mediaMetadata?.thumbnailUrl
             if (url != null) {
-                withContext(Dispatchers.IO) {
-                    val request = ImageRequest.Builder(context)
-                        .data(url)
-                        .size(100, 100)
-                        .allowHardware(false)
-                        .build()
-                    val result = runCatching { context.imageLoader.execute(request) }.getOrNull()
-                    val bitmap = result?.image?.toBitmap()
-                    if (bitmap != null) {
-                        val palette = withContext(Dispatchers.Default) {
-                            Palette.from(bitmap)
-                                .maximumColorCount(8)
-                                .resizeBitmapArea(100 * 100)
-                                .generate()
-                        }
-                        val extracted = PlayerColorExtractor.extractGradientColors(
-                            palette = palette,
-                            fallbackColor = 0xFF000000.toInt(),
-                        )
-                        withContext(Dispatchers.Main) {
-                            gradientColors = extracted
-                        }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            gradientColors = emptyList()
-                        }
-                    }
+                val extracted = withContext(Dispatchers.IO) {
+                    artworkGradientColors(context, url, fallbackColor = 0xFF000000.toInt())
                 }
+                gradientColors = extracted.orEmpty()
             }
         } else {
             gradientColors = emptyList()
@@ -406,7 +377,7 @@ private fun NewMiniPlayer(
         ) {
             when (miniPlayerBackground) {
                 MiniPlayerBackgroundStyle.BLUR -> {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                    if (platformActions.supportsBlur) {
                         mediaMetadata?.thumbnailUrl?.let { url ->
                             AsyncImage(
                                 model = url,
@@ -731,11 +702,10 @@ private fun LegacyMiniPlayer(
     val coroutineScope = rememberCoroutineScope()
 
     val windowInfo = LocalWindowInfo.current
-    val configuration = LocalConfiguration.current
     val density = LocalDensity.current
     val isTabletLandscape =
-        remember(windowInfo.containerSize.width, configuration.orientation) {
-            (windowInfo.containerSize.width / density.density) >= 600f && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        remember(windowInfo.containerSize) {
+            (windowInfo.containerSize.width / density.density) >= 600f && windowInfo.containerSize.width > windowInfo.containerSize.height
         }
 
     val offsetXAnimatable = remember { Animatable(0f) }

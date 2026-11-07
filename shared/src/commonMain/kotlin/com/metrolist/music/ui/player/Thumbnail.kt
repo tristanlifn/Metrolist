@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import coil3.compose.LocalPlatformContext
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -45,6 +46,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +56,6 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +71,6 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CropAlbumArtKey
 import com.metrolist.music.constants.HidePlayerThumbnailKey
 import com.metrolist.music.constants.PlayerBackgroundStyle
@@ -80,7 +80,6 @@ import com.metrolist.music.constants.SeekExtraSeconds
 import com.metrolist.music.constants.SwipeThumbnailKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.listentogether.RoomRole
-import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.delay
@@ -90,6 +89,11 @@ import com.metrolist.music.resources.now_playing
 import com.metrolist.music.resources.small_icon
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.LocalCastButton
+import com.metrolist.music.resources.seek_backward_dynamic
+import com.metrolist.music.resources.seek_forward_dynamic
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -178,7 +182,6 @@ fun Thumbnail(
     isListenTogetherGuest: Boolean = false,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
 
     // Collect states
@@ -368,7 +371,6 @@ fun Thumbnail(
                                 layoutDirection = layoutDirection,
                                 onSeek = onSeekCallback,
                                 playerConnection = playerConnection,
-                                context = context,
                                 isLandscape = isLandscape,
                                 isListenTogetherGuest = isListenTogetherGuest,
                                 currentMediaId = mediaMetadata?.id,
@@ -465,13 +467,13 @@ private fun ThumbnailItem(
     layoutDirection: LayoutDirection,
     onSeek: (String, Boolean) -> Unit,
     playerConnection: MusicPlayer,
-    context: android.content.Context,
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
     currentMediaId: String? = null,
     currentMediaThumbnail: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
     var skipMultiplier by remember { mutableIntStateOf(1) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
@@ -515,10 +517,10 @@ private fun ThumbnailItem(
 
                         if (isLeftSide) {
                             playerConnection.seekTo((currentPosition - skipAmount).coerceAtLeast(0))
-                            onSeek(context.getString(R.string.seek_backward_dynamic, skipAmount / 1000), true)
+                            coroutineScope.launch { onSeek(getString(Res.string.seek_backward_dynamic, skipAmount / 1000), true) }
                         } else {
                             playerConnection.seekTo((currentPosition + skipAmount).coerceAtMost(duration))
-                            onSeek(context.getString(R.string.seek_forward_dynamic, skipAmount / 1000), true)
+                            coroutineScope.launch { onSeek(getString(Res.string.seek_forward_dynamic, skipAmount / 1000), true) }
                         }
                     }
                 )
@@ -546,11 +548,11 @@ private fun ThumbnailItem(
             }
             
             // Cast button at top-right corner of thumbnail
-            CastButton(
-                modifier = Modifier
+            LocalCastButton.current(
+                Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp),
-                tintColor = textBackgroundColor
+                textBackgroundColor,
             )
         }
     }
@@ -598,7 +600,7 @@ private fun ThumbnailImage(
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(LocalPlatformContext.current)
                 .data(artworkUri)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .diskCachePolicy(CachePolicy.ENABLED)

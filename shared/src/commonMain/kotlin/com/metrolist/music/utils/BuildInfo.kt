@@ -22,6 +22,10 @@ object BuildInfo {
     var updaterAvailable = false
         private set
 
+    /** OS and device lines for bug reports. */
+    var platformDetails: List<String> = emptyList()
+        private set
+
     fun init(
         versionName: String,
         baseVersionName: String,
@@ -30,6 +34,7 @@ object BuildInfo {
         isDebug: Boolean,
         castAvailable: Boolean,
         updaterAvailable: Boolean,
+        platformDetails: List<String>,
     ) {
         this.versionName = versionName
         this.baseVersionName = baseVersionName
@@ -38,5 +43,6 @@ object BuildInfo {
         this.isDebug = isDebug
         this.castAvailable = castAvailable
         this.updaterAvailable = updaterAvailable
+        this.platformDetails = platformDetails
     }
 }

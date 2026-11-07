@@ -227,6 +227,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import com.metrolist.music.ui.component.CastButton
 
 private data class AvailableUpdate(
     val release: ReleaseInfo,
@@ -1032,6 +1033,7 @@ class MainActivity : FragmentActivity() {
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
+                    LocalCastButton provides { modifier, tintColor -> CastButton(modifier, tintColor) },
                     LocalChangelogState provides showChangelog,
                     LocalArtistNameAliases provides artistNameAliases,
                 ) {

@@ -106,6 +106,7 @@ kotlin {
             implementation(libs.ktor.client.encoding)
         }
         androidMain.dependencies {
+            implementation(libs.palette)
             implementation(libs.core.ktx)
             implementation(libs.timber)
         }

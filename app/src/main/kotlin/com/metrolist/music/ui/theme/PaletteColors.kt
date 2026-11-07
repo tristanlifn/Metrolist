@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
-import com.materialkolor.score.Score
 
 fun Bitmap.extractThemeColor(): Color = Color(
     Palette.from(this)
@@ -17,14 +16,4 @@ fun Bitmap.extractThemeColor(): Color = Color(
         .generate()
         .rankedColors(1, DefaultThemeColor.toArgb())
         .first()
-)
-
-internal fun Palette.rankedColors(
-    desiredColorCount: Int,
-    fallbackColor: Int,
-): List<Int> = Score.score(
-    swatches.associate { it.rgb to it.population },
-    desiredColorCount,
-    fallbackColor,
-    true,
 )

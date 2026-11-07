@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.player
 
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -243,8 +242,7 @@ private fun buildPlaybackErrorReport(
         appendLine("Time: $reportedAt")
         appendLine("App version: ${BuildInfo.versionName} (${BuildInfo.versionCode})")
         appendLine("Architecture: ${BuildInfo.architecture}")
-        appendLine("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-        appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
+        BuildInfo.platformDetails.forEach(::appendLine)
         appendLine()
         appendLine("Media")
         appendLine("-----")

@@ -15,6 +15,9 @@ import com.metrolist.music.listentogether.ListenTogetherSession
 import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.playback.SongDownloads
 import com.metrolist.music.utils.SyncUtils
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database provided") }
 val LocalNavController = staticCompositionLocalOf<NavController> { error("No NavController provided") }
@@ -25,4 +28,6 @@ val LocalListenTogetherManager = staticCompositionLocalOf<ListenTogetherSession?
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 val LocalChangelogState = staticCompositionLocalOf<MutableState<Boolean>> { error("No LocalChangelogState provided") }
 val LocalArtistNameAliases = staticCompositionLocalOf<Map<String, String>> { emptyMap() }
+// Flavour-specific cast button; draws nothing where casting isn't available.
+val LocalCastButton = staticCompositionLocalOf<@Composable (modifier: Modifier, tintColor: Color) -> Unit> { { _, _ -> } }
 val LocalIsPlayerExpanded = compositionLocalOf { false }

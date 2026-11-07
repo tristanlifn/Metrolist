@@ -109,6 +109,10 @@ class App :
             isDebug = BuildConfig.DEBUG,
             castAvailable = BuildConfig.CAST_AVAILABLE,
             updaterAvailable = BuildConfig.UPDATER_AVAILABLE,
+            platformDetails = listOf(
+                "Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                "Device: ${Build.MANUFACTURER} ${Build.MODEL}",
+            ),
         )
         InnerTubeXPlayer.initialize(this)
 
