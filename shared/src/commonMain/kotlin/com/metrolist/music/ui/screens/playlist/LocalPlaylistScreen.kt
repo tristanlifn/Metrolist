@@ -5,15 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
-import android.annotation.SuppressLint
 import com.metrolist.music.ui.utils.okLabel
-import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -76,7 +68,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -89,7 +80,6 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
-import androidx.core.content.FileProvider
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.viewModelScope
@@ -112,7 +102,6 @@ import com.metrolist.music.constants.SwipeToRemoveSongKey
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.extensions.move
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.DefaultDialog
@@ -136,7 +125,6 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.viewmodels.LocalPlaylistViewModel
-import com.yalantis.ucrop.UCrop
 import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -183,8 +171,8 @@ import org.koin.compose.koinInject
 import com.metrolist.music.playback.DownloadState
 import com.metrolist.music.playback.download
 import com.metrolist.music.ui.utils.BackHandler
-
-@SuppressLint("RememberReturnType")
+import com.metrolist.music.ui.utils.LocalPlaylistCoverPicker
+import com.metrolist.music.ui.utils.PickedImage
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistScreen(
@@ -902,7 +890,6 @@ fun LocalPlaylistHeader(
 ) {
     val navController = LocalNavController.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val syncUtils = LocalSyncUtils.current
@@ -929,80 +916,27 @@ fun LocalPlaylistHeader(
             it.contains("studio_square_thumbnail") || it.contains("content://com.metrolist.music")
         } ?: false
 
-    val result = remember { mutableStateOf<Uri?>(null) }
-    var pendingCropDestUri by remember { mutableStateOf<Uri?>(null) }
+    val result = remember { mutableStateOf<PickedImage?>(null) }
     var showEditNoteDialog by remember { mutableStateOf(false) }
-
-    val cropLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-            if (res.resultCode == android.app.Activity.RESULT_OK) {
-                val output = res.data?.let { UCrop.getOutput(it) } ?: pendingCropDestUri
-                if (output != null) result.value = output
-            }
-        }
-
-    val (darkMode, _) =
-        rememberEnumPreference(
-            DarkModeKey,
-            defaultValue = DarkMode.AUTO,
-        )
-
-    val cropColor = MaterialTheme.colorScheme
-    val darkTheme = darkMode == DarkMode.ON || (darkMode == DarkMode.AUTO && isSystemInDarkTheme())
-
-    val pickLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.PickVisualMedia(),
-        ) { uri ->
-            uri?.let { sourceUri ->
-                val destFile = java.io.File(context.cacheDir, "playlist_cover_crop_${System.currentTimeMillis()}.jpg")
-                val destUri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", destFile)
-                pendingCropDestUri = destUri
-
-                val options =
-                    UCrop.Options().apply {
-                        setCompressionFormat(Bitmap.CompressFormat.JPEG)
-                        setCompressionQuality(90)
-                        setHideBottomControls(true)
-                        setToolbarTitle(editPlaylistCoverStr)
-
-                        setStatusBarLight(!darkTheme)
-
-                        setToolbarColor(cropColor.surface.toArgb())
-                        setToolbarWidgetColor(cropColor.inverseSurface.toArgb())
-                        setRootViewBackgroundColor(cropColor.surface.toArgb())
-                        setLogoColor(cropColor.surface.toArgb())
-                    }
-
-                val intent =
-                    UCrop
-                        .of(sourceUri, destUri)
-                        .withAspectRatio(1f, 1f)
-                        .withOptions(options)
-                        .getIntent(context)
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                cropLauncher.launch(intent)
-            }
-        }
+    val pickCover = LocalPlaylistCoverPicker.current(editPlaylistCoverStr) { image -> result.value = image }
 
     LaunchedEffect(result.value) {
-        val uri = result.value ?: return@LaunchedEffect
+        val image = result.value ?: return@LaunchedEffect
         withContext(Dispatchers.IO) {
             val browseId = playlist.playlist.browseId
             when {
                 browseId == null -> {
-                    overrideThumbnail.value = uri.toString()
+                    overrideThumbnail.value = image.location
                     isCustomThumbnail = true
 
                     // Update the database with the new thumbnail
                     database.query {
-                        update(playlist.playlist.copy(thumbnailUrl = uri.toString()))
+                        update(playlist.playlist.copy(thumbnailUrl = image.location))
                     }
                 }
 
                 else -> {
-                    val bytes = uriToByteArray(context, uri)
+                    val bytes = image.readBytes()
                     YouTube
                         .uploadCustomThumbnailLink(
                             browseId,
@@ -1058,9 +992,7 @@ fun LocalPlaylistHeader(
                 onDismiss = { showEditNoteDialog = false },
                 onConfirm = {
                     showEditNoteDialog = false
-                    pickLauncher.launch(
-                        PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly),
-                    )
+                    pickCover?.invoke()
                 },
                 onCancel = { showEditNoteDialog = false },
             ) {
@@ -1138,11 +1070,7 @@ fun LocalPlaylistHeader(
                                         {
                                             CustomThumbnailMenu(
                                                 onEdit = {
-                                                    pickLauncher.launch(
-                                                        PickVisualMediaRequest(
-                                                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                                        ),
-                                                    )
+                                                    pickCover?.invoke()
                                                 },
                                                 onRemove = {
                                                     val browseId = playlist.playlist.browseId
@@ -1220,11 +1148,7 @@ fun LocalPlaylistHeader(
                                         {
                                             CustomThumbnailMenu(
                                                 onEdit = {
-                                                    pickLauncher.launch(
-                                                        PickVisualMediaRequest(
-                                                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                                        ),
-                                                    )
+                                                    pickCover?.invoke()
                                                 },
                                                 onRemove = {
                                                     val browseId = playlist.playlist.browseId
@@ -1471,13 +1395,3 @@ fun LocalPlaylistHeader(
         }
     }
 }
-
-fun uriToByteArray(
-    context: Context,
-    uri: Uri,
-): ByteArray? =
-    try {
-        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-    } catch (_: SecurityException) {
-        null
-    }

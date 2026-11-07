@@ -5,9 +5,6 @@
 
 package com.metrolist.music.ui.screens.library
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -50,7 +47,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
@@ -69,10 +65,8 @@ import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.constants.SongSortTypeKey
 import com.metrolist.music.constants.YtmSyncKey
-import com.metrolist.music.extensions.fileNameAndSize
 import com.metrolist.music.extensions.matchesNormalizedQuery
 import com.metrolist.music.extensions.normalizeForSearch
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.ui.component.DefaultDialog
@@ -87,7 +81,6 @@ import com.metrolist.music.ui.utils.isScrollingUp
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LibrarySongsViewModel
-import timber.log.Timber
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -121,6 +114,8 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import com.metrolist.music.utils.PlatformActions
 import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.LocalAudioFilesPicker
+import com.metrolist.music.ui.utils.PickedFile
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +124,6 @@ fun LibrarySongsScreen(
     onDeselect: () -> Unit,
     viewModel: LibrarySongsViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
     val platformActions = koinInject<PlatformActions>()
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
@@ -170,34 +164,23 @@ fun LibrarySongsScreen(
     var isUploading by remember { mutableStateOf(false) }
     var uploadJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
-    val filePickerLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenMultipleDocuments(),
-        ) { uris: List<Uri> ->
-            if (uris.isNotEmpty()) {
-                uris.forEach { uri ->
-                    try {
-                        val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    } catch (e: SecurityException) {
-                        Timber.w(e, "Could not take persistable permission")
-                    }
-                }
+    val pickAudioFiles = LocalAudioFilesPicker.current { files: List<PickedFile> ->
+            if (files.isNotEmpty()) {
                 uploadJob =
                     scope.launch {
                         isUploading = true
                         showUploadDialog = true
-                        totalUploads = uris.size
+                        totalUploads = files.size
                         var successCount = 0
 
-                        uris.forEachIndexed { index, uri ->
+                        files.forEachIndexed { index, file ->
                             currentUploadIndex = index + 1
                             uploadProgress = 0f
 
                             try {
                                 val (fileName, contentLength) =
                                     withContext(Dispatchers.IO) {
-                                        context.contentResolver.fileNameAndSize(uri)
+                                        file.nameAndSize()
                                     }
                                 currentFileName = fileName
 
@@ -218,7 +201,7 @@ fun LibrarySongsScreen(
                                     YouTube.uploadSong(
                                         filename = fileName,
                                         contentLength = contentLength,
-                                        content = { checkNotNull(context.contentResolver.openInputStream(uri)) },
+                                        content = { file.openStream() },
                                         onProgress = { progress -> uploadProgress = progress },
                                     )
 
@@ -500,16 +483,7 @@ fun LibrarySongsScreen(
             icon = if (filter == SongFilter.UPLOADED) Res.drawable.upload else Res.drawable.shuffle,
             onClick = {
                 if (filter == SongFilter.UPLOADED) {
-                    filePickerLauncher.launch(
-                        arrayOf(
-                            "audio/mpeg",
-                            "audio/mp4",
-                            "audio/x-m4a",
-                            "audio/flac",
-                            "audio/ogg",
-                            "audio/x-ms-wma",
-                        ),
-                    )
+                    pickAudioFiles?.invoke()
                 } else {
                     playerConnection.playQueue(
                         ListQueue(

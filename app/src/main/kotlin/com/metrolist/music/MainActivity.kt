@@ -230,6 +230,10 @@ import java.util.Locale
 import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.ui.menu.ListenTogetherDialog
 import com.metrolist.music.ui.menu.rememberSystemEqualizerLauncher
+import com.metrolist.music.ui.utils.LocalAudioFilesPicker
+import com.metrolist.music.ui.utils.LocalPlaylistCoverPicker
+import com.metrolist.music.ui.utils.rememberAndroidAudioFilesPicker
+import com.metrolist.music.ui.utils.rememberAndroidPlaylistCoverPicker
 
 private data class AvailableUpdate(
     val release: ReleaseInfo,
@@ -1038,6 +1042,8 @@ class MainActivity : FragmentActivity() {
                     LocalCastButton provides { modifier, tintColor -> CastButton(modifier, tintColor) },
                     LocalListenTogetherDialog provides { visible, mediaMetadata, onDismiss -> ListenTogetherDialog(visible, mediaMetadata, onDismiss) },
                     LocalSystemEqualizerLauncher provides { rememberSystemEqualizerLauncher() },
+                    LocalAudioFilesPicker provides { onPicked -> rememberAndroidAudioFilesPicker(onPicked) },
+                    LocalPlaylistCoverPicker provides { title, onPicked -> rememberAndroidPlaylistCoverPicker(title, onPicked) },
                     LocalChangelogState provides showChangelog,
                     LocalArtistNameAliases provides artistNameAliases,
                 ) {

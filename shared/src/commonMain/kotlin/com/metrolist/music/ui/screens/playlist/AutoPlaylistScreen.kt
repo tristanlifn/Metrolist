@@ -5,10 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
-import android.net.Uri
 import com.metrolist.music.ui.utils.okLabel
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +67,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -82,7 +78,6 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
-import timber.log.Timber
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
@@ -97,8 +92,6 @@ import com.metrolist.music.constants.YtmSyncKey
 import com.metrolist.music.constants.playlistSongSortDescendingKey
 import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.entities.Song
-import com.metrolist.music.extensions.fileNameAndSize
-import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.DraggableScrollbar
@@ -156,6 +149,8 @@ import org.koin.compose.koinInject
 import com.metrolist.music.playback.DownloadState
 import com.metrolist.music.playback.download
 import com.metrolist.music.ui.utils.BackHandler
+import com.metrolist.music.ui.utils.LocalAudioFilesPicker
+import com.metrolist.music.ui.utils.PickedFile
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +158,6 @@ fun AutoPlaylistScreen(
     navController: NavController,
     viewModel: AutoPlaylistViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
     val platformActions = koinInject<PlatformActions>()
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -270,34 +264,23 @@ fun AutoPlaylistScreen(
     var isUploading by remember { mutableStateOf(false) }
     var uploadJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
-    val filePickerLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenMultipleDocuments(),
-        ) { uris: List<Uri> ->
-            if (uris.isNotEmpty()) {
-                uris.forEach { uri ->
-                    try {
-                        val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    } catch (e: SecurityException) {
-                        Timber.w(e, "Could not take persistable permission")
-                    }
-                }
+    val pickAudioFiles = LocalAudioFilesPicker.current { files: List<PickedFile> ->
+            if (files.isNotEmpty()) {
                 uploadJob =
                     scope.launch {
                         isUploading = true
                         showUploadDialog = true
-                        totalUploads = uris.size
+                        totalUploads = files.size
                         var successCount = 0
 
-                        uris.forEachIndexed { index, uri ->
+                        files.forEachIndexed { index, file ->
                             currentUploadIndex = index + 1
                             uploadProgress = 0f
 
                             try {
                                 val (fileName, contentLength) =
                                     withContext(Dispatchers.IO) {
-                                        context.contentResolver.fileNameAndSize(uri)
+                                        file.nameAndSize()
                                     }
                                 currentFileName = fileName
 
@@ -318,7 +301,7 @@ fun AutoPlaylistScreen(
                                     YouTube.uploadSong(
                                         filename = fileName,
                                         contentLength = contentLength,
-                                        content = { checkNotNull(context.contentResolver.openInputStream(uri)) },
+                                        content = { file.openStream() },
                                         onProgress = { progress -> uploadProgress = progress },
                                     )
 
@@ -709,16 +692,7 @@ fun AutoPlaylistScreen(
             ) {
                 FloatingActionButton(
                     onClick = {
-                        filePickerLauncher.launch(
-                            arrayOf(
-                                "audio/mpeg",
-                                "audio/mp4",
-                                "audio/x-m4a",
-                                "audio/flac",
-                                "audio/ogg",
-                                "audio/x-ms-wma",
-                            ),
-                        )
+                        pickAudioFiles?.invoke()
                     },
                 ) {
                     Icon(
