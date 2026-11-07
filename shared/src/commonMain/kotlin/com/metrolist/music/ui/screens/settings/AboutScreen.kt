@@ -68,7 +68,6 @@ import androidx.graphics.shapes.RoundedPolygon
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.models.WatchEndpoint
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.playback.MusicPlayer
@@ -110,6 +109,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import com.metrolist.music.utils.BuildInfo
 
 private data class Contributor(
     val name: String,
@@ -314,7 +314,7 @@ fun AboutScreen(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                         ) {
                             Text(
-                                text = BuildConfig.VERSION_NAME,
+                                text = BuildInfo.versionName,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -327,7 +327,7 @@ fun AboutScreen(
                             color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
                         ) {
                             Text(
-                                text = BuildConfig.ARCHITECTURE.uppercase(),
+                                text = BuildInfo.architecture.uppercase(),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -335,7 +335,7 @@ fun AboutScreen(
                             )
                         }
 
-                        if (BuildConfig.DEBUG) {
+                        if (BuildInfo.isDebug) {
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)

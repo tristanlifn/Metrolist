@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.constants.CheckForUpdatesKey
 import com.metrolist.music.constants.UpdateNotificationsEnabledKey
@@ -68,6 +67,7 @@ import com.metrolist.music.resources.version_format
 import com.metrolist.music.resources.view_changelog
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.BuildInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,11 +135,11 @@ fun UpdaterScreen(
                 listOf(
                     Material3SettingsItem(
                         title = {
-                            Text(stringResource(Res.string.version_format, BuildConfig.VERSION_NAME))
+                            Text(stringResource(Res.string.version_format, BuildInfo.versionName))
                         },
                         description = {
-                            val arch = BuildConfig.ARCHITECTURE
-                            val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
+                            val arch = BuildInfo.architecture
+                            val variant = if (BuildInfo.castAvailable) "GMS" else "FOSS"
                             Text("$arch - $variant")
                         },
                     ),

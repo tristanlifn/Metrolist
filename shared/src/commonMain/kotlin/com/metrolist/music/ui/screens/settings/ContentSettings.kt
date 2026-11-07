@@ -5,9 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,9 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
@@ -175,13 +170,15 @@ import com.metrolist.music.resources.wifi_proxy
 import com.metrolist.music.resources.youtube_music_lyrics_note
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentSettings(
     navController: NavController
 ) {
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val database = LocalDatabase.current
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
@@ -987,17 +984,11 @@ fun ContentSettings(
         Material3SettingsGroup(
             title = stringResource(Res.string.app_language),
             items = listOf(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (platformActions.hasSystemAppLanguageSettings) {
                     Material3SettingsItem(
                         icon = painterResource(Res.drawable.language),
                         title = { Text(stringResource(Res.string.app_language)) },
-                        onClick = {
-                            context.startActivity(
-                                Intent(
-                                    Settings.ACTION_APP_LOCALE_SETTINGS,
-                                    "package:${context.packageName}".toUri()
-                                )
-                            )
+                        onClick = { platformActions.openSystemAppLanguageSettings()
                         }
                     )
                 } else {

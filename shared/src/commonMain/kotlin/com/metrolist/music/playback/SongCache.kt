@@ -6,6 +6,7 @@
 package com.metrolist.music.playback
 
 import com.metrolist.music.db.entities.Song
+import org.koin.core.qualifier.named
 
 /** The cache that holds streamed songs, separate from downloads. */
 interface SongCache {
@@ -18,4 +19,12 @@ interface SongCache {
     ): Boolean
 
     fun remove(songId: String)
+
+    /** Bytes currently stored. */
+    val size: Long
+
+    fun clear()
 }
+
+/** Koin qualifier for the [SongCache] that backs downloads rather than streaming. */
+val DownloadSongCache = named("DownloadSongCache")

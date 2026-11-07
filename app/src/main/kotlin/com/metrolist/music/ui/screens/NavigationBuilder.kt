@@ -64,6 +64,7 @@ import com.metrolist.music.ui.screens.settings.integrations.ListenTogetherSettin
 import com.metrolist.music.ui.screens.wrapped.WrappedScreen
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.ui.screens.settings.AlarmSettingsSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -369,7 +370,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/player") {
-        PlayerSettings(navController)
+        PlayerSettings(navController) { AlarmSettingsSection() }
     }
 
     composable("settings/storage") {

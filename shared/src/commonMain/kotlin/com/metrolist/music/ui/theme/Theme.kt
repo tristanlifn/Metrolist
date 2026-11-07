@@ -21,7 +21,7 @@ import com.materialkolor.rememberDynamicColorScheme
 val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
-internal expect fun systemDynamicColorScheme(darkTheme: Boolean): ColorScheme?
+expect fun systemDynamicColorScheme(darkTheme: Boolean): ColorScheme?
 
 @Composable
 fun MetrolistTheme(

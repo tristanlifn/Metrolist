@@ -5,9 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import androidx.media3.datasource.cache.Cache
-import com.metrolist.music.di.DownloadCache
-import com.metrolist.music.di.PlayerCache
 import org.koin.compose.koinInject
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
@@ -41,24 +38,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
-import coil3.imageLoader
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.MaxImageCacheSizeKey
 import com.metrolist.music.constants.MaxSongCacheSizeKey
-import com.metrolist.music.extensions.tryOrNull
 import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
-import android.text.format.Formatter
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
@@ -98,17 +91,20 @@ import com.metrolist.music.resources.storage
 import com.metrolist.music.resources.unlimited
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import coil3.compose.LocalPlatformContext
+import com.metrolist.music.playback.DownloadSongCache
+import com.metrolist.music.playback.SongCache
+import com.metrolist.music.ui.utils.formatFileSize
 
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class, DelicateCoilApi::class)
 @Composable
 fun StorageSettings(
     navController: NavController
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
-    val imageDiskCache = context.imageLoader.diskCache ?: return
-    val playerCache = koinInject<Cache>(PlayerCache)
-    val downloadCache = koinInject<Cache>(DownloadCache)
+    val imageDiskCache = SingletonImageLoader.get(LocalPlatformContext.current).diskCache ?: return
+    val playerCache = koinInject<SongCache>()
+    val downloadCache = koinInject<SongCache>(DownloadSongCache)
 
     val coroutineScope = rememberCoroutineScope()
     val songCacheString = stringResource(Res.string.song_cache).lowercase()
@@ -140,10 +136,10 @@ fun StorageSettings(
         androidx.compose.runtime.mutableLongStateOf(imageDiskCache.size)
     }
     var playerCacheSize by remember {
-        androidx.compose.runtime.mutableLongStateOf(tryOrNull { playerCache.cacheSpace } ?: 0)
+        androidx.compose.runtime.mutableLongStateOf(playerCache.size)
     }
     var downloadCacheSize by remember {
-        mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0)
+        mutableLongStateOf(downloadCache.size)
     }
     val imageCacheProgress by animateFloatAsState(
         targetValue =
@@ -173,9 +169,7 @@ fun StorageSettings(
     LaunchedEffect(maxSongCacheSize) {
         if (maxSongCacheSize == 0) {
             coroutineScope.launch(Dispatchers.IO) {
-                playerCache.keys.forEach { key ->
-                    playerCache.removeResource(key)
-                }
+                playerCache.clear()
             }
         }
     }
@@ -189,13 +183,13 @@ fun StorageSettings(
     LaunchedEffect(playerCache) {
         while (isActive) {
             delay(500)
-            playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
+            playerCacheSize = playerCache.size
         }
     }
     LaunchedEffect(downloadCache) {
         while (isActive) {
             delay(500)
-            downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
+            downloadCacheSize = downloadCache.size
         }
     }
 
@@ -205,9 +199,7 @@ fun StorageSettings(
             onDismiss = { clearDownloads = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
-                    downloadCache.keys.forEach { key ->
-                        downloadCache.removeResource(key)
-                    }
+                    downloadCache.clear()
                 }
                 clearDownloads = false
             },
@@ -223,9 +215,7 @@ fun StorageSettings(
             onDismiss = { clearCacheDialog = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
-                    playerCache.keys.forEach { key ->
-                        playerCache.removeResource(key)
-                    }
+                    playerCache.clear()
                 }
                 clearCacheDialog = false
             },
@@ -283,7 +273,7 @@ fun StorageSettings(
                 Text(
                     stringResource(
                         Res.string.cache_size_warning_message,
-                        Formatter.formatShortFileSize(context, cacheUsage),
+                        formatFileSize(cacheUsage),
                         cacheType,
                     ),
                 )
@@ -333,7 +323,7 @@ fun StorageSettings(
                         icon = painterResource(Res.drawable.storage),
                         title = { Text(stringResource(Res.string.downloaded_songs)) },
                         description = {
-                            Text(text = Formatter.formatShortFileSize(context, downloadCacheSize))
+                            Text(text = formatFileSize(downloadCacheSize))
                         },
                     ),
                     Material3SettingsItem(
@@ -381,7 +371,7 @@ fun StorageSettings(
                                 text = when (maxSongCacheSize) {
                                     0 -> stringResource(Res.string.disable)
                                     -1 -> stringResource(Res.string.unlimited)
-                                    else -> Formatter.formatShortFileSize(context, maxSongCacheSize * 1024 * 1024L)
+                                    else -> formatFileSize(maxSongCacheSize * 1024 * 1024L)
                                 }
                             )
                             Slider(
@@ -416,12 +406,10 @@ fun StorageSettings(
                                 Text(
                                     text =
                                         if (maxSongCacheSize == -1) {
-                                            Formatter.formatShortFileSize(context, playerCacheSize)
+                                            formatFileSize(playerCacheSize)
                                         } else {
-                                            "${Formatter.formatShortFileSize(context, playerCacheSize)} / ${
-                                                Formatter.formatShortFileSize(context, 
-                                                    maxSongCacheSize * 1024 * 1024L,
-                                                )
+                                            "${formatFileSize(playerCacheSize)} / ${
+                                                formatFileSize(maxSongCacheSize * 1024 * 1024L)
                                             }"
                                         },
                                     style = MaterialTheme.typography.bodyMedium,
@@ -454,7 +442,7 @@ fun StorageSettings(
                                     text =
                                         when (maxImageCacheSize) {
                                             0 -> stringResource(Res.string.disable)
-                                            else -> Formatter.formatShortFileSize(context, maxImageCacheSize * 1024 * 1024L)
+                                            else -> formatFileSize(maxImageCacheSize * 1024 * 1024L)
                                         },
                                 )
                                 Slider(
@@ -482,10 +470,8 @@ fun StorageSettings(
                                 )
                                 Spacer(modifier = Modifier.padding(2.dp))
                                 Text(
-                                    text = "${Formatter.formatShortFileSize(context, imageCacheSize)} / ${
-                                        Formatter.formatShortFileSize(context, 
-                                            maxImageCacheSize * 1024 * 1024L,
-                                        )
+                                    text = "${formatFileSize(imageCacheSize)} / ${
+                                        formatFileSize(maxImageCacheSize * 1024 * 1024L)
                                     }",
                                     style = MaterialTheme.typography.bodyMedium,
                                 )

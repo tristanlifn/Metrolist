@@ -24,4 +24,9 @@ class Media3SongCache(
     ) = cache.isCached(songId, 0, contentLength)
 
     override fun remove(songId: String) = cache.removeResource(songId)
+
+    override val size: Long
+        get() = runCatching { cache.cacheSpace }.getOrDefault(0L)
+
+    override fun clear() = cache.keys.forEach(cache::removeResource)
 }

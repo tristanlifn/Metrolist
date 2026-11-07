@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.constants.AudioNormalizationKey
 import com.metrolist.music.constants.AudioOffload
@@ -187,11 +186,14 @@ import com.metrolist.music.resources.volume_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.BuildInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSettings(
-    navController: NavController
+    navController: NavController,
+    // Platform-only settings shown after the general ones, such as Android alarms.
+    platformSection: @Composable () -> Unit = {},
 ) {
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
@@ -612,7 +614,7 @@ fun PlayerSettings(
                     onClick = { onAudioTrackPlaybackParamsChange(!audioTrackPlaybackParams) }
                 ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
-                if (BuildConfig.CAST_AVAILABLE) {
+                if (BuildInfo.castAvailable) {
                     add(Material3SettingsItem(
                         icon = painterResource(Res.drawable.cast),
                         title = { Text(stringResource(Res.string.google_cast)) },
@@ -823,7 +825,7 @@ fun PlayerSettings(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        AlarmSettingsSection()
+        platformSection()
 
         Spacer(modifier = Modifier.height(27.dp))
 

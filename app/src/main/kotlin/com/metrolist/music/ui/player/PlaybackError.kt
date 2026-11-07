@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.PlayerError
@@ -55,6 +54,7 @@ import com.metrolist.music.resources.retry
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.metrolist.music.utils.PlatformActions
+import com.metrolist.music.utils.BuildInfo
 
 @Composable
 fun PlaybackError(
@@ -241,8 +241,8 @@ private fun buildPlaybackErrorReport(
         appendLine("Metrolist Playback Error Report")
         appendLine("================================")
         appendLine("Time: $reportedAt")
-        appendLine("App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-        appendLine("Architecture: ${BuildConfig.ARCHITECTURE}")
+        appendLine("App version: ${BuildInfo.versionName} (${BuildInfo.versionCode})")
+        appendLine("Architecture: ${BuildInfo.architecture}")
         appendLine("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
         appendLine()

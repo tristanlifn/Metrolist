@@ -12,6 +12,10 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import android.content.ActivityNotFoundException
+import android.os.Build
+import android.provider.Settings
+import androidx.core.net.toUri
 
 class AndroidPlatformActions(
     private val context: Context,
@@ -52,4 +56,37 @@ class AndroidPlatformActions(
     override fun saveToDocuments(fileName: String, mimeType: String, content: String): Result<Unit> =
         runCatching { createExportFile(context, fileName).apply { writeText(content) } }
             .mapCatching { file -> saveToPublicDocuments(context, file, mimeType).getOrThrow(); Unit }
+
+    override val supportsBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    override val supportsDynamicIcon = true
+
+    override fun setDynamicIcon(enabled: Boolean) = IconUtils.setIcon(context, enabled)
+
+    override val hasSystemAppLanguageSettings = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+    override fun openSystemAppLanguageSettings() {
+        context.startActivity(
+            Intent(Settings.ACTION_APP_LOCALE_SETTINGS, "package:${context.packageName}".toUri())
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
+    override val hasDefaultLinkSettings = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    override fun openDefaultLinkSettings(): Boolean =
+        try {
+            context.startActivity(
+                Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, "package:${context.packageName}".toUri())
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        } catch (e: SecurityException) {
+            false
+        }
+
+    override val isAndroidAutoInstalled: Boolean
+        get() = runCatching { context.packageManager.getPackageInfo("com.google.android.projection.gearhead", 0) }.isSuccess
 }

@@ -1,7 +1,5 @@
 package com.metrolist.music.ui.screens.settings
 
-import android.content.res.Configuration
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -48,8 +46,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,8 +58,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -116,6 +110,8 @@ import com.metrolist.music.resources.theme_mode
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.StringResource
+import com.metrolist.music.ui.theme.systemDynamicColorScheme
+import com.metrolist.music.ui.utils.isPortraitWindow
 
 data class ThemePalette(
     val nameRes: StringResource,
@@ -168,8 +164,7 @@ fun ThemeScreen(
     val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
 
     val selectedThemeColor = Color(selectedThemeColorInt)
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isLandscape = !isPortraitWindow()
 
     // Helper function to handle color selection with dynamic theme toggle
     val handleColorSelection: (Color) -> Unit = { color ->
@@ -456,7 +451,6 @@ fun ModeCircle(
     showIcon: Boolean,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val isSystemDark = isSystemInDarkTheme()
     val isSelected = darkMode == targetMode && pureBlack == targetPureBlack
     
@@ -467,9 +461,8 @@ fun ModeCircle(
     }
     
     // Use actual system colors for AUTO mode on Android 12+
-    val modeColorScheme = if (targetMode == DarkMode.AUTO && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (effectiveDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else {
+    val systemColorScheme = if (targetMode == DarkMode.AUTO) systemDynamicColorScheme(effectiveDark) else null
+    val modeColorScheme = systemColorScheme ?: run {
         rememberDynamicColorScheme(
             seedColor = DefaultThemeColor,
             isDark = effectiveDark,

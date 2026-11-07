@@ -5,10 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -21,12 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
@@ -70,9 +63,9 @@ import com.metrolist.music.resources.update
 import com.metrolist.music.resources.updater
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import com.metrolist.music.R
 import com.metrolist.music.utils.PlatformActions
 import org.koin.compose.koinInject
+import com.metrolist.music.utils.BuildInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,19 +74,8 @@ fun SettingsScreen(
     latestVersionName: String,
 ) {
     val uriHandler = LocalUriHandler.current
-    val context = LocalContext.current
     val platformActions = koinInject<PlatformActions>()
-    val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val hasAndroidAuto = remember {
-        try {
-            context.packageManager.getPackageInfo(
-                "com.google.android.projection.gearhead", 0
-            )
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
+    val hasAndroidAuto = remember { platformActions.isAndroidAutoInstalled }
 
     Column(
         Modifier
@@ -200,39 +182,20 @@ fun SettingsScreen(
         Material3SettingsGroup(
             title = stringResource(Res.string.settings_section_system),
             items = buildList {
-                if (isAndroid12OrLater) {
+                if (platformActions.hasDefaultLinkSettings) {
                     add(
                         Material3SettingsItem(
                             icon = painterResource(Res.drawable.link),
                             title = { Text(stringResource(Res.string.default_links)) },
                             onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                                        "package:${context.packageName}".toUri()
-                                    )
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    when (e) {
-                                        is ActivityNotFoundException -> {
-                                            platformActions.toast(Res.string.open_app_settings_error, long = true)
-                                        }
-
-                                        is SecurityException -> {
-                                            platformActions.toast(Res.string.open_app_settings_error, long = true)
-                                        }
-
-                                        else -> {
-                                            platformActions.toast(Res.string.open_app_settings_error, long = true)
-                                        }
-                                    }
+                                if (!platformActions.openDefaultLinkSettings()) {
+                                    platformActions.toast(Res.string.open_app_settings_error, long = true)
                                 }
                             }
                         )
                     )
                 }
-                if (BuildConfig.UPDATER_AVAILABLE) {
+                if (BuildInfo.updaterAvailable) {
                     add(
                         Material3SettingsItem(
                             icon = painterResource(Res.drawable.update),
@@ -256,7 +219,7 @@ fun SettingsScreen(
                         onClick = { navController.navigate("settings/about") }
                     )
                 )
-                if (BuildConfig.UPDATER_AVAILABLE && latestVersionName != BuildConfig.BASE_VERSION_NAME) {
+                if (BuildInfo.updaterAvailable && latestVersionName != BuildInfo.baseVersionName) {
                     val releaseInfo = Updater.getCachedLatestRelease()
                     val downloadUrl = releaseInfo?.let { Updater.getDownloadUrlForCurrentVariant(it) }
 
@@ -284,7 +247,7 @@ fun SettingsScreen(
                 }
             }
         )
-    if (BuildConfig.UPDATER_AVAILABLE && latestVersionName != BuildConfig.BASE_VERSION_NAME) {
+    if (BuildInfo.updaterAvailable && latestVersionName != BuildInfo.baseVersionName) {
             Spacer(modifier = Modifier.height(16.dp))
             ReleaseNotesCard()
         }

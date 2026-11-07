@@ -65,6 +65,7 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.Proxy
 import java.util.Locale
+import com.metrolist.music.utils.BuildInfo
 
 class App :
     Application(),
@@ -100,6 +101,15 @@ class App :
         Timber.plant(Timber.DebugTree())
         Logger.sink = { priority, error, message -> Timber.tag("InnerTube").log(priority, error, message) }
         Paxsenix.appVersion = BuildConfig.VERSION_NAME
+        BuildInfo.init(
+            versionName = BuildConfig.VERSION_NAME,
+            baseVersionName = BuildConfig.BASE_VERSION_NAME,
+            versionCode = BuildConfig.VERSION_CODE,
+            architecture = BuildConfig.ARCHITECTURE,
+            isDebug = BuildConfig.DEBUG,
+            castAvailable = BuildConfig.CAST_AVAILABLE,
+            updaterAvailable = BuildConfig.UPDATER_AVAILABLE,
+        )
         InnerTubeXPlayer.initialize(this)
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader

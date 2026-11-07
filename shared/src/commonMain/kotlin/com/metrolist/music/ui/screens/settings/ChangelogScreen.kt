@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.utils.ReleaseInfo
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.resources.Res
@@ -40,6 +39,7 @@ import com.metrolist.music.resources.list_bullet
 import com.metrolist.music.resources.view_on_github
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.BuildInfo
 
 private val markdownLinkRegex = Regex("(@[a-zA-Z0-9_-]+)|(https?://[\\w-]+(\\.[\\w-]+)+[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])")
 
@@ -55,7 +55,7 @@ fun ChangelogScreen(
     LaunchedEffect(Unit) {
         Updater.getAllReleases().onSuccess { allReleases ->
             releases = allReleases.filter { release ->
-                Updater.compareVersions(BuildConfig.BASE_VERSION_NAME, release.tagName) >= 0
+                Updater.compareVersions(BuildInfo.baseVersionName, release.tagName) >= 0
             }
             isLoading = false
         }.onFailure {

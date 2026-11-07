@@ -31,4 +31,25 @@ interface PlatformActions {
 
     /** Saves [content] as [fileName] in the user's documents folder. */
     fun saveToDocuments(fileName: String, mimeType: String, content: String): Result<Unit>
+
+    /** Background blur effects render (Android 12+). */
+    val supportsBlur: Boolean
+
+    /** The launcher icon can follow the system theme. */
+    val supportsDynamicIcon: Boolean
+
+    fun setDynamicIcon(enabled: Boolean)
+
+    /** The OS has its own per-app language picker (Android 13+); otherwise the app shows one. */
+    val hasSystemAppLanguageSettings: Boolean
+
+    fun openSystemAppLanguageSettings()
+
+    /** The OS lets the user choose which links open in the app (Android 12+). */
+    val hasDefaultLinkSettings: Boolean
+
+    /** Returns false when the settings page couldn't be opened. */
+    fun openDefaultLinkSettings(): Boolean
+
+    val isAndroidAutoInstalled: Boolean
 }

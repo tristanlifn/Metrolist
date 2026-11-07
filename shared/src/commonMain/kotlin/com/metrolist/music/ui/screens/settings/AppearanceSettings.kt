@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import android.os.Build
 import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -111,7 +109,6 @@ import com.metrolist.music.ui.component.WavySlider
 import com.metrolist.music.ui.theme.DefaultThemeColor
 import com.metrolist.music.ui.theme.PlayerSliderColors
 import com.metrolist.music.ui.utils.backToMain
-import com.metrolist.music.utils.IconUtils
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -234,6 +231,8 @@ import com.metrolist.music.resources.tune
 import com.metrolist.music.resources.wavy
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -251,10 +250,10 @@ fun AppearanceSettings(
             EnableDynamicIconKey,
             defaultValue = true,
         )
-    val iconContext = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val onEnableDynamicIconChange: (Boolean) -> Unit = { newValue ->
         onEnableDynamicIconPrefChange(newValue)
-        IconUtils.setIcon(iconContext, newValue)
+        platformActions.setDynamicIcon(newValue)
     }
     val (enableHighRefreshRate, onEnableHighRefreshRateChange) =
         rememberPreference(
@@ -287,7 +286,7 @@ fun AppearanceSettings(
 
     val availableMiniPlayerBackgroundStyles =
         MiniPlayerBackgroundStyle.entries.filter {
-            it != MiniPlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            it != MiniPlayerBackgroundStyle.BLUR || platformActions.supportsBlur
         }
 
     var showMiniPlayerBackgroundDialog by rememberSaveable { mutableStateOf(false) }
@@ -442,7 +441,7 @@ fun AppearanceSettings(
 
     val availableBackgroundStyles =
         PlayerBackgroundStyle.entries.filter {
-            it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            it != PlayerBackgroundStyle.BLUR || platformActions.supportsBlur
         }
 
     val (defaultChip, onDefaultChipChange) =
@@ -1096,7 +1095,7 @@ fun AppearanceSettings(
                             ),
                         )
                     }
-                    add(
+                    if (platformActions.supportsDynamicIcon) add(
                         Material3SettingsItem(
                             icon = painterResource(Res.drawable.palette),
                             title = { Text(stringResource(Res.string.enable_dynamic_icon)) },

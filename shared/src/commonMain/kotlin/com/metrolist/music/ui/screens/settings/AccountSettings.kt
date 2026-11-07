@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import com.metrolist.music.utils.reportException
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +48,6 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.utils.parseCookieString
-import com.metrolist.music.BuildConfig
 import com.metrolist.music.constants.AccountChannelHandleKey
 import com.metrolist.music.constants.AccountEmailKey
 import com.metrolist.music.constants.AccountNameKey
@@ -95,6 +93,8 @@ import com.metrolist.music.resources.update
 import com.metrolist.music.resources.yt_sync
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.BuildInfo
+import co.touchlab.kermit.Logger
 
 @Composable
 fun AccountSettings(
@@ -168,20 +168,20 @@ fun AccountSettings(
                 buttons = {
                     TextButton(
                         onClick = {
-                            Timber.d("[LOGOUT_CLEAR] User chose to clear data")
+                            Logger.d { "[LOGOUT_CLEAR] User chose to clear data" }
                             scope.launch {
                                 try {
-                                    Timber.d("[LOGOUT_CLEAR] Starting clear and logout process")
+                                    Logger.d { "[LOGOUT_CLEAR] Starting clear and logout process" }
                                     // Forget account first (stops all sync), then clear data.
                                     // This prevents background syncs from re-adding songs.
                                     accountSettingsViewModel.logoutAndClearLibraryData()
-                                    Timber.d("[LOGOUT_CLEAR] Library data cleared and account forgotten")
+                                    Logger.d { "[LOGOUT_CLEAR] Library data cleared and account forgotten" }
                                 } catch (e: Exception) {
-                                    Timber.e(e, "[LOGOUT_CLEAR] Error clearing library data, proceeding with logout")
+                                    Logger.e(e) { "[LOGOUT_CLEAR] Error clearing library data, proceeding with logout" }
                                     reportException(e)
                                 }
                                 onInnerTubeCookieChange("")
-                                Timber.d("[LOGOUT_CLEAR] Logout complete")
+                                Logger.d { "[LOGOUT_CLEAR] Logout complete" }
                                 showLogoutDialog = false
                                 onClose()
                             }
@@ -191,11 +191,11 @@ fun AccountSettings(
                     }
                     TextButton(
                         onClick = {
-                            Timber.d("[LOGOUT_KEEP] User chose to keep data")
+                            Logger.d { "[LOGOUT_KEEP] User chose to keep data" }
                             scope.launch {
-                                Timber.d("[LOGOUT_KEEP] Starting logout process (keeping data)")
+                                Logger.d { "[LOGOUT_KEEP] Starting logout process (keeping data)" }
                                 accountSettingsViewModel.logoutKeepData(onInnerTubeCookieChange)
-                                Timber.d("[LOGOUT_KEEP] Logout complete")
+                                Logger.d { "[LOGOUT_KEEP] Logout complete" }
                                 showLogoutDialog = false
                                 onClose()
                             }
@@ -301,7 +301,7 @@ fun AccountSettings(
                         if (isLoggedIn) {
                             OutlinedButton(
                                 onClick = {
-                                    Timber.d("[LOGOUT] User clicked logout button, showing dialog")
+                                    Logger.d { "[LOGOUT] User clicked logout button, showing dialog" }
                                     showLogoutDialog = true
                                 },
                                 colors = ButtonDefaults.outlinedButtonColors(
@@ -422,8 +422,8 @@ fun AccountSettings(
                     Material3SettingsItem(
                         title = { Text(stringResource(Res.string.settings)) },
                         icon = painterResource(Res.drawable.settings),
-                        showBadge = BuildConfig.UPDATER_AVAILABLE &&
-                            latestVersionName != BuildConfig.BASE_VERSION_NAME,
+                        showBadge = BuildInfo.updaterAvailable &&
+                            latestVersionName != BuildInfo.baseVersionName,
                         onClick = {
                             onClose()
                             navController.navigate("settings")
@@ -431,7 +431,7 @@ fun AccountSettings(
                     )
                 )
 
-                if (BuildConfig.UPDATER_AVAILABLE && latestVersionName != BuildConfig.BASE_VERSION_NAME) {
+                if (BuildInfo.updaterAvailable && latestVersionName != BuildInfo.baseVersionName) {
                     val releaseInfo = Updater.getCachedLatestRelease()
                     val downloadUrl = releaseInfo?.let { Updater.getDownloadUrlForCurrentVariant(it) }
                     if (downloadUrl != null) {

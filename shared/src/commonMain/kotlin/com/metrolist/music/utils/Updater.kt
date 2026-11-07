@@ -5,14 +5,19 @@
 
 package com.metrolist.music.utils
 
-import com.metrolist.music.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 
 data class ReleaseInfo(
     val tagName: String,
@@ -75,26 +80,26 @@ object Updater {
      * Get the current app's architecture and variant
      */
     private fun getCurrentAppVariant(): Pair<String, String> {
-        val architecture = BuildConfig.ARCHITECTURE
-        val variant = if (BuildConfig.CAST_AVAILABLE) "gms" else "foss"
+        val architecture = BuildInfo.architecture
+        val variant = if (BuildInfo.castAvailable) "gms" else "foss"
         return architecture to variant
     }
 
     /**
      * Parse release assets from GitHub API response
      */
-    private fun parseAssets(assetsArray: JSONArray): List<ReleaseAsset> {
+    private fun parseAssets(assetsArray: JsonArray): List<ReleaseAsset> {
         val assets = mutableListOf<ReleaseAsset>()
         
-        for (i in 0 until assetsArray.length()) {
-            val asset = assetsArray.getJSONObject(i)
-            val name = asset.getString("name")
+        for (element in assetsArray) {
+            val asset = element.jsonObject
+            val name = asset.string("name")
             
             // Skip non-APK files
             if (!name.endsWith(".apk")) continue
             
-            val downloadUrl = asset.getString("browser_download_url")
-            val size = asset.getLong("size")
+            val downloadUrl = asset.string("browser_download_url")
+            val size = asset.getValue("size").jsonPrimitive.long
             
             // Parse architecture and variant from filename
             val (arch, variant) = when {
@@ -132,14 +137,14 @@ object Updater {
                 
                 val response = client.get("$GITHUB_API_BASE/releases/latest")
                     .bodyAsText()
-                val json = JSONObject(response)
+                val json = Json.parseToJsonElement(response).jsonObject
                 
                 val releaseInfo = ReleaseInfo(
-                    tagName = json.getString("tag_name"),
-                    versionName = json.getString("name"),
-                    description = json.getString("body"),
-                    releaseDate = json.getString("published_at"),
-                    assets = parseAssets(json.getJSONArray("assets"))
+                    tagName = json.string("tag_name"),
+                    versionName = json.string("name"),
+                    description = json.string("body"),
+                    releaseDate = json.string("published_at"),
+                    assets = parseAssets(json.getValue("assets").jsonArray)
                 )
                 
                 cachedReleaseInfo = releaseInfo
@@ -165,21 +170,21 @@ object Updater {
                 while (hasMore && page <= 10) { // Limit to 10 pages
                     val response = client.get("$GITHUB_API_BASE/releases?page=$page&per_page=30")
                         .bodyAsText()
-                    val json = JSONArray(response)
+                    val json = Json.parseToJsonElement(response).jsonArray
                     
-                    if (json.length() == 0) {
+                    if (json.isEmpty()) {
                         hasMore = false
                         break
                     }
                     
-                    for (i in 0 until json.length()) {
-                        val releaseObj = json.getJSONObject(i)
+                    for (element in json) {
+                        val releaseObj = element.jsonObject
                         releases.add(ReleaseInfo(
-                            tagName = releaseObj.getString("tag_name"),
-                            versionName = releaseObj.getString("name"),
-                            description = releaseObj.getString("body"),
-                            releaseDate = releaseObj.getString("published_at"),
-                            assets = parseAssets(releaseObj.getJSONArray("assets"))
+                            tagName = releaseObj.string("tag_name"),
+                            versionName = releaseObj.string("name"),
+                            description = releaseObj.string("body"),
+                            releaseDate = releaseObj.string("published_at"),
+                            assets = parseAssets(releaseObj.getValue("assets").jsonArray)
                         ))
                     }
                     
@@ -192,15 +197,15 @@ object Updater {
         }
 
     internal fun parseKmpRelease(response: String): ReleaseInfo? {
-        val release = JSONObject(response)
-        val assets = parseAssets(release.getJSONArray("assets")).filter { it.name == KMP_APK_NAME }
-        val tagName = release.getString("tag_name")
+        val release = Json.parseToJsonElement(response).jsonObject
+        val assets = parseAssets(release.getValue("assets").jsonArray).filter { it.name == KMP_APK_NAME }
+        val tagName = release.string("tag_name")
 
         return ReleaseInfo(
             tagName = tagName,
             versionName = tagName.removePrefix("v"),
-            description = release.optString("body").takeUnless { release.isNull("body") }.orEmpty(),
-            releaseDate = release.getString("published_at"),
+            description = release["body"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+            releaseDate = release.string("published_at"),
             assets = assets,
         ).takeIf { assets.isNotEmpty() }
     }
@@ -238,7 +243,7 @@ object Updater {
                 
                 if (!shouldFetch && cachedReleaseInfo != null) {
                     val hasUpdate = isUpdateAvailable(
-                        BuildConfig.BASE_VERSION_NAME,
+                        BuildInfo.baseVersionName,
                         cachedReleaseInfo!!.versionName
                     )
                     return@runCatching cachedReleaseInfo!! to hasUpdate
@@ -248,7 +253,7 @@ object Updater {
                 if (result.isSuccess) {
                     val releaseInfo = result.getOrThrow()
                     val hasUpdate = isUpdateAvailable(
-                        BuildConfig.BASE_VERSION_NAME,
+                        BuildInfo.baseVersionName,
                         releaseInfo.versionName
                     )
                     releaseInfo to hasUpdate
@@ -263,3 +268,6 @@ object Updater {
      */
     fun getCachedLatestRelease(): ReleaseInfo? = cachedReleaseInfo
 }
+
+// Like org.json's getString: throws when missing, and a JSON null reads as "null".
+private fun JsonObject.string(key: String): String = getValue(key).jsonPrimitive.content
