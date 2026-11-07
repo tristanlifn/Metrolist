@@ -5,15 +5,9 @@
 
 package com.metrolist.music.ui.player
 
-import androidx.activity.compose.BackHandler
 import com.metrolist.music.ui.utils.okLabel
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -184,7 +178,6 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
-import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -229,6 +222,12 @@ import com.metrolist.music.resources.volume_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.music.utils.safeEdit
+import com.metrolist.music.ui.utils.BackHandler
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -240,7 +239,8 @@ fun BottomSheetPlayer(
     pureBlack: Boolean,
 ) {
     val context = LocalContext.current
-    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val dataStore = koinInject<DataStore<Preferences>>()
+    val platformActions = koinInject<PlatformActions>()
     val menuState = LocalMenuState.current
     val sleepTimerDefaultSetTemplate = stringResource(Res.string.sleep_timer_default_set)
     val copiedTitleStr = stringResource(Res.string.copied_title)
@@ -718,15 +718,11 @@ fun BottomSheetPlayer(
                             FilledIconButton(
                                 onClick = {
                                     scope.launch {
-                                        context.safeDataStoreEdit { settings ->
+                                        dataStore.safeEdit { settings ->
                                             settings[SleepTimerDefaultKey] = sleepTimerValue
                                         }
                                     }
-                                    Toast.makeText(
-                                        context,
-                                        String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                    platformActions.toast(String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()))
                                 },
                                 colors = IconButtonDefaults.filledIconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -739,15 +735,11 @@ fun BottomSheetPlayer(
                             OutlinedIconButton(
                                 onClick = {
                                     scope.launch {
-                                        context.safeDataStoreEdit { settings ->
+                                        dataStore.safeEdit { settings ->
                                             settings[SleepTimerDefaultKey] = sleepTimerValue
                                         }
                                     }
-                                    Toast.makeText(
-                                        context,
-                                        String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                    platformActions.toast(String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()))
                                 },
                             ) {
                                 Text(stringResource(Res.string.set_as_default))
@@ -1114,11 +1106,8 @@ fun BottomSheetPlayer(
                                             }
                                         },
                                         onLongClick = {
-                                            val clip = ClipData.newPlainText(copiedTitleStr, title)
-                                            clipboardManager.setPrimaryClip(clip)
-                                            Toast
-                                                .makeText(context, copiedTitleStr, Toast.LENGTH_SHORT)
-                                                .show()
+                                            platformActions.copyToClipboard(copiedTitleStr, title)
+                                            platformActions.toast(copiedTitleStr)
                                         },
                                     ),
                         )
@@ -1193,18 +1182,8 @@ fun BottomSheetPlayer(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    val clip =
-                                                        ClipData.newPlainText(
-                                                            copiedArtistStr,
-                                                            annotatedString,
-                                                        )
-                                                    clipboardManager.setPrimaryClip(clip)
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            copiedArtistStr,
-                                                            Toast.LENGTH_SHORT,
-                                                        ).show()
+                                                    platformActions.copyToClipboard(copiedArtistStr, annotatedString.text)
+                                                    platformActions.toast(copiedArtistStr)
                                                 },
                                             ),
                                 )
@@ -1259,16 +1238,7 @@ fun BottomSheetPlayer(
                             } else {
                                 FilledIconButton(
                                     onClick = {
-                                        val intent =
-                                            Intent().apply {
-                                                action = Intent.ACTION_SEND
-                                                type = "text/plain"
-                                                putExtra(
-                                                    Intent.EXTRA_TEXT,
-                                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}",
-                                                )
-                                            }
-                                        context.startActivity(Intent.createChooser(intent, null))
+                                        platformActions.shareText("https://music.youtube.com/watch?v=${mediaMetadata.id}")
                                     },
                                     shape = shareShape,
                                     colors =
@@ -1381,16 +1351,7 @@ fun BottomSheetPlayer(
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
                                         .clickable {
-                                            val intent =
-                                                Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    type = "text/plain"
-                                                    putExtra(
-                                                        Intent.EXTRA_TEXT,
-                                                        "https://music.youtube.com/watch?v=${mediaMetadata.id}",
-                                                    )
-                                                }
-                                            context.startActivity(Intent.createChooser(intent, null))
+                                            platformActions.shareText("https://music.youtube.com/watch?v=${mediaMetadata.id}")
                                         },
                             ) {
                                 Icon(
@@ -2097,7 +2058,6 @@ fun InlineLyricsView(
     val queueWindows by playerConnection.queue.collectAsStateWithLifecycle()
     val currentWindowIndex by playerConnection.currentQueuePosition.collectAsStateWithLifecycle()
     val lyrics = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 

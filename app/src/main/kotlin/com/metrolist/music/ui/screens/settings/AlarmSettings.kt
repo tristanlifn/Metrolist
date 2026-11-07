@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,6 +101,8 @@ import com.metrolist.music.resources.warning
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -366,7 +367,7 @@ private fun AlarmEditorDialog(
     onDismiss: () -> Unit,
     onSave: (MusicAlarmEntry) -> Unit
 ) {
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val locale = LocalLocale.current.platformLocale
     val noPlaylistsText = stringResource(Res.string.alarm_no_playlists)
     val selectPlaylistText = stringResource(Res.string.alarm_select_playlist)
@@ -493,7 +494,7 @@ private fun AlarmEditorDialog(
                         return@TextButton
                     }
                     if (!hasValidPlaylist) {
-                        Toast.makeText(context, selectPlaylistText, Toast.LENGTH_SHORT).show()
+                        platformActions.toast(selectPlaylistText)
                         return@TextButton
                     }
                     onSave(
@@ -540,7 +541,7 @@ private fun AlarmEditorDialog(
             OutlinedButton(
                 onClick = {
                     if (playlists.isEmpty()) {
-                        Toast.makeText(context, noPlaylistsText, Toast.LENGTH_SHORT).show()
+                        platformActions.toast(noPlaylistsText)
                     } else {
                         showPlaylistDialog = true
                     }

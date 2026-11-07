@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.screens.library
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -120,6 +119,8 @@ import com.metrolist.music.resources.uploading
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -129,6 +130,7 @@ fun LibrarySongsScreen(
     viewModel: LibrarySongsViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
     val uploadUnsupportedFormatStr = stringResource(Res.string.upload_unsupported_format)
@@ -200,15 +202,15 @@ fun LibrarySongsScreen(
                                 currentFileName = fileName
 
                                 if (fileName.substringAfterLast('.', "").lowercase() !in YouTube.SUPPORTED_UPLOAD_TYPES) {
-                                    Toast.makeText(context, uploadUnsupportedFormatStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadUnsupportedFormatStr)
                                     return@forEachIndexed
                                 }
                                 if (contentLength >= YouTube.MAX_UPLOAD_SIZE) {
-                                    Toast.makeText(context, uploadFileTooLargeStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadFileTooLargeStr)
                                     return@forEachIndexed
                                 }
                                 if (contentLength <= 0) {
-                                    Toast.makeText(context, uploadFailedStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadFailedStr)
                                     return@forEachIndexed
                                 }
 
@@ -224,12 +226,7 @@ fun LibrarySongsScreen(
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        uploadFailedStr + ": ${e.message}",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                platformActions.toast(uploadFailedStr + ": ${e.message}")
                             }
                         }
 
@@ -243,12 +240,7 @@ fun LibrarySongsScreen(
 
                             // Show toast on main thread
                             withContext(Dispatchers.Main) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        uploadCompleteStr,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                platformActions.toast(uploadCompleteStr)
                             }
 
                             showUploadDialog = false

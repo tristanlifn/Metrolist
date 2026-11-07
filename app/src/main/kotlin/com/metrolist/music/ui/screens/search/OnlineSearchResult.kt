@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -139,6 +138,7 @@ import com.metrolist.music.resources.songs
 import com.metrolist.music.resources.top_result
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.ui.utils.BackHandler
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable

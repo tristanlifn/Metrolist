@@ -77,12 +77,6 @@ enum class ConnectionState {
 /**
  * Room role for the current user
  */
-enum class RoomRole {
-    HOST,
-    GUEST,
-    NONE,
-}
-
 /**
  * Log entry for debugging
  */

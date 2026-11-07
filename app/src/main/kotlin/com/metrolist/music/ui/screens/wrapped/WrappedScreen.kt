@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens.wrapped
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -61,6 +60,7 @@ import com.metrolist.music.resources.volume_off
 import com.metrolist.music.resources.volume_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.ui.utils.BackHandler
 
 sealed class WrappedScreenType {
     object Welcome : WrappedScreenType()

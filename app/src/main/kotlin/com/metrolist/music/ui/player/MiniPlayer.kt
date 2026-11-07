@@ -92,7 +92,7 @@ import com.metrolist.music.constants.SwipeThumbnailKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.constants.UseNewMiniPlayerDesignKey
 import com.metrolist.music.db.entities.ArtistEntity
-import com.metrolist.music.listentogether.ListenTogetherManager
+import com.metrolist.music.listentogether.ListenTogetherSession
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.CastControl
 import com.metrolist.music.playback.PlaybackState
@@ -521,7 +521,7 @@ private fun NewMiniPlayerPlayButton(
     mediaMetadata: MediaMetadata?,
     primaryColor: Color,
     outlineColor: Color,
-    listenTogetherManager: ListenTogetherManager?,
+    listenTogetherManager: ListenTogetherSession?,
 ) {
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val castIsPlaying by castHandler?.castIsPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
@@ -912,7 +912,7 @@ private fun LegacyPlayPauseButton(
     isCasting: Boolean,
     castHandler: CastControl?,
     playerConnection: MusicPlayer,
-    listenTogetherManager: ListenTogetherManager?,
+    listenTogetherManager: ListenTogetherSession?,
 ) {
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val castIsPlaying by castHandler?.castIsPlaying?.collectAsState() ?: remember { mutableStateOf(false) }

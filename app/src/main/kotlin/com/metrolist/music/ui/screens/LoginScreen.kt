@@ -13,7 +13,6 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +72,6 @@ import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.reportException
-import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +93,11 @@ import com.metrolist.music.resources.retry
 import com.metrolist.music.resources.switch_youtube_channel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.music.utils.safeEdit
+import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.BackHandler
 
 private enum class LoginStage {
     Authenticating,
@@ -119,6 +122,7 @@ fun LoginScreen(
     isSwitchingChannel: Boolean = false,
 ) {
     val context = LocalContext.current
+    val dataStore = koinInject<DataStore<Preferences>>()
     val coroutineScope = rememberCoroutineScope()
     val jsInterface = remember { LoginJsInterface() }
     var loginStage by remember { mutableStateOf(LoginStage.Authenticating) }
@@ -200,7 +204,7 @@ fun LoginScreen(
             val accountInfo = YouTube.accountInfo().getOrThrow()
             val saved =
                 withContext(Dispatchers.IO) {
-                    context.safeDataStoreEdit { settings ->
+                    dataStore.safeEdit { settings ->
                         settings[InnerTubeCookieKey] = authData.cookie
                         settings[VisitorDataKey] = authData.visitorData
                         settings[DataSyncIdKey] = authData.dataSyncId

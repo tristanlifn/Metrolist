@@ -26,6 +26,8 @@ import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.playback.DownloadUtil
 import com.metrolist.music.playback.MediaLibrarySessionCallback
 import com.metrolist.music.utils.SyncUtils
+import com.metrolist.music.utils.AndroidPlatformActions
+import com.metrolist.music.utils.PlatformActions
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.widget.MetrolistWidgetManager
@@ -73,6 +75,7 @@ val appModule = module {
         )
     }
     single<SongCache> { Media3SongCache(get(PlayerCache)) }
+    single<PlatformActions> { AndroidPlatformActions(get()) }
     single { DownloadUtil(get(), get(), get(), get(DownloadCache), get(PlayerCache)) }
 
     singleOf(::ListenTogetherClient)

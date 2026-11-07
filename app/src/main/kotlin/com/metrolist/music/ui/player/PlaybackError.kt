@@ -5,9 +5,6 @@
 
 package com.metrolist.music.ui.player
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,13 +54,14 @@ import com.metrolist.music.resources.replay
 import com.metrolist.music.resources.retry
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
 
 @Composable
 fun PlaybackError(
     error: PlayerError,
     retry: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val streamClient by playerConnection.currentStreamClient.collectAsState()
@@ -207,8 +204,7 @@ fun PlaybackError(
 
             OutlinedButton(
                 onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Metrolist Playback Error", errorReport))
+                    platformActions.copyToClipboard("Metrolist Playback Error", errorReport)
                 },
                 shape = RoundedCornerShape(20.dp),
             ) {

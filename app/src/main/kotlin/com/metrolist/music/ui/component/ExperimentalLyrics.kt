@@ -9,8 +9,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.view.WindowManager
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -136,6 +134,12 @@ import com.metrolist.music.resources.lyrics_from_provider
 import com.metrolist.music.resources.lyrics_not_found
 import com.metrolist.music.resources.please_wait
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.resources.ai_api_key_required
+import com.metrolist.music.resources.failed_to_create_image
+import com.metrolist.music.resources.max_selection_limit
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.BackHandler
 
 private const val LYRICS_ANCHOR_RATIO = 0.35f
 private val LYRICS_ITEM_FALLBACK_HEIGHT_DP = 68.dp
@@ -162,6 +166,7 @@ fun ExperimentalLyrics(
     val database = LocalDatabase.current
     val density = LocalDensity.current
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val configuration = LocalConfiguration.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
@@ -291,7 +296,7 @@ fun ExperimentalLyrics(
                     systemPrompt = aiSystemPrompt,
                 )
             } else if (effectiveApiKey.isBlank()) {
-                Toast.makeText(context, context.getString(R.string.ai_api_key_required), Toast.LENGTH_SHORT).show()
+                platformActions.toast(Res.string.ai_api_key_required)
             }
         }
     }
@@ -333,7 +338,7 @@ fun ExperimentalLyrics(
     val maxSelectionLimit = 5
     LaunchedEffect(showMaxSelectionToast) {
         if (showMaxSelectionToast) {
-            Toast.makeText(context, context.getString(R.string.max_selection_limit, maxSelectionLimit), Toast.LENGTH_SHORT).show()
+            platformActions.toast(Res.string.max_selection_limit, maxSelectionLimit)
             showMaxSelectionToast = false
         }
     }
@@ -888,7 +893,7 @@ fun ExperimentalLyrics(
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }, context.getString(R.string.share_lyrics)))
                     } catch (e: Exception) {
-                        Toast.makeText(context, context.getString(R.string.failed_to_create_image, e.message), Toast.LENGTH_SHORT).show()
+                        platformActions.toast(Res.string.failed_to_create_image, e.message.orEmpty())
                     } finally {
                         showProgressDialog = false
                     }

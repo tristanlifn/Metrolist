@@ -7,13 +7,11 @@ package com.metrolist.music.ui.menu
 
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.ui.utils.okLabel
-import android.content.Context
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,12 +70,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.C
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
-import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.ListItemHeight
@@ -85,7 +80,6 @@ import com.metrolist.music.constants.VarispeedKey
 import com.metrolist.music.listentogether.ConnectionState
 import com.metrolist.music.listentogether.ListenTogetherEvent
 import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.ui.component.BottomSheetState
@@ -203,6 +197,14 @@ import com.metrolist.music.resources.you_label
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.DrawableResource
+import com.metrolist.music.resources.copied_to_clipboard
+import com.metrolist.music.resources.creating_room
+import com.metrolist.music.resources.error_username_empty
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.playback.DownloadState
+import com.metrolist.music.playback.download
+import com.metrolist.music.listentogether.ListenTogetherManager
 
 @Composable
 fun PlayerMenu(
@@ -215,6 +217,7 @@ fun PlayerMenu(
     mediaMetadata ?: return
     val navController = LocalNavController.current
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.volume.collectAsStateWithLifecycle()
@@ -257,7 +260,7 @@ fun PlayerMenu(
         mutableStateOf(false)
     }
 
-    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherManager = koinInject<ListenTogetherManager>()
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsStateWithLifecycle(initialValue = com.metrolist.music.listentogether.RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == com.metrolist.music.listentogether.RoomRole.GUEST
     val pendingSuggestions by listenTogetherManager?.pendingSuggestions?.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -429,7 +432,7 @@ fun PlayerMenu(
                                 },
                                 text = stringResource(Res.string.start_radio),
                                 onClick = {
-                                    Toast.makeText(context, startingRadioText, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(startingRadioText)
                                     playerConnection.startRadioSeamlessly()
                                     onDismiss()
                                 },
@@ -460,19 +463,8 @@ fun PlayerMenu(
                             },
                             text = stringResource(Res.string.copy_link),
                             onClick = {
-                                val clipboard =
-                                    context.getSystemService(
-                                        android.content.Context.CLIPBOARD_SERVICE,
-                                    ) as android.content.ClipboardManager
-                                val clip =
-                                    android.content.ClipData.newPlainText(
-                                        "Song Link",
-                                        "https://music.youtube.com/watch?v=${mediaMetadata.id}",
-                                    )
-                                clipboard.setPrimaryClip(clip)
-                                android.widget.Toast
-                                    .makeText(context, R.string.link_copied, android.widget.Toast.LENGTH_SHORT)
-                                    .show()
+                                platformActions.copyToClipboard("Song Link", "https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                                platformActions.toast(Res.string.link_copied)
                                 onDismiss()
                             },
                         ),
@@ -623,8 +615,8 @@ fun PlayerMenu(
             Material3MenuGroup(
                 items =
                     listOf(
-                        when (download?.state) {
-                            Download.STATE_COMPLETED -> {
+                        when (download) {
+                            DownloadState.COMPLETED -> {
                                 Material3MenuItemData(
                                     title = {
                                         Text(
@@ -639,17 +631,12 @@ fun PlayerMenu(
                                         )
                                     },
                                     onClick = {
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            mediaMetadata.id,
-                                            false,
-                                        )
+                                        downloadUtil.remove(mediaMetadata.id)
                                     },
                                 )
                             }
 
-                            Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                            DownloadState.QUEUED, DownloadState.DOWNLOADING -> {
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(Res.string.downloading)) },
                                     icon = {
@@ -659,12 +646,7 @@ fun PlayerMenu(
                                         )
                                     },
                                     onClick = {
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            mediaMetadata.id,
-                                            false,
-                                        )
+                                        downloadUtil.remove(mediaMetadata.id)
                                     },
                                 )
                             }
@@ -856,7 +838,7 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
         playerConnection.playbackSpeed = tempo
         playerConnection.pitch = 2f.pow(transposeValue.toFloat() / 12)
     }
-    val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
+    val listenTogetherManager = koinInject<ListenTogetherManager>()
     val isInRoom = listenTogetherManager?.isInRoom ?: false
 
     AlertDialog(
@@ -923,7 +905,7 @@ fun SpeedDialog(onDismiss: () -> Unit) {
         playerConnection.playbackSpeed = speed
         playerConnection.pitch = speed
     }
-    val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
+    val listenTogetherManager = koinInject<ListenTogetherManager>()
 
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -1026,8 +1008,8 @@ fun ListenTogetherDialog(
 ) {
     if (!visible) return
 
-    val context = LocalContext.current
-    val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
+    val platformActions = koinInject<PlatformActions>()
+    val listenTogetherManager = koinInject<ListenTogetherManager>()
     val joiningRoomTemplate = stringResource(Res.string.joining_room)
 
     // Handle case where manager is not available
@@ -1321,10 +1303,7 @@ fun ListenTogetherDialog(
 
                 is ListenTogetherEvent.RoomCreated -> {
                     isCreatingRoom = false
-                    val clipboard =
-                        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
-                    clipboard.setPrimaryClip(clip)
+                    platformActions.copyToClipboard("ListenTogetherRoom", event.roomCode)
                 }
 
                 else -> { /* ignore other events here */ }
@@ -1538,13 +1517,8 @@ fun ListenTogetherDialog(
                                 ) {
                                     FilledTonalButton(
                                         onClick = {
-                                            val clipboard =
-                                                context.getSystemService(
-                                                    Context.CLIPBOARD_SERVICE,
-                                                ) as android.content.ClipboardManager
-                                            val clip = android.content.ClipData.newPlainText("Listen Together Link", inviteLink)
-                                            clipboard.setPrimaryClip(clip)
-                                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                                            platformActions.copyToClipboard("Listen Together Link", inviteLink)
+                                            platformActions.toast(Res.string.copied_to_clipboard)
                                         },
                                     ) {
                                         Icon(
@@ -1560,13 +1534,8 @@ fun ListenTogetherDialog(
 
                                     FilledTonalButton(
                                         onClick = {
-                                            val clipboard =
-                                                context.getSystemService(
-                                                    Context.CLIPBOARD_SERVICE,
-                                                ) as android.content.ClipboardManager
-                                            val clip = android.content.ClipData.newPlainText("Room Code", room.roomCode)
-                                            clipboard.setPrimaryClip(clip)
-                                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                                            platformActions.copyToClipboard("Room Code", room.roomCode)
+                                            platformActions.toast(Res.string.copied_to_clipboard)
                                         },
                                     ) {
                                         Icon(
@@ -2107,14 +2076,14 @@ fun ListenTogetherDialog(
                                 val finalUsername = username.trim()
                                 if (finalUsername.isNotBlank()) {
                                     savedUsername = finalUsername
-                                    Toast.makeText(context, R.string.creating_room, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(Res.string.creating_room)
                                     isCreatingRoom = true
                                     isJoiningRoom = false
                                     joinErrorMessage = null
                                     listenTogetherManager.connect()
                                     listenTogetherManager.createRoom(finalUsername)
                                 } else {
-                                    Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(Res.string.error_username_empty)
                                 }
                             },
                             modifier = Modifier.weight(1f),
@@ -2141,19 +2110,14 @@ fun ListenTogetherDialog(
                                     val finalUsername = username.trim()
                                     if (finalUsername.isNotBlank()) {
                                         savedUsername = finalUsername
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                String.format(joiningRoomTemplate, roomCodeInput),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                        platformActions.toast(String.format(joiningRoomTemplate, roomCodeInput))
                                         isJoiningRoom = true
                                         isCreatingRoom = false
                                         joinErrorMessage = null
                                         listenTogetherManager.connect()
                                         listenTogetherManager.joinRoom(roomCodeInput, finalUsername)
                                     } else {
-                                        Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                                        platformActions.toast(Res.string.error_username_empty)
                                     }
                                 },
                                 modifier = Modifier.weight(1f),

@@ -26,3 +26,13 @@ fun joinByBullet(vararg str: String?) =
         .filterNot {
             it.isNullOrEmpty()
         }.joinToString(separator = " • ")
+
+fun <T> List<T>.joinToArtistString(
+    conjunction: String,
+    transform: (T) -> String,
+): String = when (size) {
+    0 -> ""
+    1 -> transform(this[0])
+    2 -> "${transform(this[0])}$conjunction${transform(this[1])}"
+    else -> dropLast(1).joinToString(", ") { transform(it) } + "$conjunction${transform(last())}"
+}

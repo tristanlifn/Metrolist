@@ -10,8 +10,6 @@ import android.app.Activity
 import android.content.Intent
 import android.text.Layout
 import android.view.WindowManager
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -206,6 +204,9 @@ import com.metrolist.music.resources.sync
 import com.metrolist.music.resources.text_color
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.BackHandler
 
 /**
  * A composable function that displays lyrics for the currently playing song.
@@ -227,6 +228,7 @@ fun OriginalLyrics(
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val configuration = LocalWindowInfo.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
@@ -435,7 +437,7 @@ fun OriginalLyrics(
                     systemPrompt = aiSystemPrompt,
                 )
             } else if (effectiveApiKey.isBlank()) {
-                Toast.makeText(context, aiApiKeyRequiredStr, Toast.LENGTH_SHORT).show()
+                platformActions.toast(aiApiKeyRequiredStr)
             }
         }
     }
@@ -532,12 +534,7 @@ fun OriginalLyrics(
     // Show toast when max selection is reached
     LaunchedEffect(showMaxSelectionToast) {
         if (showMaxSelectionToast) {
-            Toast
-                .makeText(
-                    context,
-                    maxSelectionLimitMsg,
-                    Toast.LENGTH_SHORT,
-                ).show()
+            platformActions.toast(maxSelectionLimitMsg)
             showMaxSelectionToast = false
         }
     }
@@ -2210,12 +2207,7 @@ fun OriginalLyrics(
                                             }
                                         context.startActivity(Intent.createChooser(shareIntent, shareLyricsStr))
                                     } catch (e: Exception) {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                String.format(failedToCreateImageTemplate, e.message ?: ""),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                        platformActions.toast(String.format(failedToCreateImageTemplate, e.message ?: ""))
                                     } finally {
                                         showProgressDialog = false
                                     }

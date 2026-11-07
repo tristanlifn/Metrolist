@@ -7,8 +7,6 @@ package com.metrolist.music.ui.screens.playlist
 
 import android.net.Uri
 import com.metrolist.music.ui.utils.okLabel
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -85,8 +83,6 @@ import androidx.compose.ui.util.fastSumBy
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import timber.log.Timber
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
@@ -103,7 +99,6 @@ import com.metrolist.music.constants.playlistSongSortTypeKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.fileNameAndSize
 import com.metrolist.music.extensions.toMediaItem
-import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.DraggableScrollbar
@@ -156,6 +151,11 @@ import com.metrolist.music.resources.uploading
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.playback.DownloadState
+import com.metrolist.music.playback.download
+import com.metrolist.music.ui.utils.BackHandler
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -164,6 +164,7 @@ fun AutoPlaylistScreen(
     viewModel: AutoPlaylistViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val uploadUnsupportedFormatStr = stringResource(Res.string.upload_unsupported_format)
@@ -255,7 +256,7 @@ fun AutoPlaylistScreen(
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
+        mutableStateOf<DownloadState?>(DownloadState.STOPPED)
     }
 
     val scope = rememberCoroutineScope()
@@ -301,15 +302,15 @@ fun AutoPlaylistScreen(
                                 currentFileName = fileName
 
                                 if (fileName.substringAfterLast('.', "").lowercase() !in YouTube.SUPPORTED_UPLOAD_TYPES) {
-                                    Toast.makeText(context, uploadUnsupportedFormatStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadUnsupportedFormatStr)
                                     return@forEachIndexed
                                 }
                                 if (contentLength >= YouTube.MAX_UPLOAD_SIZE) {
-                                    Toast.makeText(context, uploadFileTooLargeStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadFileTooLargeStr)
                                     return@forEachIndexed
                                 }
                                 if (contentLength <= 0) {
-                                    Toast.makeText(context, uploadFailedStr, Toast.LENGTH_SHORT).show()
+                                    platformActions.toast(uploadFailedStr)
                                     return@forEachIndexed
                                 }
 
@@ -325,12 +326,7 @@ fun AutoPlaylistScreen(
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        uploadFailedStr + ": ${e.message}",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                platformActions.toast(uploadFailedStr + ": ${e.message}")
                             }
                         }
 
@@ -344,12 +340,7 @@ fun AutoPlaylistScreen(
 
                             // Show toast on main thread
                             withContext(Dispatchers.Main) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        uploadCompleteStr,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                platformActions.toast(uploadCompleteStr)
                             }
 
                             showUploadDialog = false
@@ -389,17 +380,17 @@ fun AutoPlaylistScreen(
         if (songs?.isEmpty() == true) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             downloadState =
-                if (songs?.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED } == true) {
-                    Download.STATE_COMPLETED
+                if (songs?.all { downloads[it.song.id] == DownloadState.COMPLETED } == true) {
+                    DownloadState.COMPLETED
                 } else if (songs?.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
+                        downloads[it.song.id] == DownloadState.QUEUED ||
+                            downloads[it.song.id] == DownloadState.DOWNLOADING ||
+                            downloads[it.song.id] == DownloadState.COMPLETED
                     } == true
                 ) {
-                    Download.STATE_DOWNLOADING
+                    DownloadState.DOWNLOADING
                 } else {
-                    Download.STATE_STOPPED
+                    DownloadState.STOPPED
                 }
         }
     }
@@ -429,12 +420,7 @@ fun AutoPlaylistScreen(
                     onClick = {
                         showRemoveDownloadDialog = false
                         songs!!.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false,
-                            )
+                            downloadUtil.remove(song.song.id)
                         }
                     },
                 ) {
@@ -874,13 +860,12 @@ private fun AutoPlaylistHeader(
     name: String,
     songs: List<Song>,
     likeLength: Int,
-    downloadState: Int,
+    downloadState: DownloadState?,
     onShowRemoveDownloadDialog: () -> Unit,
     menuState: com.metrolist.music.ui.component.MenuState,
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val context = LocalContext.current
     val downloadUtil = LocalDownloadUtil.current
 
     Column(
@@ -1018,18 +1003,13 @@ private fun AutoPlaylistHeader(
                             },
                             onDownload = {
                                 when (downloadState) {
-                                    Download.STATE_COMPLETED -> {
+                                    DownloadState.COMPLETED -> {
                                         onShowRemoveDownloadDialog()
                                     }
 
-                                    Download.STATE_DOWNLOADING -> {
+                                    DownloadState.DOWNLOADING -> {
                                         songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.song.id,
-                                                false,
-                                            )
+                                            downloadUtil.remove(song.song.id)
                                         }
                                     }
 

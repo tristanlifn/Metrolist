@@ -7,7 +7,6 @@ package com.metrolist.music.ui.screens
 
 import com.metrolist.music.ui.screens.wrapped.WrappedManager
 import org.koin.compose.koinInject
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -206,6 +205,7 @@ import com.metrolist.music.resources.your_daily_discover
 import com.metrolist.music.resources.your_shows
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.ui.utils.BackHandler
 
 sealed class HomeSection(
     val id: String,

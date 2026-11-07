@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.screens
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -83,7 +82,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.constants.AppBarHeight
@@ -164,6 +162,12 @@ import com.metrolist.music.resources.waiting_for_approval
 import com.metrolist.music.resources.you_label
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.resources.copied_to_clipboard
+import com.metrolist.music.resources.creating_room
+import com.metrolist.music.resources.error_username_empty
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.listentogether.ListenTogetherManager
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -172,7 +176,8 @@ fun ListenTogetherScreen(
     showTopBar: Boolean = false,
 ) {
     val context = LocalContext.current
-    val listenTogetherManager = LocalListenTogetherManager.current
+    val platformActions = koinInject<PlatformActions>()
+    val listenTogetherManager = koinInject<ListenTogetherManager>()
     val windowInsets = LocalPlayerAwareWindowInsets.current
     val joiningRoomTemplate = stringResource(Res.string.joining_room)
 
@@ -233,9 +238,7 @@ fun ListenTogetherScreen(
 
                 is ListenTogetherEvent.RoomCreated -> {
                     isCreatingRoom = false
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
-                    clipboard.setPrimaryClip(clip)
+                    platformActions.copyToClipboard("ListenTogetherRoom", event.roomCode)
                 }
 
                 else -> {}
@@ -430,14 +433,14 @@ fun ListenTogetherScreen(
                         val finalUsername = username.trim()
                         if (finalUsername.isNotBlank()) {
                             savedUsername = finalUsername
-                            Toast.makeText(context, R.string.creating_room, Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.creating_room)
                             isCreatingRoom = true
                             isJoiningRoom = false
                             joinErrorMessage = null
                             listenTogetherManager.connect()
                             listenTogetherManager.createRoom(finalUsername)
                         } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.error_username_empty)
                         }
                     },
                     onJoinRoom = {
@@ -445,19 +448,14 @@ fun ListenTogetherScreen(
                         val finalUsername = username.trim()
                         if (finalUsername.isNotBlank()) {
                             savedUsername = finalUsername
-                            Toast
-                                .makeText(
-                                    context,
-                                    String.format(joiningRoomTemplate, roomCodeInput),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                            platformActions.toast(String.format(joiningRoomTemplate, roomCodeInput))
                             isJoiningRoom = true
                             isCreatingRoom = false
                             joinErrorMessage = null
                             listenTogetherManager.connect()
                             listenTogetherManager.joinRoom(roomCodeInput, finalUsername)
                         } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.error_username_empty)
                         }
                     },
                     onFieldFocused = {
@@ -711,6 +709,7 @@ private fun RoomStatusCard(
     isHost: Boolean,
     context: Context,
 ) {
+    val platformActions = koinInject<PlatformActions>()
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -767,10 +766,8 @@ private fun RoomStatusCard(
                 ) {
                     FilledTonalButton(
                         onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Listen Together Link", inviteLink)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                            platformActions.copyToClipboard("Listen Together Link", inviteLink)
+                            platformActions.toast(Res.string.copied_to_clipboard)
                         },
                         shape = RoundedCornerShape(12.dp),
                     ) {
@@ -785,10 +782,8 @@ private fun RoomStatusCard(
 
                     FilledTonalButton(
                         onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Room Code", roomCode)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                            platformActions.copyToClipboard("Room Code", roomCode)
+                            platformActions.toast(Res.string.copied_to_clipboard)
                         },
                         shape = RoundedCornerShape(12.dp),
                     ) {

@@ -89,6 +89,7 @@ kotlin {
             api(libs.lifecycle.runtime.compose.multiplatform)
             implementation(libs.navigationevent.compose)
             api(libs.koin.compose.viewmodel)
+            api(libs.navigation.compose)
             api(libs.materialKolor)
             api(libs.shimmer)
             api(libs.compose.reorderable)

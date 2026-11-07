@@ -1704,6 +1704,3 @@ class MainActivity : FragmentActivity() {
     }
 }
 
-val LocalNavController = staticCompositionLocalOf<NavController> { error("No NavController provided") }
-val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
-val LocalListenTogetherManager = staticCompositionLocalOf<com.metrolist.music.listentogether.ListenTogetherManager?> { null }

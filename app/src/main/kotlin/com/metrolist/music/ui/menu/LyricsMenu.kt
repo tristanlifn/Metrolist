@@ -7,12 +7,8 @@ package com.metrolist.music.ui.menu
 
 import android.app.SearchManager
 import com.metrolist.music.ui.utils.okLabel
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -119,6 +115,10 @@ import com.metrolist.music.resources.sync
 import com.metrolist.music.resources.translate
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.resources.copied_to_clipboard
+import com.metrolist.music.resources.error_no_internet
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,6 +131,7 @@ fun LyricsMenu(
     viewModel: LyricsMenuViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val database = LocalDatabase.current
     
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
@@ -262,7 +263,7 @@ fun LyricsMenu(
                         
                         // Show warning only if network is definitely unavailable
                         if (!isNetworkAvailable) {
-                            Toast.makeText(context, context.getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.error_no_internet)
                         }
                     },
                 ) {
@@ -488,10 +489,8 @@ fun LyricsMenu(
                                             lyrics
                                         }
 
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText("Lyrics", plainLyrics)
-                                    clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                                    platformActions.copyToClipboard("Lyrics", plainLyrics)
+                                    platformActions.toast(Res.string.copied_to_clipboard)
                                 }
                             },
                         ),

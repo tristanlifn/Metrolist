@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings.integrations
 
-import android.widget.Toast
 import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -67,7 +66,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,7 +78,6 @@ import com.metrolist.music.constants.ListenTogetherAutoApproveSuggestionsKey
 import com.metrolist.music.constants.ListenTogetherServerUrlKey
 import com.metrolist.music.constants.ListenTogetherSyncVolumeKey
 import com.metrolist.music.constants.ListenTogetherUsernameKey
-import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.listentogether.ConnectionState
 import com.metrolist.music.listentogether.ListenTogetherEvent
 import com.metrolist.music.listentogether.ListenTogetherServer
@@ -143,12 +140,17 @@ import com.metrolist.music.resources.unblock
 import com.metrolist.music.resources.volume_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.resources.copied_to_clipboard
+import com.metrolist.music.resources.error_username_empty
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.listentogether.ListenTogetherManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListenTogetherSettings(navController: NavController) {
-    val manager = LocalListenTogetherManager.current ?: return
-    val context = LocalContext.current
+    val manager = koinInject<ListenTogetherManager>()
+    val platformActions = koinInject<PlatformActions>()
     val cannotEditUsernameInRoomStr = stringResource(Res.string.listen_together_cannot_edit_username_in_room)
     val coroutineScope = rememberCoroutineScope()
 
@@ -183,27 +185,27 @@ fun ListenTogetherSettings(navController: NavController) {
                 }
 
                 is ListenTogetherEvent.JoinApproved -> {
-                    Toast.makeText(context, "Joined room: ${event.roomCode}", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("Joined room: ${event.roomCode}")
                 }
 
                 is ListenTogetherEvent.JoinRejected -> {
-                    Toast.makeText(context, "Join rejected: ${event.reason}", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("Join rejected: ${event.reason}")
                 }
 
                 is ListenTogetherEvent.JoinRequestReceived -> {
-                    Toast.makeText(context, "${event.username} wants to join", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("${event.username} wants to join")
                 }
 
                 is ListenTogetherEvent.Kicked -> {
-                    Toast.makeText(context, "Kicked: ${event.reason}", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("Kicked: ${event.reason}")
                 }
 
                 is ListenTogetherEvent.ConnectionError -> {
-                    Toast.makeText(context, "Connection error: ${event.error}", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("Connection error: ${event.error}")
                 }
 
                 is ListenTogetherEvent.ServerError -> {
-                    Toast.makeText(context, "Error: ${event.message}", Toast.LENGTH_SHORT).show()
+                    platformActions.toast("Error: ${event.message}")
                 }
 
                 else -> {}
@@ -291,7 +293,7 @@ fun ListenTogetherSettings(navController: NavController) {
                             manager.createRoom(finalUsername)
                             showCreateRoomDialog = false
                         } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.error_username_empty)
                         }
                     },
                     enabled = createUsername.trim().isNotBlank(),
@@ -343,7 +345,7 @@ fun ListenTogetherSettings(navController: NavController) {
                             showJoinRoomDialog = false
                             roomCodeInput = ""
                         } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                            platformActions.toast(Res.string.error_username_empty)
                         }
                     },
                     enabled = joinUsername.trim().isNotBlank() && roomCodeInput.length == 8,
@@ -458,12 +460,7 @@ fun ListenTogetherSettings(navController: NavController) {
                                     { showUsernameDialog = true }
                                 } else {
                                     {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                cannotEditUsernameInRoomStr,
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                        platformActions.toast(cannotEditUsernameInRoomStr)
                                     }
                                 },
                         ),
@@ -587,7 +584,7 @@ fun LogsDialog(
         }
     }
 
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
 
     DefaultDialog(
         onDismiss = onDismiss,
@@ -607,10 +604,8 @@ fun LogsDialog(
                                 log.details?.let { d -> append(" -- $d") }
                             }
                         }
-                    val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("ListenTogetherLogs", textToCopy)
-                    cm.setPrimaryClip(clip)
-                    Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                    platformActions.copyToClipboard("ListenTogetherLogs", textToCopy)
+                    platformActions.toast(Res.string.copied_to_clipboard)
                 },
                 enabled = logs.isNotEmpty(),
             ) {
@@ -769,7 +764,6 @@ private fun ServerChooserDialog(
 
 @Composable
 fun LogEntryItem(log: LogEntry) {
-    val context = LocalContext.current
 
     Column(
         modifier =

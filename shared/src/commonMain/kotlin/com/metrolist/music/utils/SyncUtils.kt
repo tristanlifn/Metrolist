@@ -648,7 +648,7 @@ class SyncUtils(
             emptyList()
         }
 
-    private fun isSyncEnabled(): Boolean =
+    fun isSyncEnabled(): Boolean =
         dataStore.get(YtmSyncKey, true) && dataStore.hasLoginCookie() && connectivity.isCurrentlyConnected()
 
     private suspend fun safeDeleteTable(tableName: String) {

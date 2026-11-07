@@ -72,7 +72,7 @@ internal fun shouldSeekDuringActivePlayback(
 class ListenTogetherManager(
         private val client: ListenTogetherClient,
         private val context: Context,
-    ) {
+    ) : ListenTogetherSession {
         companion object {
             private const val TAG = "ListenTogetherManager"
 
@@ -140,7 +140,7 @@ class ListenTogetherManager(
         // Expose client state
         val connectionState = client.connectionState
         val roomState = client.roomState
-        val role = client.role
+        override val role = client.role
         val userId = client.userId
         val pendingJoinRequests = client.pendingJoinRequests
         val bufferingUsers = client.bufferingUsers
@@ -149,8 +149,8 @@ class ListenTogetherManager(
         val blockedUsernames = client.blockedUsernames
         val pendingSuggestions = client.pendingSuggestions
 
-        val isInRoom: Boolean get() = client.isInRoom
-        val isHost: Boolean get() = client.isHost
+        override val isInRoom: Boolean get() = client.isInRoom
+        override val isHost: Boolean get() = client.isHost
         val hasPersistedSession: Boolean get() = client.hasPersistedSession
 
         private val playerListener =
@@ -1994,6 +1994,15 @@ class ListenTogetherManager(
          * Suggest the given track to the host (guest only)
          */
         fun suggestTrack(track: TrackInfo) = client.suggestTrack(track)
+
+        override fun suggestTrack(
+            id: String,
+            title: String,
+            artist: String,
+            album: String?,
+            duration: Long,
+            thumbnail: String?,
+        ) = suggestTrack(TrackInfo(id, title, artist, album, duration, thumbnail))
 
         /**
          * Approve a suggestion (host only)

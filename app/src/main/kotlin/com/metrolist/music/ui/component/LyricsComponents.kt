@@ -5,12 +5,10 @@
 
 package com.metrolist.music.ui.component
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.text.Layout
-import android.widget.Toast
 import timber.log.Timber
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

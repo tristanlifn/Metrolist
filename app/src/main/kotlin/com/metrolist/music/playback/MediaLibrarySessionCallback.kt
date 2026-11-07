@@ -420,7 +420,7 @@ class MediaLibrarySessionCallback(
         val builtInItems =
             if (request.offset < 2 && request.limit > 0) {
                 val likedSongCount = database.likedSongsCount().first()
-                val downloadedSongCount = downloadUtil.downloads.value.size
+                val downloadedSongCount = downloadUtil.media3Downloads.value.size
                 listOf(
                     browsableMediaItem(
                         "${MusicService.PLAYLIST}/${PlaylistEntity.LIKED_PLAYLIST_ID}",
@@ -475,7 +475,7 @@ class MediaLibrarySessionCallback(
                 database.likedSongsByCreateDateDesc(songRequest.limit, songRequest.offset)
 
             playlistId == PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> {
-                val downloads = downloadUtil.downloads.value
+                val downloads = downloadUtil.media3Downloads.value
                 val completedSongIds = downloads.entries
                     .asSequence()
                     .filter { it.value.state == Download.STATE_COMPLETED }
@@ -689,7 +689,7 @@ class MediaLibrarySessionCallback(
                     val songs = when (playlistId) {
                         PlaylistEntity.LIKED_PLAYLIST_ID -> database.likedSongs(SongSortType.CREATE_DATE, descending = true)
                         PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> {
-                            val downloads = downloadUtil.downloads.value
+                            val downloads = downloadUtil.media3Downloads.value
                             database
                                 .allSongs()
                                 .flowOn(Dispatchers.IO)

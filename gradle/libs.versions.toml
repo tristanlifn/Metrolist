@@ -15,7 +15,7 @@ castFramework = "22.3.1"
 room = "2.8.5"
 koin = "4.2.2"
 composeMultiplatform = "1.13.0-alpha02"
-navigation = "2.9.0"
+navigation = "2.9.2"
 ktor = "3.6.0"
 ksp = "2.3.12"
 coil = "3.6.3"
@@ -98,7 +98,7 @@ compose-multiplatform-material3 = { module = "org.jetbrains.compose.material3:ma
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

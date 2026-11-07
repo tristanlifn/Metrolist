@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.player
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -88,7 +87,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
@@ -124,7 +122,6 @@ import com.metrolist.music.ui.utils.ShowMediaInfo
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
-import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -133,7 +130,6 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
 import com.metrolist.music.constants.SleepTimerDefaultKey
-import android.widget.Toast
 import androidx.compose.runtime.derivedStateOf
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
@@ -176,6 +172,12 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.music.utils.safeEdit
+import com.metrolist.music.ui.utils.BackHandler
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -196,7 +198,8 @@ fun Queue(
     onToggleLyrics: () -> Unit = {},
 ) {
     val navController = LocalNavController.current
-    val context = LocalContext.current
+    val dataStore = koinInject<DataStore<Preferences>>()
+    val platformActions = koinInject<PlatformActions>()
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboard.current
     val menuState = LocalMenuState.current
@@ -637,15 +640,11 @@ fun Queue(
                                     Button(
                                         onClick = {
                                             coroutineScope.launch {
-                                                context.safeDataStoreEdit { settings ->
+                                                dataStore.safeEdit { settings ->
                                                     settings[SleepTimerDefaultKey] = sleepTimerValue
                                                 }
                                             }
-                                            Toast.makeText(
-                                                context,
-                                                String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                            platformActions.toast(String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()))
                                         },
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.primary,
@@ -658,15 +657,11 @@ fun Queue(
                                     OutlinedButton(
                                         onClick = {
                                             coroutineScope.launch {
-                                                context.safeDataStoreEdit { settings ->
+                                                dataStore.safeEdit { settings ->
                                                     settings[SleepTimerDefaultKey] = sleepTimerValue
                                                 }
                                             }
-                                            Toast.makeText(
-                                                context,
-                                                String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                            platformActions.toast(String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()))
                                         },
                                     ) {
                                         Text(stringResource(Res.string.set_as_default))

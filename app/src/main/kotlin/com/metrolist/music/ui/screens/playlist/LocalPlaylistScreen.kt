@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,7 +59,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -95,8 +93,6 @@ import androidx.core.content.FileProvider
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
@@ -117,7 +113,6 @@ import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.extensions.move
 import com.metrolist.music.extensions.toMediaItem
-import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.DefaultDialog
@@ -140,7 +135,6 @@ import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
-import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.viewmodels.LocalPlaylistViewModel
 import com.yalantis.ucrop.UCrop
 import io.ktor.client.plugins.ClientRequestException
@@ -182,6 +176,13 @@ import com.metrolist.music.resources.sort_by_play_time
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.music.utils.safeEdit
+import org.koin.compose.koinInject
+import com.metrolist.music.playback.DownloadState
+import com.metrolist.music.playback.download
+import com.metrolist.music.ui.utils.BackHandler
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -190,7 +191,7 @@ fun LocalPlaylistScreen(
     navController: NavController,
     viewModel: LocalPlaylistViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
+    val dataStore = koinInject<DataStore<Preferences>>()
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
@@ -274,7 +275,7 @@ fun LocalPlaylistScreen(
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
+        mutableStateOf<DownloadState?>(DownloadState.STOPPED)
     }
 
     val editable: Boolean = playlist?.playlist?.isEditable == true
@@ -299,17 +300,17 @@ fun LocalPlaylistScreen(
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
+                if (songs.all { downloads[it.song.id] == DownloadState.COMPLETED }) {
+                    DownloadState.COMPLETED
                 } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
+                        downloads[it.song.id] == DownloadState.QUEUED ||
+                            downloads[it.song.id] == DownloadState.DOWNLOADING ||
+                            downloads[it.song.id] == DownloadState.COMPLETED
                     }
                 ) {
-                    Download.STATE_DOWNLOADING
+                    DownloadState.DOWNLOADING
                 } else {
-                    Download.STATE_STOPPED
+                    DownloadState.STOPPED
                 }
         }
     }
@@ -385,12 +386,7 @@ fun LocalPlaylistScreen(
                             }
                         }
                         songs.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false,
-                            )
+                            downloadUtil.remove(song.song.id)
                         }
                     },
                 ) {
@@ -434,7 +430,7 @@ fun LocalPlaylistScreen(
                         viewModel.viewModelScope.launch(Dispatchers.IO) {
                             playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
 
-                            context.safeDataStoreEdit {
+                            dataStore.safeEdit {
                                 it.remove(playlistSongSortTypeKey(playlistId = playlist?.id ?: ""))
                                 it.remove(playlistSongSortDescendingKey(playlistId = playlist?.id ?: ""))
                             }
@@ -921,7 +917,7 @@ fun LocalPlaylistHeader(
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
+        mutableStateOf<DownloadState?>(DownloadState.STOPPED)
     }
 
     val liked = playlist.playlist.bookmarkedAt != null
@@ -1034,17 +1030,17 @@ fun LocalPlaylistHeader(
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
+                if (songs.all { downloads[it.song.id] == DownloadState.COMPLETED }) {
+                    DownloadState.COMPLETED
                 } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
+                        downloads[it.song.id] == DownloadState.QUEUED ||
+                            downloads[it.song.id] == DownloadState.DOWNLOADING ||
+                            downloads[it.song.id] == DownloadState.COMPLETED
                     }
                 ) {
-                    Download.STATE_DOWNLOADING
+                    DownloadState.DOWNLOADING
                 } else {
-                    Download.STATE_STOPPED
+                    DownloadState.STOPPED
                 }
         }
     }
@@ -1415,7 +1411,6 @@ fun LocalPlaylistHeader(
                         LocalPlaylistMenu(
                             playlist = playlist,
                             songs = songs,
-                            context = context,
                             downloadState = downloadState,
                             onEdit = onShowEditDialog,
                             onSync = {
@@ -1432,18 +1427,13 @@ fun LocalPlaylistHeader(
                             onDelete = onshowDeletePlaylistDialog,
                             onDownload = {
                                 when (downloadState) {
-                                    Download.STATE_COMPLETED -> {
+                                    DownloadState.COMPLETED -> {
                                         onShowRemoveDownloadDialog()
                                     }
 
-                                    Download.STATE_DOWNLOADING -> {
+                                    DownloadState.DOWNLOADING -> {
                                         songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.song.id,
-                                                false,
-                                            )
+                                            downloadUtil.remove(song.song.id)
                                         }
                                     }
 

@@ -1,0 +1,245 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.metrolist.music.ui.menu
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.metrolist.music.LocalDatabase
+import com.metrolist.music.LocalListenTogetherManager
+import com.metrolist.music.LocalPlayerConnection
+import com.metrolist.music.constants.ArtistSongSortType
+import com.metrolist.music.db.entities.SpeedDialItem
+import com.metrolist.music.db.entities.Artist
+import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.queues.ListQueue
+import com.metrolist.music.ui.component.ArtistListItem
+import com.metrolist.music.ui.component.Material3MenuGroup
+import com.metrolist.music.ui.component.Material3MenuItemData
+import com.metrolist.music.ui.component.NewAction
+import com.metrolist.music.ui.component.NewActionGrid
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.pin
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.subscribe
+import com.metrolist.music.resources.subscribed
+import com.metrolist.music.resources.unpin
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.isPortraitWindow
+
+@Composable
+fun ArtistMenu(
+    originalArtist: Artist,
+    coroutineScope: CoroutineScope,
+    onDismiss: () -> Unit,
+) {
+    val platformActions = koinInject<PlatformActions>()
+    val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
+    val artistState = database.artist(originalArtist.id).collectAsStateWithLifecycle(initialValue = originalArtist)
+    val artist = artistState.value ?: originalArtist
+    val isPinned by database.speedDialDao.isPinned(artist.id).collectAsStateWithLifecycle(initialValue = false)
+
+    ArtistListItem(
+        artist = artist,
+        badges = {},
+        trailingContent = {},
+    )
+
+    HorizontalDivider()
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    val isPortrait = isPortraitWindow()
+
+    LazyColumn(
+        contentPadding = PaddingValues(
+            start = 0.dp,
+            top = 0.dp,
+            end = 0.dp,
+            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
+        ),
+    ) {
+        item {
+            NewActionGrid(
+                actions = buildList {
+                    if (!isGuest) {
+                        if (artist.songCount > 0) {
+                            add(
+                                NewAction(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.play),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    text = stringResource(Res.string.play),
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            val songs = withContext(Dispatchers.IO) {
+                                                database
+                                                    .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
+                                                    .first()
+                                                    .map { it.toMediaMetadata() }
+                                            }
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = artist.artist.name,
+                                                    items = songs,
+                                                ),
+                                            )
+                                        }
+                                        onDismiss()
+                                    }
+                                )
+                            )
+
+                            add(
+                                NewAction(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.shuffle),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    text = stringResource(Res.string.shuffle),
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            val songs = withContext(Dispatchers.IO) {
+                                                database
+                                                    .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
+                                                    .first()
+                                                    .map { it.toMediaMetadata() }
+                                                    .shuffled()
+                                            }
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = artist.artist.name,
+                                                    items = songs,
+                                                ),
+                                            )
+                                        }
+                                        onDismiss()
+                                    }
+                                )
+                            )
+                        }
+                    }
+
+                    add(
+                        NewAction(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            text = if (isPinned) stringResource(Res.string.unpin) else stringResource(Res.string.pin),
+                            onClick = {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    if (isPinned) {
+                                        database.speedDialDao.delete(artist.id)
+                                    } else {
+                                        database.speedDialDao.insert(
+                                            SpeedDialItem(
+                                                id = artist.id,
+                                                title = artist.artist.name,
+                                                subtitle = null,
+                                                thumbnailUrl = artist.artist.thumbnailUrl,
+                                                type = "ARTIST"
+                                            )
+                                        )
+                                    }
+                                }
+                                onDismiss()
+                            }
+                        )
+                    )
+
+                    if (artist.artist.isYouTubeArtist) {
+                        add(
+                            NewAction(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.share),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                text = stringResource(Res.string.share),
+                                onClick = {
+                                    onDismiss()
+                                platformActions.shareText("https://music.youtube.com/channel/${artist.id}")
+                                }
+                            )
+                        )
+                    }
+                },
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
+                columns = if (isGuest) 1 else 3
+            )
+        }
+
+        item {
+            Material3MenuGroup(
+                items = listOf(
+                    Material3MenuItemData(
+                        title = {
+                            Text(text = if (artist.artist.bookmarkedAt != null) stringResource(Res.string.subscribed) else stringResource(Res.string.subscribe))
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (artist.artist.bookmarkedAt != null) Res.drawable.subscribed else Res.drawable.subscribe),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            database.transaction {
+                                update(artist.artist.toggleLike())
+                            }
+                        }
+                    )
+                )
+            )
+        }
+    }
+}
