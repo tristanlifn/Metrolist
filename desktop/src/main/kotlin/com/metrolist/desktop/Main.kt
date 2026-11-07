@@ -37,6 +37,7 @@ import com.metrolist.desktop.login.runLoginCheck
 import com.metrolist.desktop.mpris.MprisService
 import androidx.navigation.compose.composable
 import com.metrolist.desktop.playback.DesktopMusicPlayer
+import com.metrolist.desktop.playback.LibC
 import com.metrolist.music.MetrolistApp
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.di.sharedViewModelModule
@@ -52,6 +53,7 @@ import com.metrolist.music.utils.safeEdit
 import org.koin.compose.koinInject
 import org.koin.core.context.startKoin
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -82,12 +84,25 @@ fun main(args: Array<String>) {
 
     var raiseWindow: () -> Unit = {}
     val mpris = MprisService.start(koin.get<DesktopMusicPlayer>()) { raiseWindow() }
+    val cleanedUp = AtomicBoolean(false)
+    val cleanUp = {
+        if (cleanedUp.compareAndSet(false, true)) {
+            mpris?.close()
+            koin.get<DesktopMusicPlayer>().release()
+        }
+    }
+    // Logging out or `kill` sends SIGTERM/SIGHUP; save the same way as closing the window.
+    Runtime.getRuntime().addShutdownHook(
+        Thread {
+            cleanUp()
+            exitWithoutNativeHandlers()
+        },
+    )
 
-    application {
+    application(exitProcessOnExit = false) {
         Window(
             onCloseRequest = {
-                mpris?.close()
-                koin.get<DesktopMusicPlayer>().release()
+                cleanUp()
                 exitApplication()
             },
             title = "Metrolist",
@@ -97,6 +112,15 @@ fun main(args: Array<String>) {
             DesktopApp()
         }
     }
+    exitWithoutNativeHandlers()
+}
+
+// libGLX's exit handler closes the X display and can deadlock with AWT's X11 thread while the window is
+// torn down, leaving a windowless process behind. Called once cleanup is done, so native exit handlers are skipped.
+private fun exitWithoutNativeHandlers() {
+    System.out.flush()
+    System.err.flush()
+    LibC.INSTANCE._exit(0)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

@@ -42,7 +42,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -88,6 +91,9 @@ class DesktopMusicPlayer(
     private var loadJob: Job? = null
     private var playedMs = 0L
     private var playingSinceMs: Long? = null
+
+    // mpv reports initial property values before anything is loaded; those must not mark the player ready.
+    private var fileLoaded = false
 
     override val mediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     override val isReady: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
@@ -143,7 +149,17 @@ class DesktopMusicPlayer(
     override val hasNextItem: Boolean get() = position in 0 until order.size - 1
 
     init {
-        scope.launch { restoreSessions() }
+        scope.launch {
+            restoreSessions()
+            // Saved while playing and on pause too, so a hard kill or a lost session keeps the queue.
+            isPlaying.drop(1).collectLatest { playing ->
+                if (!playing) return@collectLatest persistActiveSession()
+                while (true) {
+                    delay(SAVE_INTERVAL_MS)
+                    persistActiveSession()
+                }
+            }
+        }
     }
 
     override fun playQueue(queue: Queue) {
@@ -413,10 +429,7 @@ class DesktopMusicPlayer(
     fun release() {
         runBlocking {
             withTimeoutOrNull(RELEASE_TIMEOUT_MS) {
-                scope.launch {
-                    snapshotActiveSession()
-                    saveSessions()
-                }.join()
+                scope.launch { persistActiveSession() }.join()
             }
         }
         mpv.destroy()
@@ -455,6 +468,11 @@ class DesktopMusicPlayer(
         }
         _newQueueStarted.tryEmit(Unit)
         startCurrent(session.position, playWhenReady)
+    }
+
+    private suspend fun persistActiveSession() {
+        snapshotActiveSession()
+        saveSessions()
     }
 
     private fun snapshotActiveSession() {
@@ -579,6 +597,7 @@ class DesktopMusicPlayer(
         val metadata = entry.metadata
         mediaMetadata.value = metadata
         error.value = null
+        fileLoaded = false
         setPlaybackState(PlaybackState.BUFFERING)
         playedMs = 0L
         loadJob?.cancel()
@@ -593,6 +612,7 @@ class DesktopMusicPlayer(
                 mpv.setProperty("force-media-title", "${metadata.title} – ${metadata.artists.joinToString { it.name }}")
                 mpv.setProperty("start", if (startMs > 0) "+${startMs / 1000.0}" else "none")
                 mpv.setProperty("pause", if (playWhenReady) "no" else "yes")
+                setPlayWhenReady(playWhenReady)
                 if (localFile != null) {
                     currentStreamClient.value = null
                     mpv.setProperty("http-header-fields", "")
@@ -622,6 +642,7 @@ class DesktopMusicPlayer(
     private suspend fun onMpvEvent(event: Mpv.Event) {
         when (event) {
             Mpv.Event.FileLoaded -> {
+                fileLoaded = true
                 setPlaybackState(PlaybackState.READY)
                 if (playWhenReady.value) playingSinceMs = System.currentTimeMillis()
             }
@@ -634,7 +655,7 @@ class DesktopMusicPlayer(
                         if (playing) playingSinceMs = System.currentTimeMillis() else accumulatePlayTime()
                     }
                     "paused-for-cache" ->
-                        if (playbackState.value != PlaybackState.IDLE && playbackState.value != PlaybackState.ENDED) {
+                        if (fileLoaded && playbackState.value != PlaybackState.IDLE && playbackState.value != PlaybackState.ENDED) {
                             setPlaybackState(if (mpv.getFlag("paused-for-cache")) PlaybackState.BUFFERING else PlaybackState.READY)
                         }
                 }
@@ -733,6 +754,7 @@ class DesktopMusicPlayer(
         const val PAGE_AHEAD = 3
         const val MAX_QUEUE_SESSIONS = 20
         const val RELEASE_TIMEOUT_MS = 2_000L
+        const val SAVE_INTERVAL_MS = 30_000L
         const val ERROR_CODE_NO_STREAM = 2004
         const val ERROR_CODE_PLAYBACK = 2001
     }

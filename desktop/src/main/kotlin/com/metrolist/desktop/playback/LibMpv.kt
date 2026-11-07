@@ -35,6 +35,8 @@ internal interface LibMpv : Library {
 
     fun mpv_terminate_destroy(ctx: Pointer)
 
+    fun mpv_wakeup(ctx: Pointer)
+
     companion object {
         val INSTANCE: LibMpv by lazy { Native.load("mpv", LibMpv::class.java) }
 
@@ -55,6 +57,8 @@ internal interface LibMpv : Library {
 @Suppress("FunctionName")
 internal interface LibC : Library {
     fun setlocale(category: Int, locale: String): String?
+
+    fun _exit(status: Int)
 
     companion object {
         val INSTANCE: LibC by lazy { Native.load("c", LibC::class.java) }
