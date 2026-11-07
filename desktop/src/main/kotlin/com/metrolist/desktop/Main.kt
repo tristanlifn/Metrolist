@@ -1,92 +1,139 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
 package com.metrolist.desktop
 
-import com.metrolist.innertube.YouTube
-import com.metrolist.innertube.models.SongItem
-import com.metrolist.innertubex.InnerTubeLogLevel
-import com.metrolist.innertubex.InnerTubeLogger
-import com.metrolist.innertubex.cipher.PlayerConfigRepository
-import com.metrolist.innertubex.cipher.RemotePlayerConfigStore
-import com.metrolist.innertubex.cipher.YouTubeCipherService
-import com.metrolist.innertubex.extraction.AudioQuality
-import com.metrolist.innertubex.extraction.ContentHints
-import com.metrolist.innertubex.extraction.InnerTubeExtractor
-import com.metrolist.innertubex.extraction.PoTokenResult
-import com.metrolist.innertubex.extraction.TokenProvider
-import com.metrolist.innertubex.extraction.TokenProviderCapabilities
-import com.metrolist.innertubex.extraction.YtConfigParserImpl
-import com.metrolist.innertubex.extraction.generateClientPlaybackNonce
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.InterceptPlatformTextInput
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.desktop.mpris.MprisService
+import com.metrolist.desktop.playback.DesktopMusicPlayer
+import com.metrolist.music.MetrolistApp
+import com.metrolist.music.db.MusicDatabase
+import com.metrolist.music.di.sharedViewModelModule
+import com.metrolist.music.playback.SongDownloads
+import com.metrolist.music.utils.BuildInfo
+import com.metrolist.music.utils.SyncUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
+import com.metrolist.music.constants.LastSeenVersionKey
+import com.metrolist.music.utils.safeEdit
+import org.koin.compose.koinInject
+import org.koin.core.context.startKoin
+import java.io.File
 import kotlin.system.exitProcess
 
-// Proof of concept: search YouTube Music, extract an audio stream without a PoToken provider, play it with mpv.
-fun main(args: Array<String>): Unit = runBlocking {
-    val query = args.joinToString(" ").ifBlank { "Daft Punk Get Lucky" }
-    val song =
-        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).getOrThrow()
-            .items.filterIsInstance<SongItem>().firstOrNull()
-            ?: run {
-                System.err.println("No song found for \"$query\"")
-                exitProcess(1)
-            }
-    println("Found: ${song.title} - ${song.artists.joinToString { it.name }} (${song.id})")
+fun main(args: Array<String>) {
+    if (args.firstOrNull() == "--probe") return runPlaybackProbe(args.drop(1))
 
-    val logger =
-        InnerTubeLogger { event ->
-            if (event.level >= InnerTubeLogLevel.WARN) System.err.println("[${event.level}] ${event.tag}: ${event.message} ${event.details}")
+    BuildInfo.init(
+        versionName = DESKTOP_VERSION,
+        baseVersionName = DESKTOP_VERSION,
+        versionCode = 0,
+        architecture = System.getProperty("os.arch"),
+        isDebug = true,
+        castAvailable = false,
+        updaterAvailable = false,
+        platformDetails = listOf("OS: ${System.getProperty("os.name")} ${System.getProperty("os.version")}"),
+    )
+    val koin = startKoin { modules(desktopModule, sharedViewModelModule) }.koin
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).syncInnerTubeSettings(koin.get<DataStore<Preferences>>())
+
+    if (args.firstOrNull() == "--player-check") return runPlayerCheck(koin.get(), args.drop(1))
+
+    if (args.firstOrNull() == "--snapshot") {
+        // Snapshots show the app itself, not the first-run changelog sheet.
+        runBlocking { koin.get<DataStore<Preferences>>().safeEdit { it[LastSeenVersionKey] = DESKTOP_VERSION } }
+        renderSnapshot(File(args.getOrElse(1) { "metrolist-snapshot.png" }), seconds = args.getOrNull(2)?.toIntOrNull() ?: 20) { DesktopApp() }
+        exitProcess(0)
+    }
+
+    var raiseWindow: () -> Unit = {}
+    val mpris = MprisService.start(koin.get<DesktopMusicPlayer>()) { raiseWindow() }
+
+    application {
+        Window(
+            onCloseRequest = {
+                mpris?.close()
+                koin.get<DesktopMusicPlayer>().release()
+                exitApplication()
+            },
+            title = "Metrolist",
+            state = rememberWindowState(size = DpSize(1100.dp, 760.dp)),
+        ) {
+            raiseWindow = { java.awt.EventQueue.invokeLater { window.toFront() } }
+            DesktopApp()
         }
-    val transport = YouTube.extractionTransport()
-    val configStore = RemotePlayerConfigStore(transport.httpClient, InMemoryPlayerConfigRepository(), logger)
-    val cipherService = YouTubeCipherService(transport.httpClient, configStore, logger)
-    val extractor =
-        InnerTubeExtractor(
-            configParser = YtConfigParserImpl(transport.httpClient, transport.innerTube, configStore, logger),
-            cipherService = cipherService,
-            innerTube = transport.innerTube,
-            tokenProvider = NoPoTokenProvider,
-            logger = logger,
-        )
-    val stream =
-        extractor.extract(
-            videoId = song.id,
-            hints = ContentHints().withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true),
-            excludedClients = emptySet(),
-            audioQuality = AudioQuality.HIGH,
-            clientPlaybackNonce = generateClientPlaybackNonce(),
-        ) ?: run {
-            System.err.println("No playable stream for ${song.id}")
-            exitProcess(1)
-        }
-    println("Stream: client=${stream.clientName} itag=${stream.itag} ${stream.mimeType} ${stream.bitrate}bps")
-
-    val command =
-        listOf("mpv", "--no-video", "--term-osd-bar") +
-            stream.headers.map { (key, value) -> "--http-header-fields-append=$key: $value" } +
-            stream.audioUrl
-    exitProcess(ProcessBuilder(command).inheritIO().start().waitFor())
-}
-
-// Lets the extractor pick clients that don't need a PoToken; desktop has no WebView for BotGuard.
-private object NoPoTokenProvider : TokenProvider {
-    override val capabilities = TokenProviderCapabilities()
-
-    override suspend fun getPoToken(
-        videoId: String,
-        visitorData: String,
-        cookie: String?,
-    ): PoTokenResult? = null
-}
-
-private class InMemoryPlayerConfigRepository : PlayerConfigRepository {
-    override val enabled = true
-    override val sourceUrl = PLAYER_CONFIG_URL
-    override val defaultSourceUrl = PLAYER_CONFIG_URL
-    override var cachedJson = ""
-    override var cachedAtMs = 0L
-    override var cachedSourceUrl = ""
-    override var cachedEtag = ""
-
-    private companion object {
-        const val PLAYER_CONFIG_URL =
-            "https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json"
     }
 }
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun DesktopApp() {
+    val player = koinInject<DesktopMusicPlayer>()
+    // True while a text field has an input session, so Space types a space there instead of toggling playback.
+    var typing by remember { mutableStateOf(false) }
+    val platformActions = koinInject<DesktopPlatformActions>()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(platformActions) {
+        platformActions.messages.collect { snackbarHostState.showSnackbar(it) }
+    }
+    InterceptPlatformTextInput(
+        interceptor = { request, nextHandler ->
+            typing = true
+            try {
+                nextHandler.startInputMethod(request)
+            } finally {
+                typing = false
+            }
+        },
+    ) {
+    Box(
+        Modifier.fillMaxSize().onPreviewKeyEvent { event ->
+            // Without this, Space "clicks" whatever was last focused, e.g. restarting the song that was clicked.
+            val isPlayPauseKey = event.key == Key.MediaPlayPause || (event.key == Key.Spacebar && !typing)
+            if (isPlayPauseKey && event.type == KeyEventType.KeyDown) player.togglePlayPause()
+            isPlayPauseKey
+        },
+    ) {
+        MetrolistApp(
+            playerConnection = player,
+            database = koinInject<MusicDatabase>(),
+            downloadUtil = koinInject<SongDownloads>(),
+            syncUtils = koinInject<SyncUtils>(),
+            listenTogetherManager = null,
+        )
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp))
+    }
+    }
+}
+
+private const val DESKTOP_VERSION = "0.1.0-dev"

@@ -5,10 +5,6 @@
 
 package com.metrolist.music.db
 
-import android.content.Context
-import androidx.room.Room
-import androidx.room.withTransaction
-import androidx.test.core.app.ApplicationProvider
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.db.entities.SongEntity
@@ -20,29 +16,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
+import java.io.File
 import java.time.LocalDateTime
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
 class PlaylistDuplicatesBatchedTest {
+    private val dbFile = File.createTempFile("metrolist", ".db").apply { delete() }
     private lateinit var database: InternalDatabase
 
     @Before
     fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        database =
-            Room
-                .inMemoryDatabaseBuilder(context, InternalDatabase::class.java)
-                .allowMainThreadQueries()
-                .build()
+        database = InternalDatabase.build(dbFile)
     }
 
     @After
     fun tearDown() {
         database.close()
+        dbFile.parentFile.listFiles { file -> file.name.startsWith(dbFile.name) }?.forEach(File::delete)
     }
 
     @Test
@@ -51,7 +40,7 @@ class PlaylistDuplicatesBatchedTest {
             assertTrue(MAX_PLAYLIST_DUPLICATES_BATCH_SIZE + 1 <= 999)
 
             val libraryDate = LocalDateTime.of(2026, 1, 1, 0, 0)
-            database.withTransaction {
+            database.inTransaction {
                 database.dao.insert(PlaylistEntity(id = "full", name = "Full", bookmarkedAt = libraryDate))
                 database.dao.insert(PlaylistEntity(id = "partial", name = "Partial", bookmarkedAt = libraryDate))
                 repeat(1_200) { index ->

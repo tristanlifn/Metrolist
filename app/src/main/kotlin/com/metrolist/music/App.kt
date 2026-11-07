@@ -57,6 +57,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Credentials
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
+import com.metrolist.music.di.sharedViewModelModule
 import org.koin.core.context.startKoin
 import timber.log.Timber
 import java.io.File
@@ -76,7 +77,7 @@ class App :
         super.onCreate()
         startKoin {
             androidContext(this@App)
-            modules(appModule, networkModule, wrappedModule, viewModelModule)
+            modules(appModule, networkModule, wrappedModule, sharedViewModelModule, viewModelModule)
         }
 
         // CrashActivity runs in a separate process. Starting the full app there can make that
