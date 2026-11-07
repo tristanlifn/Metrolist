@@ -18,13 +18,6 @@ import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
-import com.metrolist.music.constants.SleepTimerCustomDaysKey
-import com.metrolist.music.constants.SleepTimerDayTimesKey
-import com.metrolist.music.constants.SleepTimerDefaultKey
-import com.metrolist.music.constants.SleepTimerEnabledKey
-import com.metrolist.music.constants.SleepTimerEndTimeKey
-import com.metrolist.music.constants.SleepTimerRepeatKey
-import com.metrolist.music.constants.SleepTimerStartTimeKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.currentMetadata
@@ -44,6 +37,10 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDateTime
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,10 +51,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -622,130 +615,14 @@ class PlayerConnection(
         queue.value = player.getQueueWindows().map { QueueEntry(it.uid, it.firstPeriodIndex, it.mediaItem.metadata) }
     }
 
-    /** Parses "0=09:00-23:00;1=22:00-06:00" into Map<dayIndex, Pair<start, end>>. */
-    private fun parseDayTimes(raw: String): Map<Int, Pair<String, String>> {
-        if (raw.isBlank()) return emptyMap()
-        return raw
-            .split(";")
-            .mapNotNull { entry ->
-                val parts = entry.split("=")
-                if (parts.size != 2) return@mapNotNull null
-                val dayIndex = parts[0].toIntOrNull() ?: return@mapNotNull null
-                val times = parts[1].split("-")
-                if (times.size != 2) return@mapNotNull null
-                dayIndex to (times[0] to times[1])
-            }.toMap()
-    }
-
     private fun checkAndStartAutomaticSleepTimer(): Boolean {
-        return try {
-            val sleepTimerEnabled = service.applicationContext.dataStore.get(SleepTimerEnabledKey) ?: false
-            Timber.tag(TAG).d("✓ Sleep Timer Check: enabled=$sleepTimerEnabled")
-
-            if (!sleepTimerEnabled) {
-                Timber.tag(TAG).d("✗ Sleep Timer disabled - skipping")
-                return false
-            }
-
-            if (service.sleepTimer?.isActive == true) {
-                Timber.tag(TAG).d("✗ Sleep Timer already active - skipping")
-                return false
-            }
-
-            val sleepTimerRepeat = service.applicationContext.dataStore.get(SleepTimerRepeatKey) ?: "daily"
-            val sleepTimerStartTime = service.applicationContext.dataStore.get(SleepTimerStartTimeKey) ?: "09:00"
-            val sleepTimerEndTime = service.applicationContext.dataStore.get(SleepTimerEndTimeKey) ?: "23:00"
-            val sleepTimerDefaultMinutes = (service.applicationContext.dataStore.get(SleepTimerDefaultKey) ?: 30f).roundToInt()
-            val sleepTimerCustomDaysStr = service.applicationContext.dataStore.get(SleepTimerCustomDaysKey) ?: "0,1,2,3,4"
-            val sleepTimerDayTimesStr = service.applicationContext.dataStore.get(SleepTimerDayTimesKey) ?: ""
-
-            Timber
-                .tag(
-                    TAG,
-                ).d(
-                    "Sleep Timer Config: repeat=$sleepTimerRepeat start=$sleepTimerStartTime end=$sleepTimerEndTime default=$sleepTimerDefaultMinutes custom=$sleepTimerCustomDaysStr",
-                )
-
-            val currentTime = LocalTime.now()
-            val today = LocalDate.now()
-            val dayOfWeek = today.dayOfWeek.value % 7
-            val adjustedDayOfWeek = if (dayOfWeek == 0) 6 else dayOfWeek - 1
-
-            Timber.tag(TAG).d("Current: time=$currentTime dayOfWeek=$adjustedDayOfWeek")
-
-            val isDayAllowed =
-                when (sleepTimerRepeat) {
-                    "daily" -> {
-                        true
-                    }
-
-                    "weekdays" -> {
-                        adjustedDayOfWeek in 0..4
-                    }
-
-                    "weekends" -> {
-                        adjustedDayOfWeek in 5..6
-                    }
-
-                    "weekdays_weekends" -> {
-                        true
-                    }
-
-                    // both groups active; per-day time handles the distinction
-                    "custom" -> {
-                        val customDays = sleepTimerCustomDaysStr.split(",").mapNotNull { it.trim().toIntOrNull() }
-                        Timber.tag(TAG).d("Custom days: $customDays, adjustedDayOfWeek=$adjustedDayOfWeek")
-                        adjustedDayOfWeek in customDays
-                    }
-
-                    else -> {
-                        false
-                    }
-                }
-
-            if (!isDayAllowed) {
-                Timber.tag(TAG).d("✗ Day not allowed for Sleep Timer")
-                return false
-            }
-
-// "daily" uses the single global time window.
-// All other modes store per-day times in the dayTimes map so that
-// e.g. weekdays and weekends can have different windows.
-            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-            val usesDayTimesMap = sleepTimerRepeat != "daily"
-            val (startStr, endStr) =
-                if (usesDayTimesMap) {
-                    parseDayTimes(sleepTimerDayTimesStr)[adjustedDayOfWeek]
-                        ?: (sleepTimerStartTime to sleepTimerEndTime)
-                } else {
-                    sleepTimerStartTime to sleepTimerEndTime
-                }
-
-            val startTime = LocalTime.parse(startStr, timeFormatter)
-            val endTime = LocalTime.parse(endStr, timeFormatter)
-
-            // Support overnight ranges (e.g. 22:00–06:00) in addition to normal ranges
-            val isTimeInRange =
-                if (endTime.isAfter(startTime)) {
-                    currentTime.isAfter(startTime) && currentTime.isBefore(endTime)
-                } else {
-                    currentTime.isAfter(startTime) || currentTime.isBefore(endTime)
-                }
-
-            Timber.tag(TAG).d("Time check: $currentTime between $startStr-$endStr? $isTimeInRange")
-
-            if (isTimeInRange) {
-                Timber.tag(TAG).i("AUTO SLEEP TIMER STARTED: $sleepTimerDefaultMinutes minutes")
-                service.sleepTimer?.start(sleepTimerDefaultMinutes)
-                return true
-            }
-
-            Timber.tag(TAG).d("✗ Time not in range")
-            return false
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Sleep Timer error")
-            return false
-        }
+        val timer = service.sleepTimer ?: return false
+        if (timer.isActive) return false
+        val preferences = runBlocking(Dispatchers.IO) { service.applicationContext.dataStore.data.first() }
+        val minutes = automaticSleepTimerMinutes(preferences, LocalDateTime.now()) ?: return false
+        Timber.tag(TAG).i("Automatic sleep timer started: $minutes minutes")
+        timer.start(minutes)
+        return true
     }
 
     override fun onPlaybackStateChanged(state: Int) {

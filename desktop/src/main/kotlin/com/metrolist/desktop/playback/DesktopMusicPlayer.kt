@@ -30,7 +30,8 @@ import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.playback.PlayerError
 import com.metrolist.music.playback.QueueEntry
 import com.metrolist.music.playback.RepeatMode
-import com.metrolist.music.playback.SleepTimerControl
+import com.metrolist.music.playback.PlayerSleepTimer
+import com.metrolist.music.playback.automaticSleepTimerMinutes
 import com.metrolist.music.playback.queues.Queue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.playback.queues.filterExplicit
@@ -124,7 +125,18 @@ class DesktopMusicPlayer(
     override val currentStreamClient = MutableStateFlow<String?>(null)
     override val volume = MutableStateFlow(1f)
     override val automixItems: StateFlow<List<MediaMetadata>> = MutableStateFlow(emptyList<MediaMetadata>()).asStateFlow()
-    override val sleepTimer: SleepTimerControl? = null
+    private var volumeMultiplier = 1f
+    override val sleepTimer =
+        object : PlayerSleepTimer(scope, { multiplier ->
+            volumeMultiplier = multiplier
+            applyVolume()
+        }) {
+            override fun pausePlayback() = pause()
+
+            override val positionMs: Long get() = currentPosition
+
+            override val durationMs: Long get() = duration
+        }
     override val cast: CastControl? = null
 
     override val currentPosition: Long
@@ -382,7 +394,12 @@ class DesktopMusicPlayer(
 
     override fun setVolume(volume: Float) {
         this.volume.value = volume.coerceIn(0f, 1f)
-        mpv.setProperty("volume", (this.volume.value * 100).toString())
+        applyVolume()
+    }
+
+    // The sleep timer's fade-out scales the volume without changing the user's setting.
+    private fun applyVolume() {
+        mpv.setProperty("volume", (volume.value * volumeMultiplier * 100).toString())
     }
 
     // Replaces everything after the playing song with a radio based on it, like the Android service.
@@ -586,7 +603,14 @@ class DesktopMusicPlayer(
         recordHistory()
         position = target
         publishQueue()
-        startCurrent(0L, playWhenReady = true)
+        startCurrent(0L, playWhenReady = !pauseForSleepTimer())
+    }
+
+    // Like Media3's transition callback, an "end of song" sleep timer pauses on any song change.
+    private fun pauseForSleepTimer(): Boolean {
+        val pause = sleepTimer.pauseWhenSongEnd
+        sleepTimer.notifySongTransition()
+        return pause
     }
 
     private suspend fun startCurrent(
@@ -643,13 +667,14 @@ class DesktopMusicPlayer(
         when (event) {
             Mpv.Event.FileLoaded -> {
                 fileLoaded = true
+                setPlayWhenReady(!mpv.getFlag("pause"))
                 setPlaybackState(PlaybackState.READY)
                 if (playWhenReady.value) playingSinceMs = System.currentTimeMillis()
             }
             is Mpv.Event.EndFile -> onEndFile(event)
             is Mpv.Event.PropertyChanged ->
                 when (event.name) {
-                    "pause" -> {
+                    "pause" -> if (fileLoaded) {
                         val playing = !mpv.getFlag("pause")
                         setPlayWhenReady(playing)
                         if (playing) playingSinceMs = System.currentTimeMillis() else accumulatePlayTime()
@@ -667,12 +692,13 @@ class DesktopMusicPlayer(
             LibMpv.END_FILE_REASON_EOF -> {
                 recordHistory()
                 when {
-                    repeatMode.value == RepeatMode.ONE -> startCurrent(0L, playWhenReady = true)
+                    repeatMode.value == RepeatMode.ONE -> startCurrent(0L, playWhenReady = !pauseForSleepTimer())
                     position < order.size - 1 -> moveTo(position + 1)
                     repeatMode.value == RepeatMode.ALL && order.isNotEmpty() -> moveTo(0)
                     else -> {
                         setPlaybackState(PlaybackState.ENDED)
                         mpv.setProperty("pause", "yes")
+                        sleepTimer.notifySongTransition()
                     }
                 }
             }
@@ -689,8 +715,16 @@ class DesktopMusicPlayer(
     }
 
     private fun setPlayWhenReady(play: Boolean) {
+        val wasPlayWhenReady = playWhenReady.value
         playWhenReady.value = play
         isPlaying.value = play && playbackState.value == PlaybackState.READY
+        // Same trigger as Android: every paused -> playing transition.
+        if (play && !wasPlayWhenReady) scope.launch { startAutomaticSleepTimer() }
+    }
+
+    private suspend fun startAutomaticSleepTimer() {
+        if (sleepTimer.isActive) return
+        automaticSleepTimerMinutes(dataStore.data.first(), LocalDateTime.now())?.let(sleepTimer::start)
     }
 
     private fun accumulatePlayTime() {
