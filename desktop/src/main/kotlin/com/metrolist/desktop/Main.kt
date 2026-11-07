@@ -36,6 +36,7 @@ import com.metrolist.desktop.login.DesktopLoginScreen
 import com.metrolist.desktop.login.runLoginCheck
 import com.metrolist.desktop.mpris.MprisService
 import androidx.navigation.compose.composable
+import com.metrolist.desktop.login.keepBrowserSessionFresh
 import com.metrolist.desktop.playback.DesktopMusicPlayer
 import com.metrolist.desktop.playback.LibC
 import com.metrolist.music.MetrolistApp
@@ -83,6 +84,7 @@ fun main(args: Array<String>) {
         exitProcess(0)
     }
 
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).keepBrowserSessionFresh(koin.get<DataStore<Preferences>>())
     var raiseWindow: () -> Unit = {}
     val mpris = MprisService.start(koin.get<DesktopMusicPlayer>()) { raiseWindow() }
     val cleanedUp = AtomicBoolean(false)
