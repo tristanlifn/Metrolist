@@ -58,6 +58,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
@@ -180,6 +181,8 @@ import com.metrolist.music.constants.SleepTimerDefaultKey
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.back
+import com.metrolist.music.resources.expand_more
 import com.metrolist.music.resources.bedtime
 import com.metrolist.music.resources.cancel
 import com.metrolist.music.resources.copied_artist
@@ -2056,6 +2059,24 @@ fun BottomSheetPlayer(
                     showInlineLyrics = !showInlineLyrics
                 },
             )
+        }
+
+        // Desktop has no system back gesture; top end stays clear of the queue's header on the left.
+        if (isDesktop) {
+            IconButton(
+                onClick = { if (queueSheetState.isCollapsed) state.collapseSoft() else queueSheetState.collapseSoft() },
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .windowInsetsPadding(WindowInsets.systemBars)
+                        .padding(8.dp),
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.expand_more),
+                    contentDescription = stringResource(Res.string.back),
+                    tint = onBackgroundColor,
+                )
+            }
         }
     }
 }
