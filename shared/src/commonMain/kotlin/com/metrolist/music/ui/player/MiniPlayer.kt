@@ -98,6 +98,7 @@ import com.metrolist.music.playback.CastControl
 import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.ui.screens.settings.DarkMode
+import com.metrolist.music.ui.utils.isDesktop
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.rememberEnumPreference
@@ -239,7 +240,7 @@ private fun NewMiniPlayer(
     val density = LocalDensity.current
     val isTabletLandscape =
         remember(windowInfo.containerSize) {
-            (windowInfo.containerSize.width / density.density) >= 600f && windowInfo.containerSize.width > windowInfo.containerSize.height
+            (windowInfo.containerSize.width / density.density) >= 600f && (isDesktop || windowInfo.containerSize.width > windowInfo.containerSize.height)
         }
 
     // Swipe animation state
@@ -705,7 +706,7 @@ private fun LegacyMiniPlayer(
     val density = LocalDensity.current
     val isTabletLandscape =
         remember(windowInfo.containerSize) {
-            (windowInfo.containerSize.width / density.density) >= 600f && windowInfo.containerSize.width > windowInfo.containerSize.height
+            (windowInfo.containerSize.width / density.density) >= 600f && (isDesktop || windowInfo.containerSize.width > windowInfo.containerSize.height)
         }
 
     val offsetXAnimatable = remember { Animatable(0f) }
