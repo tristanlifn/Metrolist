@@ -5,11 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.text.Layout
-import timber.log.Timber
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -56,8 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -65,17 +58,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
-import androidx.palette.graphics.Palette
-import coil3.ImageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
-import com.metrolist.music.R
 import com.metrolist.music.lyrics.LyricsTranslationHelper
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.ui.screens.settings.LyricsPosition
-import com.metrolist.music.utils.ComposeToImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,6 +90,11 @@ import com.metrolist.music.resources.sync
 import com.metrolist.music.resources.text_color
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import coil3.compose.LocalPlatformContext
+import com.metrolist.music.ui.theme.artworkSwatchColors
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import co.touchlab.kermit.Logger
 
 @Composable
 internal fun LyricsTranslationHeader(
@@ -252,7 +243,8 @@ internal fun LyricsShareDialog(
     onDismiss: () -> Unit,
     onShareAsImage: () -> Unit
 ) {
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
+    val shareLyricsStr = stringResource(Res.string.share_lyrics)
     BasicAlertDialog(onDismissRequest = onDismiss) {
         Card(
             shape = MaterialTheme.shapes.medium,
@@ -266,12 +258,7 @@ internal fun LyricsShareDialog(
                 
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable {
-                        val intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "\"$txt\"\n\n$title - $arts\nhttps://music.youtube.com/watch?v=$songId")
-                        }
-                        context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_lyrics)))
+                        platformActions.shareText("\"$txt\"\n\n$title - $arts\nhttps://music.youtube.com/watch?v=$songId", chooserTitle = shareLyricsStr)
                         onDismiss()
                     }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -320,8 +307,7 @@ internal fun LyricsColorPickerDialog(
     onDismiss: () -> Unit,
     onShare: (backgroundColor: Color, textColor: Color, secondaryTextColor: Color, style: LyricsBackgroundStyle) -> Unit
 ) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    val context = LocalPlatformContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     
@@ -341,19 +327,11 @@ internal fun LyricsColorPickerDialog(
         if (thumbnailUrl != null) {
             withContext(Dispatchers.IO) {
                 try {
-                    val res = ImageLoader(context).execute(ImageRequest.Builder(context).data(thumbnailUrl).allowHardware(false).build())
-                    val bmp = res.image?.toBitmap()
-                    if (bmp != null) {
-                        val swatches = Palette.from(bmp).generate().swatches.sortedByDescending { it.population }
-                        pal.clear()
-                        pal.addAll(swatches.map { Color(it.rgb) }.filter { 
-                            val hsv = FloatArray(3)
-                            android.graphics.Color.colorToHSV(it.toArgb(), hsv)
-                            hsv[1] > 0.2f
-                        }.take(5))
-                    }
+                    val colors = artworkSwatchColors(context, thumbnailUrl).take(5)
+                    pal.clear()
+                    pal.addAll(colors)
                 } catch (e: Exception) {
-                    Timber.e(e, "Failed to extract palette colors")
+                    Logger.e(e) { "Failed to extract palette colors" }
                 }
             }
         }

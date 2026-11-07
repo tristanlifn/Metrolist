@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -56,10 +54,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.toArgb
-import androidx.palette.graphics.Palette
-import coil3.ImageLoader
-import coil3.request.allowHardware
-import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.metrolist.music.resources.Res
@@ -67,6 +61,8 @@ import com.metrolist.music.resources.app_name
 import com.metrolist.music.resources.small_icon
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import coil3.compose.LocalPlatformContext
+import com.metrolist.music.ui.theme.artworkVibrantColors
 
 @Composable
 fun rememberAdjustedFontSize(
@@ -149,8 +145,6 @@ fun rememberAdjustedFontSize(
 
     return calculatedFontSize
 }
-
-@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun LyricsImageCard(
     lyricText: String,
@@ -162,7 +156,7 @@ fun LyricsImageCard(
     secondaryTextColor: Color? = null,
     textAlign: TextAlign = TextAlign.Center
 ) {
-    val context = LocalContext.current
+    val context = LocalPlatformContext.current
     val density = LocalDensity.current
 
     val cardCornerRadius = 20.dp
@@ -189,24 +183,13 @@ fun LyricsImageCard(
         LaunchedEffect(mediaMetadata.thumbnailUrl) {
             withContext(Dispatchers.IO) {
                 try {
-                    val loader = ImageLoader(context)
-                    val req = ImageRequest.Builder(context).data(mediaMetadata.thumbnailUrl).allowHardware(false).build()
-                    val result = loader.execute(req)
-                    val bmp = result.image?.toBitmap()
-                    if (bmp != null) {
-                        val palette = Palette.from(bmp).generate()
-                        val vibrant = palette.getVibrantColor(defaultBgColor.toArgb())
-                        val muted = palette.getMutedColor(defaultBgColor.toArgb())
-                        val darkVibrant = palette.getDarkVibrantColor(defaultBgColor.toArgb())
-                        
-                        val color1 = Color(vibrant)
-                        val color2 = Color(darkVibrant)
-                        
-                        gradientBrush = Brush.linearGradient(
-                            colors = listOf(color1, color2),
-                            tileMode = TileMode.Clamp
-                        )
-                    }
+                    artworkVibrantColors(context, mediaMetadata.thumbnailUrl ?: return@withContext, defaultBgColor.toArgb())
+                        ?.let { (vibrant, darkVibrant) ->
+                            gradientBrush = Brush.linearGradient(
+                                colors = listOf(vibrant, darkVibrant),
+                                tileMode = TileMode.Clamp
+                            )
+                        }
                 } catch (_: Exception) {}
             }
         }

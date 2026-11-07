@@ -22,7 +22,10 @@ interface PlatformActions {
         resourceScope.launch { toast(getString(message, *formatArgs), long) }
     }
 
-    fun shareText(text: String, subject: String? = null)
+    fun shareText(text: String, subject: String? = null, chooserTitle: String? = null)
+
+    /** Searches the web for [query] with the system's search app or browser. */
+    fun searchWeb(query: String)
 
     fun copyToClipboard(label: String, text: String)
 

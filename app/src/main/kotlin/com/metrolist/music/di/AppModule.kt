@@ -44,6 +44,8 @@ import com.metrolist.music.utils.AndroidAppSession
 import com.metrolist.music.utils.AppSession
 import org.koin.dsl.module
 import com.metrolist.music.playback.DownloadSongCache
+import com.metrolist.music.lyrics.LyricsImageSharer
+import com.metrolist.music.utils.AndroidLyricsImageSharer
 
 val appModule = module {
     single<CoroutineScope>(ApplicationScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
@@ -78,6 +80,7 @@ val appModule = module {
     single<SongCache> { Media3SongCache(get(PlayerCache)) }
     single<SongCache>(DownloadSongCache) { Media3SongCache(get(DownloadCache)) }
     single<PlatformActions> { AndroidPlatformActions(get()) }
+    single<LyricsImageSharer> { AndroidLyricsImageSharer(get()) }
     single { DownloadUtil(get(), get(), get(), get(DownloadCache), get(PlayerCache)) }
 
     singleOf(::ListenTogetherClient)

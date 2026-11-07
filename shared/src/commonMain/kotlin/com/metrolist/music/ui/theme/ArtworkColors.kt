@@ -19,6 +19,31 @@ expect suspend fun artworkGradientColors(
     memoryCacheKey: String? = null,
 ): List<Color>?
 
+/** The artwork's saturated colours, most common first. Empty when the image can't be loaded. */
+suspend fun artworkSwatchColors(
+    context: PlatformContext,
+    url: String,
+): List<Color> = artworkColorsByPopulation(context, url).filter { it.saturation() > 0.2f }
+
+internal expect suspend fun artworkColorsByPopulation(
+    context: PlatformContext,
+    url: String,
+): List<Color>
+
+/** A vibrant colour and a darker vibrant one from the artwork, each falling back to [fallbackColor]. */
+expect suspend fun artworkVibrantColors(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Pair<Color, Color>?
+
+// HSV saturation, as android.graphics.Color.colorToHSV computes it.
+private fun Color.saturation(): Float {
+    val max = maxOf(red, green, blue)
+    val min = minOf(red, green, blue)
+    return if (max == 0f) 0f else (max - min) / max
+}
+
 internal fun gradientFrom(primaryColor: Color): List<Color> =
     listOf(
         primaryColor,

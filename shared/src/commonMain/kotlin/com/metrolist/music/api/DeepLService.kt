@@ -11,9 +11,15 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 object DeepLService {
     private val client = OkHttpClient.Builder()
@@ -60,10 +66,8 @@ object DeepLService {
         
         while (currentAttempt < maxRetries) {
             try {
-                val jsonBody = JSONObject().apply {
-                    put("text", JSONArray().apply {
-                        lines.forEach { put(it) }
-                    })
+                val jsonBody = buildJsonObject {
+                    put("text", JsonArray(lines.map(::JsonPrimitive)))
                     put("target_lang", deeplLangCode)
                     if (formality != "default") {
                         put("formality", formality)
@@ -90,7 +94,7 @@ object DeepLService {
                     }
                     
                     val errorMsg = try {
-                        JSONObject(responseBody ?: "").optString("message") 
+                        Json.parseToJsonElement(responseBody ?: "").jsonObject["message"]?.jsonPrimitive?.contentOrNull
                             ?: "HTTP ${response.code}: ${response.message}"
                     } catch (e: Exception) {
                         "HTTP ${response.code}: ${response.message}"
@@ -103,11 +107,11 @@ object DeepLService {
                     continue
                 }
 
-                val jsonResponse = JSONObject(responseBody)
-                val translations = jsonResponse.optJSONArray("translations")
-                if (translations != null && translations.length() > 0) {
-                    val translatedLines = (0 until translations.length()).map { i ->
-                        translations.getJSONObject(i).optString("text", "")
+                val jsonResponse = Json.parseToJsonElement(responseBody).jsonObject
+                val translations = jsonResponse["translations"] as? JsonArray
+                if (translations != null && translations.isNotEmpty()) {
+                    val translatedLines = translations.map { element ->
+                        element.jsonObject["text"]?.jsonPrimitive?.contentOrNull.orEmpty()
                     }
                     
                     if (translatedLines.size == lineCount) {

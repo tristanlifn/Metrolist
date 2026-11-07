@@ -5,10 +5,8 @@
 
 package com.metrolist.music.ui.menu
 
-import android.app.SearchManager
 import com.metrolist.music.ui.utils.okLabel
-import android.content.Intent
-import android.content.res.Configuration
+import coil3.compose.LocalPlatformContext
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -49,15 +47,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.SongEntity
 import com.metrolist.music.lyrics.LyricsTranslationHelper
@@ -119,6 +114,7 @@ import com.metrolist.music.resources.copied_to_clipboard
 import com.metrolist.music.resources.error_no_internet
 import com.metrolist.music.utils.PlatformActions
 import org.koin.compose.koinInject
+import com.metrolist.music.ui.utils.isPortraitWindow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,7 +126,7 @@ fun LyricsMenu(
     onShowOffsetDialog: () -> Unit = {},
     viewModel: LyricsMenuViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
+    val context = LocalPlatformContext.current
     val platformActions = koinInject<PlatformActions>()
     val database = LocalDatabase.current
     
@@ -230,17 +226,7 @@ fun LyricsMenu(
                     onClick = {
                         showSearchDialog = false
                         onDismiss()
-                        try {
-                            context.startActivity(
-                                Intent(Intent.ACTION_WEB_SEARCH).apply {
-                                    putExtra(
-                                        SearchManager.QUERY,
-                                        "${artistField.text} ${titleField.text} lyrics"
-                                    )
-                                },
-                            )
-                        } catch (_: Exception) {
-                        }
+                        platformActions.searchWeb("${artistField.text} ${titleField.text} lyrics")
                     },
                 ) {
                     Text(stringResource(Res.string.search_online))
@@ -411,8 +397,7 @@ fun LyricsMenu(
         lyricsOffset = songProvider()?.lyricsOffset ?: 0
     }
 
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+    val isPortrait = isPortraitWindow()
 
     LazyColumn(
         contentPadding = PaddingValues(

@@ -20,8 +20,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
+import co.touchlab.kermit.Logger
 
 object OpenRouterStreamingService {
     private val client =
@@ -116,7 +116,7 @@ object OpenRouterStreamingService {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Timber.e(error, "Streaming translation failed")
+                Logger.e(error) { "Streaming translation failed" }
                 emit(StreamChunk.Error(error.message ?: "Unknown error"))
             }
         }.flowOn(Dispatchers.IO)

@@ -41,3 +41,37 @@ actual suspend fun artworkGradientColors(
         }
     return gradientFrom(Color(primary))
 }
+
+private suspend fun artworkColorCounts(
+    context: PlatformContext,
+    url: String,
+): Map<Int, Int>? {
+    val request = ImageRequest.Builder(context).data(url).build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    return withContext(Dispatchers.Default) {
+        QuantizerCelebi.quantize(bitmap.asComposeImageBitmap().toPixelMap().buffer, 16)
+    }
+}
+
+internal actual suspend fun artworkColorsByPopulation(
+    context: PlatformContext,
+    url: String,
+): List<Color> =
+    artworkColorCounts(context, url)
+        ?.entries
+        ?.sortedByDescending { it.value }
+        ?.map { Color(it.key) }
+        .orEmpty()
+
+actual suspend fun artworkVibrantColors(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Pair<Color, Color>? {
+    val counts = artworkColorCounts(context, url) ?: return null
+    val ranked = Score.score(counts, 2, fallbackColor, true)
+    val vibrant = Color(ranked.first())
+    return vibrant to (ranked.getOrNull(1)?.let(::Color) ?: gradientFrom(vibrant)[1])
+}

@@ -5,7 +5,6 @@
 
 package com.metrolist.music.lyrics
 
-import android.content.Context
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.SongEntity
@@ -23,9 +22,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ai_error_api_key_required
+import com.metrolist.music.resources.ai_error_language_required
+import com.metrolist.music.resources.ai_error_lyrics_empty
+import com.metrolist.music.resources.ai_error_no_lyrics
+import com.metrolist.music.resources.ai_error_translation_failed
+import com.metrolist.music.resources.ai_error_unknown
+import org.jetbrains.compose.resources.getString
+import co.touchlab.kermit.Logger
 
 /**
  * A helper class that provides AI-powered translation for lyrics.
@@ -173,7 +180,6 @@ object LyricsTranslationHelper {
         model: String,
         mode: String,
         scope: CoroutineScope,
-        context: Context,
         provider: String = "OpenRouter",
         deeplApiKey: String = "",
         deeplFormality: String = "default",
@@ -194,12 +200,12 @@ object LyricsTranslationHelper {
                     // Validate inputs
                     val effectiveApiKey = if (provider == "DeepL") deeplApiKey else apiKey
                     if (effectiveApiKey.isBlank()) {
-                        _status.value = TranslationStatus.Error(context.getString(com.metrolist.music.R.string.ai_error_api_key_required))
+                        _status.value = TranslationStatus.Error(getString(Res.string.ai_error_api_key_required))
                         return@launch
                     }
 
                     if (lyrics.isEmpty()) {
-                        _status.value = TranslationStatus.Error(context.getString(com.metrolist.music.R.string.ai_error_no_lyrics))
+                        _status.value = TranslationStatus.Error(getString(Res.string.ai_error_no_lyrics))
                         return@launch
                     }
 
@@ -210,7 +216,7 @@ object LyricsTranslationHelper {
                         }
 
                     if (nonEmptyEntries.isEmpty()) {
-                        _status.value = TranslationStatus.Error(context.getString(com.metrolist.music.R.string.ai_error_lyrics_empty))
+                        _status.value = TranslationStatus.Error(getString(Res.string.ai_error_lyrics_empty))
                         return@launch
                     }
 
@@ -247,7 +253,7 @@ object LyricsTranslationHelper {
                                     }
                                 }
                             } catch (e: Exception) {
-                                Timber.e(e, "Failed to persist cached translations to database")
+                                Logger.e(e) { "Failed to persist cached translations to database" }
                             }
                         }
 
@@ -260,7 +266,7 @@ object LyricsTranslationHelper {
 
                     // Validate language for all modes
                     if (targetLanguage.isBlank()) {
-                        _status.value = TranslationStatus.Error(context.getString(com.metrolist.music.R.string.ai_error_language_required))
+                        _status.value = TranslationStatus.Error(getString(Res.string.ai_error_language_required))
                         return@launch
                     }
 
@@ -276,7 +282,7 @@ object LyricsTranslationHelper {
 
                     val result =
                         if (provider == "DeepL") {
-                            Timber.d("Using DeepL for translation")
+                            Logger.d { "Using DeepL for translation" }
                             // DeepL only supports translation mode
                             DeepLService.translate(
                                 text = fullText,
@@ -285,7 +291,7 @@ object LyricsTranslationHelper {
                                 formality = deeplFormality,
                             )
                         } else if (useStreaming && provider != "Custom") {
-                            Timber.d("Using streaming for translation with provider: $provider")
+                            Logger.d { "Using streaming for translation with provider: $provider" }
                             // Use streaming for supported providers
                             var translatedLines: List<String>? = null
                             var hasError = false
@@ -302,7 +308,7 @@ object LyricsTranslationHelper {
                                     mode = mode,
                                     customSystemPrompt = systemPrompt,
                                 ).collect { chunk ->
-                                    Timber.v("Received streaming chunk: $chunk")
+                                    Logger.v { "Received streaming chunk: $chunk" }
                                     when (chunk) {
                                         is OpenRouterStreamingService.StreamChunk.Content -> {
                                             // Accumulate content for progressive parsing
@@ -324,19 +330,19 @@ object LyricsTranslationHelper {
                                         }
 
                                         is OpenRouterStreamingService.StreamChunk.Complete -> {
-                                            Timber.d("Streaming complete with ${chunk.translatedLines.size} lines")
+                                            Logger.d { "Streaming complete with ${chunk.translatedLines.size} lines" }
                                             translatedLines = chunk.translatedLines
                                         }
 
                                         is OpenRouterStreamingService.StreamChunk.Error -> {
-                                            Timber.e("Streaming error: ${chunk.message}")
+                                            Logger.e { "Streaming error: ${chunk.message}" }
                                             hasError = true
                                             errorMessage = chunk.message
                                         }
                                     }
                                 }
 
-                            Timber.d("Streaming collection complete. hasError=$hasError, translatedLines=${translatedLines?.size}")
+                            Logger.d { "Streaming collection complete. hasError=$hasError, translatedLines=${translatedLines?.size}" }
                             if (hasError) {
                                 Result.failure(Exception(errorMessage))
                             } else if (translatedLines != null) {
@@ -345,7 +351,7 @@ object LyricsTranslationHelper {
                                 Result.failure(Exception("No translation received"))
                             }
                         } else {
-                            Timber.d("Using non-streaming for translation")
+                            Logger.d { "Using non-streaming for translation" }
                             // Use non-streaming for Custom provider or when streaming is disabled
                             OpenRouterService.translate(
                                 text = fullText,
@@ -385,7 +391,7 @@ object LyricsTranslationHelper {
                                         }
                                     }
                                 } catch (e: Exception) {
-                                    Timber.e(e, "Failed to save translated lyrics to database")
+                                    Logger.e(e) { "Failed to save translated lyrics to database" }
                                 }
                             }
 
@@ -426,7 +432,7 @@ object LyricsTranslationHelper {
                                 return@onFailure
                             }
 
-                            val errorMessage = error.message ?: context.getString(com.metrolist.music.R.string.ai_error_unknown)
+                            val errorMessage = error.message ?: getString(Res.string.ai_error_unknown)
 
                             // Show error in UI
                             _status.value = TranslationStatus.Error(errorMessage)
@@ -434,7 +440,7 @@ object LyricsTranslationHelper {
                 } catch (e: Exception) {
                     // Ignore cancellation exceptions or if composition is no longer active
                     if (e !is kotlinx.coroutines.CancellationException && isCompositionActive) {
-                        val errorMessage = e.message ?: context.getString(com.metrolist.music.R.string.ai_error_translation_failed)
+                        val errorMessage = e.message ?: getString(Res.string.ai_error_translation_failed)
                         _status.value = TranslationStatus.Error(errorMessage)
                     }
                 }

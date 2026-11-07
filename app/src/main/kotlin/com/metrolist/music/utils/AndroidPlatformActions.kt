@@ -16,6 +16,7 @@ import android.content.ActivityNotFoundException
 import android.os.Build
 import android.provider.Settings
 import androidx.core.net.toUri
+import android.app.SearchManager
 
 class AndroidPlatformActions(
     private val context: Context,
@@ -28,13 +29,23 @@ class AndroidPlatformActions(
         }
     }
 
-    override fun shareText(text: String, subject: String?) {
+    override fun shareText(text: String, subject: String?, chooserTitle: String?) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
             subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
         }
-        context.startActivity(Intent.createChooser(intent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        context.startActivity(Intent.createChooser(intent, chooserTitle).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    override fun searchWeb(query: String) {
+        runCatching {
+            context.startActivity(
+                Intent(Intent.ACTION_WEB_SEARCH)
+                    .putExtra(SearchManager.QUERY, query)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
     }
 
     override fun copyToClipboard(label: String, text: String) {

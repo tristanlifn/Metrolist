@@ -44,6 +44,36 @@ actual suspend fun artworkGradientColors(
     return gradientFrom(Color(palette.rankedColors(1, fallbackColor).first()))
 }
 
+private suspend fun artworkPalette(
+    context: PlatformContext,
+    url: String,
+): Palette? {
+    val request = ImageRequest.Builder(context).data(url).allowHardware(false).build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    return withContext(Dispatchers.Default) { Palette.from(bitmap).generate() }
+}
+
+internal actual suspend fun artworkColorsByPopulation(
+    context: PlatformContext,
+    url: String,
+): List<Color> =
+    artworkPalette(context, url)
+        ?.swatches
+        ?.sortedByDescending { it.population }
+        ?.map { Color(it.rgb) }
+        .orEmpty()
+
+actual suspend fun artworkVibrantColors(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Pair<Color, Color>? =
+    artworkPalette(context, url)?.let { palette ->
+        Color(palette.getVibrantColor(fallbackColor)) to Color(palette.getDarkVibrantColor(fallbackColor))
+    }
+
 fun Palette.rankedColors(
     desiredColorCount: Int,
     fallbackColor: Int,

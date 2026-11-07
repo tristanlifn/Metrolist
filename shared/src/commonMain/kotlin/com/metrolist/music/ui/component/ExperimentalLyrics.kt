@@ -5,11 +5,8 @@
 
 package com.metrolist.music.ui.component
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
-import android.view.WindowManager
 import androidx.compose.animation.core.Animatable
+import coil3.compose.LocalPlatformContext
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDecay
@@ -69,10 +66,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import android.text.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
@@ -85,7 +79,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.playback.PlaybackState
-import com.metrolist.music.R
 import com.metrolist.music.constants.AiProviderKey
 import com.metrolist.music.constants.AiSystemPromptKey
 import com.metrolist.music.constants.DeeplApiKey
@@ -116,7 +109,6 @@ import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.ui.screens.settings.LyricsPosition
 import com.metrolist.music.ui.screens.settings.defaultList
 import com.metrolist.music.ui.utils.fadingEdge
-import com.metrolist.music.utils.ComposeToImage
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LyricsViewModel
@@ -140,6 +132,10 @@ import com.metrolist.music.resources.max_selection_limit
 import com.metrolist.music.utils.PlatformActions
 import org.koin.compose.koinInject
 import com.metrolist.music.ui.utils.BackHandler
+import androidx.compose.ui.platform.LocalWindowInfo
+import com.metrolist.music.lyrics.LyricsImageSharer
+import com.metrolist.music.resources.share_lyrics
+import com.metrolist.music.ui.utils.KeepScreenOn
 
 private const val LYRICS_ANCHOR_RATIO = 0.35f
 private val LYRICS_ITEM_FALLBACK_HEIGHT_DP = 68.dp
@@ -154,7 +150,6 @@ private const val LYRICS_PREVIEW_TIME = 8000L
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
-@SuppressLint("UnusedBoxWithConstraintsScope", "StringFormatInvalid")
 @Composable
 fun ExperimentalLyrics(
     sliderPositionProvider: () -> Long?,
@@ -165,9 +160,8 @@ fun ExperimentalLyrics(
     val playerConnection = LocalPlayerConnection.current ?: return
     val database = LocalDatabase.current
     val density = LocalDensity.current
-    val context = LocalContext.current
+    val context = LocalPlatformContext.current
     val platformActions = koinInject<PlatformActions>()
-    val configuration = LocalConfiguration.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
@@ -286,7 +280,6 @@ fun ExperimentalLyrics(
                     model = openRouterModel,
                     mode = translateMode,
                     scope = scope,
-                    context = context,
                     provider = aiProvider,
                     deeplApiKey = deeplApiKey,
                     deeplFormality = deeplFormality,
@@ -497,11 +490,10 @@ fun ExperimentalLyrics(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(showLyrics) {
-        val activity = context as? Activity
-        if (showLyrics) activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
-    }
+    val lyricsImageSharer = koinInject<LyricsImageSharer>()
+    val windowInfo = LocalWindowInfo.current
+    val shareLyricsStr = stringResource(Res.string.share_lyrics)
+    KeepScreenOn(showLyrics)
 
     BoxWithConstraints(
         contentAlignment = Alignment.TopCenter,
@@ -869,29 +861,21 @@ fun ExperimentalLyrics(
                 showProgressDialog = true
                 scope.launch {
                     try {
-                        val image = ComposeToImage.createLyricsImage(
-                            context, mediaMetadata?.thumbnailUrl, title, arts, txt,
-                            (configuration.screenWidthDp * density.density).toInt(),
-                            (configuration.screenHeightDp * density.density).toInt(),
-                            bgColor.toArgb(),
-                            when(style) {
-                                LyricsBackgroundStyle.SOLID -> LyricsBackgroundStyle.SOLID
-                                LyricsBackgroundStyle.BLUR -> LyricsBackgroundStyle.BLUR
-                                LyricsBackgroundStyle.GRADIENT -> LyricsBackgroundStyle.GRADIENT
-                            },
-                            textColor.toArgb(), secTextColor.toArgb(),
-                            when (lyricsTextPosition) {
-                                LyricsPosition.LEFT -> Layout.Alignment.ALIGN_NORMAL
-                                LyricsPosition.CENTER -> Layout.Alignment.ALIGN_CENTER
-                                else -> Layout.Alignment.ALIGN_OPPOSITE
-                            }
+                        val windowSize = windowInfo.containerSize
+                        lyricsImageSharer.share(
+                            coverArtUrl = mediaMetadata?.thumbnailUrl,
+                            songTitle = title,
+                            artistName = arts,
+                            lyrics = txt,
+                            width = windowSize.width,
+                            height = windowSize.height,
+                            backgroundColor = bgColor.toArgb(),
+                            backgroundStyle = style,
+                            textColor = textColor.toArgb(),
+                            secondaryTextColor = secTextColor.toArgb(),
+                            alignment = lyricsTextPosition,
+                            chooserTitle = shareLyricsStr,
                         )
-                        val uri = ComposeToImage.saveBitmapAsFile(context, image, "lyrics_${System.currentTimeMillis()}")
-                        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-                            type = "image/png"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }, context.getString(R.string.share_lyrics)))
                     } catch (e: Exception) {
                         platformActions.toast(Res.string.failed_to_create_image, e.message.orEmpty())
                     } finally {
