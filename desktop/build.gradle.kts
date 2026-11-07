@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.coroutines.swing)
     implementation(libs.coil.network.okhttp)
     implementation(libs.jna)
+    implementation(libs.sqlite.bundled)
     implementation(libs.dbus.java.core)
     implementation(libs.dbus.java.transport)
 }

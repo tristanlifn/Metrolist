@@ -46,5 +46,5 @@ val desktopModule = module {
     single<LyricsImageSharer> { NoLyricsImageSharer() }
     single<AppSession> { DesktopAppSession(get()) }
     factoryOf(::LyricsHelper)
-    single { DesktopMusicPlayer(get(), get(), get(), StreamResolver()) } bind MusicPlayer::class
+    single { DesktopMusicPlayer(get(), get(), get(), StreamResolver(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
 }

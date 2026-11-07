@@ -14,12 +14,14 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.HistoryDuration
 import com.metrolist.music.constants.PauseListenHistoryKey
+import com.metrolist.music.constants.PersistentQueueKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Event
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.models.PersistQueueSessions
 import com.metrolist.music.models.QueueSession
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.CastControl
@@ -50,6 +52,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.time.LocalDateTime
 
 /**
@@ -62,6 +69,8 @@ class DesktopMusicPlayer(
     private val dataStore: DataStore<Preferences>,
     private val syncUtils: SyncUtils,
     private val streamResolver: StreamResolver,
+    // Where queue sessions are kept between runs; null keeps them in memory only.
+    private val sessionsFile: File?,
 ) : MusicPlayer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
     private val mpv = Mpv { event -> scope.launch { onMpvEvent(event) } }
@@ -97,8 +106,8 @@ class DesktopMusicPlayer(
     override val queueTitle = MutableStateFlow<String?>(null)
     override val queue = MutableStateFlow<List<QueueEntry>>(emptyList())
     override val currentQueuePosition = MutableStateFlow(-1)
-    override val queueSessions: StateFlow<List<QueueSession>> = MutableStateFlow(emptyList<QueueSession>()).asStateFlow()
-    override val activeQueueId: StateFlow<Long?> = MutableStateFlow<Long?>(null).asStateFlow()
+    override val queueSessions = MutableStateFlow<List<QueueSession>>(emptyList())
+    override val activeQueueId = MutableStateFlow<Long?>(null)
     override val shuffleModeEnabled = MutableStateFlow(false)
     override val repeatMode = MutableStateFlow(RepeatMode.OFF)
     override val canSkipPrevious = MutableStateFlow(false)
@@ -132,10 +141,17 @@ class DesktopMusicPlayer(
     override val hasPreviousItem: Boolean get() = position > 0
     override val hasNextItem: Boolean get() = position in 0 until order.size - 1
 
+    init {
+        scope.launch { restoreSessions() }
+    }
+
     override fun playQueue(queue: Queue) {
         scope.launch {
             recordHistory()
             pagingJob?.cancel()
+            snapshotActiveSession()
+            startQueueSession(queue)
+            val sessionId = activeQueueId.value
             source = queue
             queue.preloadItem?.let { preload ->
                 setItems(listOf(preload), 0)
@@ -147,6 +163,7 @@ class DesktopMusicPlayer(
                     .filterExplicit(dataStore.get(HideExplicitKey, false))
                     .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
             queueTitle.value = status.title
+            status.title?.let { onSessionTitleResolved(sessionId, it) }
             if (status.items.isEmpty()) return@launch
             val alreadyPlaying = queue.preloadItem != null && status.items.getOrNull(status.mediaItemIndex)?.id == mediaMetadata.value?.id
             setItems(status.items, status.mediaItemIndex)
@@ -155,9 +172,30 @@ class DesktopMusicPlayer(
         }
     }
 
-    override fun switchQueue(id: Long) = Unit
+    override fun switchQueue(id: Long) {
+        scope.launch {
+            if (id == activeQueueId.value) return@launch
+            val target = queueSessions.value.firstOrNull { it.id == id }?.takeIf { it.items.isNotEmpty() } ?: return@launch
+            recordHistory()
+            pagingJob?.cancel()
+            snapshotActiveSession()
+            loadSession(target, playWhenReady.value)
+            queueSessions.value = listOf(target) + queueSessions.value.filter { it.id != id }
+            activeQueueId.value = id
+            saveSessions()
+        }
+    }
 
-    override fun deleteQueue(id: Long) = Unit
+    override fun deleteQueue(id: Long) {
+        scope.launch {
+            queueSessions.value = queueSessions.value.filter { it.id != id }
+            if (activeQueueId.value == id) {
+                activeQueueId.value = null
+                clearNow()
+            }
+            saveSessions()
+        }
+    }
 
     override fun playNext(items: List<MediaMetadata>) {
         scope.launch {
@@ -371,7 +409,114 @@ class DesktopMusicPlayer(
 
     override fun clearAutomix() = Unit
 
-    fun release() = mpv.destroy()
+    fun release() {
+        runBlocking {
+            withTimeoutOrNull(RELEASE_TIMEOUT_MS) {
+                scope.launch {
+                    snapshotActiveSession()
+                    saveSessions()
+                }.join()
+            }
+        }
+        mpv.destroy()
+    }
+
+    private suspend fun restoreSessions() {
+        val file = sessionsFile?.takeIf { it.exists() } ?: return
+        if (!dataStore.get(PersistentQueueKey, true)) return
+        val saved =
+            runCatching { ObjectInputStream(file.inputStream()).use { it.readObject() as PersistQueueSessions } }
+                .onFailure {
+                    Logger.withTag("DesktopPlayer").w(it) { "Failed to read queue sessions, clearing data" }
+                    file.delete()
+                }.getOrNull() ?: return
+        queueSessions.value = saved.sessions
+        val active = saved.sessions.firstOrNull { it.id == saved.activeId && it.items.isNotEmpty() } ?: return
+        activeQueueId.value = active.id
+        loadSession(active, playWhenReady = false)
+    }
+
+    private suspend fun loadSession(
+        session: QueueSession,
+        playWhenReady: Boolean,
+    ) {
+        val index = session.mediaItemIndex.coerceIn(0, session.items.lastIndex)
+        // Sessions read from disk lose their source queue, so they can't page further.
+        source = session.liveQueue
+        queueTitle.value = session.title
+        setItems(session.items, index)
+        if (session.shuffleEnabled) {
+            shuffleModeEnabled.value = true
+            order = session.shuffleOrder?.takeIf { it.sorted() == items.indices.toList() }
+                ?: (listOf(index) + items.indices.filter { it != index }.shuffled())
+            position = order.indexOf(index)
+            publishQueue()
+        }
+        _newQueueStarted.tryEmit(Unit)
+        startCurrent(session.position, playWhenReady)
+    }
+
+    private fun snapshotActiveSession() {
+        val id = activeQueueId.value ?: return
+        val playing = order.getOrNull(position) ?: return
+        queueSessions.value =
+            queueSessions.value.map { session ->
+                if (session.id != id) {
+                    session
+                } else {
+                    session.copy(
+                        title = queueTitle.value,
+                        items = items.map { it.metadata },
+                        mediaItemIndex = playing,
+                        position = currentPosition,
+                        shuffleEnabled = shuffleModeEnabled.value,
+                        shuffleOrder = order.takeIf { shuffleModeEnabled.value },
+                        liveQueue = source,
+                    )
+                }
+            }
+    }
+
+    private suspend fun startQueueSession(queue: Queue) {
+        val session =
+            QueueSession(
+                id = (queueSessions.value.maxOfOrNull { it.id } ?: 0L) + 1,
+                title = null,
+                items = emptyList(),
+                mediaItemIndex = 0,
+                position = 0L,
+                shuffleEnabled = false,
+                shuffleOrder = null,
+                liveQueue = queue,
+            )
+        queueSessions.value = (listOf(session) + queueSessions.value).take(MAX_QUEUE_SESSIONS)
+        activeQueueId.value = session.id
+        saveSessions()
+    }
+
+    private suspend fun onSessionTitleResolved(
+        sessionId: Long?,
+        title: String,
+    ) {
+        if (sessionId == null || activeQueueId.value != sessionId) return
+        // Playing a source again replaces its previous queue instead of duplicating it
+        queueSessions.value =
+            queueSessions.value
+                .filter { it.id == sessionId || it.title != title }
+                .map { if (it.id == sessionId) it.copy(title = title) else it }
+        saveSessions()
+    }
+
+    private suspend fun saveSessions() {
+        val file = sessionsFile ?: return
+        if (!dataStore.get(PersistentQueueKey, true)) return
+        val persisted = PersistQueueSessions(activeQueueId.value, queueSessions.value)
+        runCatching {
+            val tmp = File(file.path + ".tmp")
+            ObjectOutputStream(tmp.outputStream()).use { it.writeObject(persisted) }
+            tmp.renameTo(file)
+        }.onFailure { Logger.withTag("DesktopPlayer").e(it) { "Failed to save queue sessions" } }
+    }
 
     private suspend fun setAndPlay(newItems: List<MediaMetadata>) {
         setItems(newItems, 0)
@@ -577,6 +722,8 @@ class DesktopMusicPlayer(
     private companion object {
         const val RESTART_THRESHOLD_MS = 3_000L
         const val PAGE_AHEAD = 3
+        const val MAX_QUEUE_SESSIONS = 20
+        const val RELEASE_TIMEOUT_MS = 2_000L
         const val ERROR_CODE_NO_STREAM = 2004
         const val ERROR_CODE_PLAYBACK = 2001
     }

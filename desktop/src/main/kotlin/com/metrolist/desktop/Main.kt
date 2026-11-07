@@ -32,8 +32,12 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.metrolist.desktop.login.DesktopLoginScreen
+import com.metrolist.desktop.login.runLoginCheck
 import com.metrolist.desktop.mpris.MprisService
+import androidx.navigation.compose.composable
 import com.metrolist.desktop.playback.DesktopMusicPlayer
+import com.metrolist.desktop.playback.StreamResolver
 import com.metrolist.music.MetrolistApp
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.di.sharedViewModelModule
@@ -53,6 +57,7 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.firstOrNull() == "--probe") return runPlaybackProbe(args.drop(1))
+    if (args.firstOrNull() == "--login-check") return runLoginCheck()
 
     BuildInfo.init(
         versionName = DESKTOP_VERSION,
@@ -67,7 +72,7 @@ fun main(args: Array<String>) {
     val koin = startKoin { modules(desktopModule, sharedViewModelModule) }.koin
     CoroutineScope(SupervisorJob() + Dispatchers.IO).syncInnerTubeSettings(koin.get<DataStore<Preferences>>())
 
-    if (args.firstOrNull() == "--player-check") return runPlayerCheck(koin.get(), args.drop(1))
+    if (args.firstOrNull() == "--player-check") return runPlayerCheck(DesktopMusicPlayer(koin.get(), koin.get(), koin.get(), StreamResolver(), sessionsFile = null), args.drop(1))
 
     if (args.firstOrNull() == "--snapshot") {
         // Snapshots show the app itself, not the first-run changelog sheet.
@@ -130,6 +135,10 @@ private fun DesktopApp() {
             downloadUtil = koinInject<SongDownloads>(),
             syncUtils = koinInject<SyncUtils>(),
             listenTogetherManager = null,
+            platformRoutes = { navController ->
+                composable("login") { DesktopLoginScreen(navController) }
+                composable("switch_channel") { DesktopLoginScreen(navController) }
+            },
         )
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp))
     }
