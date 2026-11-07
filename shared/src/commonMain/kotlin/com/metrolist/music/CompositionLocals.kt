@@ -18,6 +18,7 @@ import com.metrolist.music.utils.SyncUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.metrolist.music.models.MediaMetadata
 
 val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database provided") }
 val LocalNavController = staticCompositionLocalOf<NavController> { error("No NavController provided") }
@@ -30,4 +31,10 @@ val LocalChangelogState = staticCompositionLocalOf<MutableState<Boolean>> { erro
 val LocalArtistNameAliases = staticCompositionLocalOf<Map<String, String>> { emptyMap() }
 // Flavour-specific cast button; draws nothing where casting isn't available.
 val LocalCastButton = staticCompositionLocalOf<@Composable (modifier: Modifier, tintColor: Color) -> Unit> { { _, _ -> } }
+// Platform-only player menu features; the defaults hide them.
+val LocalListenTogetherDialog =
+    staticCompositionLocalOf<@Composable (visible: Boolean, mediaMetadata: MediaMetadata?, onDismiss: () -> Unit) -> Unit> {
+        { _, _, _ -> }
+    }
+val LocalSystemEqualizerLauncher = staticCompositionLocalOf<@Composable () -> (() -> Unit)?> { { null } }
 val LocalIsPlayerExpanded = compositionLocalOf { false }

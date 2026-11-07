@@ -6,8 +6,6 @@
 package com.metrolist.music.ui.player
 
 import com.metrolist.music.ui.utils.okLabel
-import android.content.res.Configuration
-import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -93,8 +91,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -112,18 +108,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import com.metrolist.music.LocalNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
@@ -170,7 +161,6 @@ import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.theme.PlayerSliderColors
 import com.metrolist.music.ui.utils.ShowMediaInfo
 import com.metrolist.music.ui.utils.ShowOffsetDialog
-import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
@@ -225,6 +215,11 @@ import androidx.datastore.preferences.core.Preferences
 import com.metrolist.music.utils.safeEdit
 import com.metrolist.music.ui.utils.BackHandler
 import com.metrolist.music.ui.theme.artworkGradientColors
+import coil3.compose.LocalPlatformContext
+import com.metrolist.music.ui.utils.PlayerWindowEffects
+import com.metrolist.music.ui.utils.isPortraitWindow
+import com.metrolist.music.ui.utils.softwareBitmap
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -235,7 +230,7 @@ fun BottomSheetPlayer(
     modifier: Modifier = Modifier,
     pureBlack: Boolean,
 ) {
-    val context = LocalContext.current
+    val context = LocalPlatformContext.current
     val dataStore = koinInject<DataStore<Preferences>>()
     val platformActions = koinInject<PlatformActions>()
     val menuState = LocalMenuState.current
@@ -290,44 +285,13 @@ fun BottomSheetPlayer(
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val keepScreenOn = isPlaying && isKeepScreenOn
 
-    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme, keepScreenOn, isFullScreen, hideStatusBarOnFullscreen) {
-        val window = (context as? android.app.Activity)?.window
-        if (window != null && state.isExpanded) {
-            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-
-            when (playerBackground) {
-                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
-                    insetsController.isAppearanceLightStatusBars = false
-                }
-
-                PlayerBackgroundStyle.DEFAULT -> {
-                    insetsController.isAppearanceLightStatusBars = !useDarkTheme
-                }
-            }
-
-            if (isFullScreen && hideStatusBarOnFullscreen) {
-                insetsController.hide(WindowInsetsCompat.Type.statusBars())
-                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            } else {
-                insetsController.show(WindowInsetsCompat.Type.statusBars())
-            }
-
-            if (keepScreenOn && state.isExpanded) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            } else {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            }
-        }
-
-        onDispose {
-            if (window != null) {
-                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-                insetsController.isAppearanceLightStatusBars = !useDarkTheme
-                insetsController.show(WindowInsetsCompat.Type.statusBars())
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            }
-        }
-    }
+    PlayerWindowEffects(
+        active = state.isExpanded,
+        lightStatusBar = playerBackground == PlayerBackgroundStyle.DEFAULT && !useDarkTheme,
+        hideStatusBar = isFullScreen && hideStatusBarOnFullscreen,
+        keepScreenOn = keepScreenOn,
+        lightStatusBarAfter = !useDarkTheme,
+    )
 
     BackHandler(enabled = state.isExpanded) {
         state.collapseSoft()
@@ -858,7 +822,7 @@ fun BottomSheetPlayer(
                                                 .Builder(context)
                                                 .data(thumbnailUrl)
                                                 .size(100, 100)
-                                                .allowHardware(false)
+                                                .softwareBitmap()
                                                 .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
@@ -1870,8 +1834,8 @@ fun BottomSheetPlayer(
             }
         }
 
-        when (LocalConfiguration.current.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> {
+        when (isPortraitWindow()) {
+            false -> {
                 // Calculate vertical padding like OuterTune
                 val density = LocalDensity.current
                 val verticalPadding =
@@ -2039,13 +2003,12 @@ fun InlineLyricsView(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 
+    // The app has a single window, so its lifecycle is the app's foreground state.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
     var appInForeground by remember {
-        mutableStateOf(
-            ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED),
-        )
+        mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
     }
-    DisposableEffect(Unit) {
-        val lifecycle = ProcessLifecycleOwner.get().lifecycle
+    DisposableEffect(lifecycle) {
         val observer =
             LifecycleEventObserver { _, _ ->
                 appInForeground = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)

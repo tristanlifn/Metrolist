@@ -228,6 +228,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
 import com.metrolist.music.ui.component.CastButton
+import com.metrolist.music.ui.menu.ListenTogetherDialog
+import com.metrolist.music.ui.menu.rememberSystemEqualizerLauncher
 
 private data class AvailableUpdate(
     val release: ReleaseInfo,
@@ -1034,6 +1036,8 @@ class MainActivity : FragmentActivity() {
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalCastButton provides { modifier, tintColor -> CastButton(modifier, tintColor) },
+                    LocalListenTogetherDialog provides { visible, mediaMetadata, onDismiss -> ListenTogetherDialog(visible, mediaMetadata, onDismiss) },
+                    LocalSystemEqualizerLauncher provides { rememberSystemEqualizerLauncher() },
                     LocalChangelogState provides showChangelog,
                     LocalArtistNameAliases provides artistNameAliases,
                 ) {

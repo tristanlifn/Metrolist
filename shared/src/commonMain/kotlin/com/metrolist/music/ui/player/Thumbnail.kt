@@ -94,6 +94,10 @@ import com.metrolist.music.resources.seek_backward_dynamic
 import com.metrolist.music.resources.seek_forward_dynamic
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.filter
+import androidx.compose.runtime.withFrameNanos
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -231,17 +235,25 @@ fun Thumbnail(
 
     // Current item tracking - derived state for efficiency
     val currentItem by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemIndex } }
-    val itemScrollOffset by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemScrollOffset } }
 
-    // Handle swipe to change song
-    LaunchedEffect(itemScrollOffset) {
-        if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0 || currentMediaIndex < 0) return@LaunchedEffect
-
-        if (currentItem > currentMediaIndex && canSkipNext) {
-            playerConnection.skipToNextItem()
-        } else if (currentItem < currentMediaIndex && canSkipPrevious) {
-            playerConnection.skipToPreviousItem()
-        }
+    // Change song once a swipe has settled on a neighbouring cover. Checking when scrolling stops,
+    // rather than on the frame the offset reaches zero, can't miss a swipe that settles slowly.
+    val latestCurrentMediaIndex by rememberUpdatedState(currentMediaIndex)
+    val latestCanSkipNext by rememberUpdatedState(canSkipNext)
+    val latestCanSkipPrevious by rememberUpdatedState(canSkipPrevious)
+    LaunchedEffect(thumbnailLazyGridState, swipeThumbnail) {
+        if (!swipeThumbnail) return@LaunchedEffect
+        snapshotFlow { thumbnailLazyGridState.isScrollInProgress }
+            .filter { inProgress -> !inProgress }
+            .collect {
+                val settledItem = thumbnailLazyGridState.firstVisibleItemIndex
+                if (thumbnailLazyGridState.firstVisibleItemScrollOffset != 0 || latestCurrentMediaIndex < 0) return@collect
+                if (settledItem > latestCurrentMediaIndex && latestCanSkipNext) {
+                    playerConnection.skipToNextItem()
+                } else if (settledItem < latestCurrentMediaIndex && latestCanSkipPrevious) {
+                    playerConnection.skipToPreviousItem()
+                }
+            }
     }
 
     // Update position when song changes
@@ -256,9 +268,12 @@ fun Thumbnail(
         }
     }
 
-    LaunchedEffect(queuePosition) {
+    // Items are keyed by song, so when the neighbours shift the grid keeps showing whichever cover was visible.
+    // Wait a frame for that shift to land, then re-centre on the playing song.
+    LaunchedEffect(mediaItemsData) {
+        withFrameNanos { }
         val index = mediaItemsData.currentIndex
-        if (index >= 0 && index != currentItem) {
+        if (index >= 0 && !thumbnailLazyGridState.isScrollInProgress && index != thumbnailLazyGridState.firstVisibleItemIndex) {
             thumbnailLazyGridState.scrollToItem(index)
         }
     }

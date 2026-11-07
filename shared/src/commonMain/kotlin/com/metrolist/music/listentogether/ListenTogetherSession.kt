@@ -5,6 +5,7 @@
 
 package com.metrolist.music.listentogether
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 enum class RoomRole {
@@ -18,6 +19,12 @@ interface ListenTogetherSession {
     val isInRoom: Boolean
     val isHost: Boolean
     val role: StateFlow<RoomRole>
+
+    /** Track suggestions waiting for the host's approval. */
+    val pendingSuggestionCount: Flow<Int>
+
+    /** Asks the host for its current position (guests only). */
+    fun requestSync()
 
     fun suggestTrack(
         id: String,

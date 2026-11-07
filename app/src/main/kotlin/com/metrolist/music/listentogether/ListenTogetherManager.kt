@@ -148,6 +148,7 @@ class ListenTogetherManager(
         val events = client.events
         val blockedUsernames = client.blockedUsernames
         val pendingSuggestions = client.pendingSuggestions
+        override val pendingSuggestionCount = pendingSuggestions.map { it.size }
 
         override val isInRoom: Boolean get() = client.isInRoom
         override val isHost: Boolean get() = client.isHost
@@ -1974,7 +1975,7 @@ class ListenTogetherManager(
          * Request sync state from server (for guests to re-sync)
          * Call this when a guest presses play/pause to sync with host
          */
-        fun requestSync() {
+        override fun requestSync() {
             if (!isInRoom || isHost) {
                 Timber.tag(TAG).d("requestSync: not applicable (isInRoom=$isInRoom, isHost=$isHost)")
                 return
