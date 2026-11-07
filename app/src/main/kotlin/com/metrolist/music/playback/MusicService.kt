@@ -222,7 +222,6 @@ import com.metrolist.music.widget.MetrolistWidgetManager
 import com.metrolist.music.widget.MusicWidgetReceiver
 import com.metrolist.music.widget.PlaylistWidgetReceiver
 import com.metrolist.music.ui.utils.resize
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
@@ -251,11 +250,11 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
-import javax.inject.Inject
 import kotlin.random.Random
 import java.util.Collections
 
@@ -264,41 +263,29 @@ private const val INSTANT_SILENCE_SKIP_SETTLE_MS = 350L
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @androidx.annotation.OptIn(UnstableApi::class)
-@AndroidEntryPoint
 class MusicService :
     MediaLibraryService(),
     Player.Listener,
     PlaybackStatsListener.Callback {
-    @Inject
-    @com.metrolist.music.di.ApplicationScope
-    lateinit var applicationScope: CoroutineScope
+    val applicationScope: CoroutineScope by inject(com.metrolist.music.di.ApplicationScope)
 
-    @Inject
-    lateinit var database: MusicDatabase
+    val database: MusicDatabase by inject()
 
-    @Inject
-    lateinit var lyricsHelper: LyricsHelper
+    val lyricsHelper: LyricsHelper by inject()
 
-    @Inject
-    lateinit var syncUtils: SyncUtils
+    val syncUtils: SyncUtils by inject()
 
-    @Inject
-    lateinit var downloadUtil: DownloadUtil
+    val downloadUtil: DownloadUtil by inject()
 
-    @Inject
-    lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
+    val mediaLibrarySessionCallback: MediaLibrarySessionCallback by inject()
 
-    @Inject
-    lateinit var equalizerService: EqualizerService
+    val equalizerService: EqualizerService by inject()
 
-    @Inject
-    lateinit var eqProfileRepository: EQProfileRepository
+    val eqProfileRepository: EQProfileRepository by inject()
 
-    @Inject
-    lateinit var widgetManager: MetrolistWidgetManager
+    val widgetManager: MetrolistWidgetManager by inject()
 
-    @Inject
-    lateinit var listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager
+    val listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager by inject()
 
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -394,13 +381,9 @@ class MusicService :
 
     var sleepTimer: SleepTimer? = null
 
-    @Inject
-    @PlayerCache
-    lateinit var playerCache: Cache
+    val playerCache: Cache by inject(PlayerCache)
 
-    @Inject
-    @DownloadCache
-    lateinit var downloadCache: Cache
+    val downloadCache: Cache by inject(DownloadCache)
 
     lateinit var player: ExoPlayer
         private set
@@ -1739,13 +1722,13 @@ class MusicService :
             database.query {
                 relatedPage.songs
                     .map(SongItem::toMediaMetadata)
-                    .onEach(::insert)
+                    .onEach { insert(it) }
                     .map {
                         RelatedSongMap(
                             songId = mediaId,
                             relatedSongId = it.id,
                         )
-                    }.forEach(::insert)
+                    }.forEach { insert(it) }
             }
         }
     }
@@ -1842,35 +1825,37 @@ class MusicService :
             player.playWhenReady = playWhenReady
         }
         scope.launch(SilentHandler) {
-            val initialStatus =
+            val (initialStatus, initialItems) =
                 withContext(Dispatchers.IO) {
-                    queue
-                        .getInitialStatus()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    val status =
+                        queue
+                            .getInitialStatus()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    status to status.items.map { it.toMediaItem() }
                 }
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-                onSessionTitleResolved(sessionId, initialStatus.title)
+            initialStatus.title?.let { title ->
+                queueTitle = title
+                onSessionTitleResolved(sessionId, title)
             }
-            if (initialStatus.items.isEmpty()) return@launch
+            if (initialItems.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
-            originalQueueSize = initialStatus.items.size
+            originalQueueSize = initialItems.size
             if (queue.preloadItem != null) {
                 player.addMediaItems(
                     0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex),
+                    initialItems.subList(0, initialStatus.mediaItemIndex),
                 )
                 player.addMediaItems(
-                    initialStatus.items.subList(
+                    initialItems.subList(
                         initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size,
+                        initialItems.size,
                     ),
                 )
             } else {
                 player.setMediaItems(
-                    initialStatus.items,
+                    initialItems,
                     if (initialStatus.mediaItemIndex >
                         0
                     ) {
@@ -1966,7 +1951,7 @@ class MusicService :
         val items = target.items.map { it.toMediaItem() }
         val index = target.mediaItemIndex.coerceIn(0, items.lastIndex)
         clearAutomix()
-        currentQueue = target.liveQueue ?: ListQueue(target.title, items, index, target.position)
+        currentQueue = target.liveQueue ?: ListQueue(target.title, target.items, index, target.position)
         queueTitle = target.title
         originalQueueSize = 0
         player.setMediaItems(items, index, target.position)
@@ -2045,22 +2030,17 @@ class MusicService :
                 )
 
             try {
-                val initialStatus =
+                val (initialStatus, radioItems) =
                     withContext(Dispatchers.IO) {
-                        radioQueue
-                            .getInitialStatus()
-                            .filterExplicit(dataStore.get(HideExplicitKey, false))
-                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                        val status =
+                            radioQueue
+                                .getInitialStatus()
+                                .filterExplicit(dataStore.get(HideExplicitKey, false))
+                                .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                        status to status.items.filter { it.id != currentMediaId }.map { it.toMediaItem() }
                     }
 
-                if (initialStatus.title != null) {
-                    queueTitle = initialStatus.title
-                }
-
-                val radioItems =
-                    initialStatus.items.filter { item ->
-                        item.mediaId != currentMediaId
-                    }
+                initialStatus.title?.let { queueTitle = it }
 
                 if (radioItems.isNotEmpty()) {
                     val itemCount = player.mediaItemCount
@@ -2092,9 +2072,10 @@ class MusicService :
                             val radioItems =
                                 songs
                                     .filter { it.id != currentMediaId }
-                                    .map { it.toMediaItem() }
+                                    .map { it.toMediaMetadata() }
                                     .filterExplicit(cachedHideExplicit)
                                     .filterVideoSongs(cachedHideVideoSongs)
+                                    .map { it.toMediaItem() }
 
                             if (radioItems.isNotEmpty()) {
                                 val itemCount = player.mediaItemCount
@@ -2771,6 +2752,7 @@ class MusicService :
                             .nextPage()
                             .filterExplicit(cachedHideExplicit)
                             .filterVideoSongs(cachedHideVideoSongs)
+                            .map { it.toMediaItem() }
                     }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
@@ -3923,10 +3905,11 @@ class MusicService :
             return null
         }
 
+        val channelId = artist.channelId
         val browseId = when {
-            artist.channelId != null && !artist.channelId.startsWith("LA")
-                && !artist.channelId.startsWith("FEmusic_library_privately_owned") -> {
-                artist.channelId
+            channelId != null && !channelId.startsWith("LA")
+                && !channelId.startsWith("FEmusic_library_privately_owned") -> {
+                channelId
             }
             !artist.id.startsWith("LA")
                 && !artist.id.startsWith("FEmusic_library_privately_owned") -> {
@@ -4674,7 +4657,7 @@ class MusicService :
                 val playlistName = database.playlist(targetId).first()?.playlist?.name ?: targetTitle
                 ListQueue(
                     title = playlistName,
-                    items = songs.map { it.song.toMediaItem() },
+                    items = songs.map { it.song.toMediaMetadata() },
                 )
             }
 
@@ -4685,7 +4668,7 @@ class MusicService :
                 if (cachedSongs.isNotEmpty()) {
                     ListQueue(
                         title = cachedPlaylist?.playlist?.name ?: targetTitle,
-                        items = cachedSongs.map { it.song.toMediaItem() },
+                        items = cachedSongs.map { it.song.toMediaMetadata() },
                     )
                 } else {
                     YouTubePlaylistQueue(
@@ -4700,7 +4683,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.liked_songs),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4709,7 +4692,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.downloaded_songs),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4719,7 +4702,7 @@ class MusicService :
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.my_top),
-                    items = songs.map { it.toMediaItem() },
+                    items = songs.map { it.toMediaMetadata() },
                 )
             }
 
@@ -4774,7 +4757,7 @@ class MusicService :
                     }
                     return@launch
                 }
-                val items = playlistSongs.map { it.song.toMediaItem() }
+                val items = playlistSongs.map { it.song.toMediaMetadata() }
                 val playlistName =
                     withContext(Dispatchers.IO) {
                         database

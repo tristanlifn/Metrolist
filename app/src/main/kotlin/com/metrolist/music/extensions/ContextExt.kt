@@ -8,8 +8,6 @@ package com.metrolist.music.extensions
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.metrolist.innertube.utils.parseCookieString
-import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.YtmSyncKey
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
@@ -22,10 +20,7 @@ fun Context.isSyncEnabled(): Boolean {
 }
 
 fun Context.isUserLoggedIn(): Boolean {
-    return runBlocking {
-        val cookie = dataStore[InnerTubeCookieKey] ?: ""
-        "SAPISID" in parseCookieString(cookie) && isInternetConnected()
-    }
+    return dataStore.hasLoginCookie() && isInternetConnected()
 }
 
 fun Context.isInternetConnected(): Boolean {

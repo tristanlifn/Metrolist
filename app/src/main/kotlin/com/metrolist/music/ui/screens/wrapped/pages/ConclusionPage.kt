@@ -16,15 +16,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ic_launcher_foreground
+import com.metrolist.music.resources.wrapped_close
+import com.metrolist.music.resources.wrapped_logo_content_description
+import com.metrolist.music.resources.wrapped_special_thanks
+import com.metrolist.music.resources.wrapped_thank_you
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConclusionPage(onClose: () -> Unit) {
@@ -36,14 +41,14 @@ fun ConclusionPage(onClose: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = stringResource(R.string.wrapped_logo_content_description),
+                painter = painterResource(Res.drawable.ic_launcher_foreground),
+                contentDescription = stringResource(Res.string.wrapped_logo_content_description),
                 modifier = Modifier.size(96.dp),
                 tint = Color.White
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.wrapped_thank_you),
+                text = stringResource(Res.string.wrapped_thank_you),
                 style = TextStyle(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
@@ -52,7 +57,7 @@ fun ConclusionPage(onClose: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.wrapped_special_thanks),
+                text = stringResource(Res.string.wrapped_special_thanks),
                 style = TextStyle(
                     fontSize = 16.sp,
                     color = Color.Gray
@@ -65,7 +70,7 @@ fun ConclusionPage(onClose: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_close),
+                    text = stringResource(Res.string.wrapped_close),
                     style = TextStyle(
                         color = Color.Black,
                         fontWeight = FontWeight.Bold

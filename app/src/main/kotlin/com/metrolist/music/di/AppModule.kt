@@ -6,6 +6,8 @@
 package com.metrolist.music.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.Cache
@@ -15,96 +17,82 @@ import androidx.media3.datasource.cache.SimpleCache
 import com.metrolist.music.constants.MaxSongCacheSizeKey
 import com.metrolist.music.db.InternalDatabase
 import com.metrolist.music.db.MusicDatabase
+import com.metrolist.music.db.newInternalDatabaseInstance
+import com.metrolist.music.eq.EqualizerService
+import com.metrolist.music.eq.data.EQProfileRepository
 import com.metrolist.music.listentogether.ListenTogetherClient
 import com.metrolist.music.listentogether.ListenTogetherManager
+import com.metrolist.music.lyrics.LyricsHelper
+import com.metrolist.music.playback.DownloadUtil
+import com.metrolist.music.playback.MediaLibrarySessionCallback
+import com.metrolist.music.utils.SyncUtils
+import com.metrolist.music.utils.AndroidPlatformActions
+import com.metrolist.music.utils.PlatformActions
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
+import com.metrolist.music.widget.MetrolistWidgetManager
+import com.metrolist.music.widget.PlaylistWidgetManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import javax.inject.Singleton
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
+import com.metrolist.music.playback.Media3SongCache
+import com.metrolist.music.playback.SongCache
+import com.metrolist.music.utils.AndroidAppSession
+import com.metrolist.music.utils.AppSession
+import org.koin.dsl.module
+import com.metrolist.music.playback.DownloadSongCache
+import com.metrolist.music.lyrics.LyricsImageSharer
+import com.metrolist.music.utils.AndroidLyricsImageSharer
 
-@Module
-@InstallIn(SingletonComponent::class)
-object AppModule {
+val appModule = module {
+    single<CoroutineScope>(ApplicationScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
 
-    @Provides
-    @Singleton
-    @ApplicationScope
-    fun provideApplicationScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    }
+    single<DataStore<Preferences>> { get<Context>().dataStore }
 
-    @Singleton
-    @Provides
-    fun provideDao(
-        database: InternalDatabase,
-    ) = database.dao
+    single { InternalDatabase.newInternalDatabaseInstance(get()) }
+    single { get<InternalDatabase>().dao }
+    single { MusicDatabase(get()) }
 
-    @Singleton
-    @Provides
-    fun provideInternalDatabase(
-        @ApplicationContext context: Context,
-    ): InternalDatabase = InternalDatabase.newInternalDatabaseInstance(context)
-
-    @Singleton
-    @Provides
-    fun provideDatabase(
-        internalDatabase: InternalDatabase,
-    ): MusicDatabase = MusicDatabase(internalDatabase)
-
-    @Singleton
-    @Provides
-    fun provideDatabaseProvider(
-        @ApplicationContext context: Context,
-    ): DatabaseProvider = StandaloneDatabaseProvider(context)
-
-    @Singleton
-    @Provides
-    @PlayerCache
-    fun providePlayerCache(
-        @ApplicationContext context: Context,
-        databaseProvider: DatabaseProvider,
-    ): Cache {
+    single<DatabaseProvider> { StandaloneDatabaseProvider(get()) }
+    single<Cache>(PlayerCache) {
+        val context = get<Context>()
         val cacheSize = context.dataStore[MaxSongCacheSizeKey] ?: 1024
         val evictor = when (cacheSize) {
             -1 -> NoOpCacheEvictor()
             else -> LeastRecentlyUsedCacheEvictor(cacheSize * 1024 * 1024L)
         }
-        return SimpleCache(
+        SimpleCache(
             context.filesDir.resolve("exoplayer"),
             evictor,
-            databaseProvider,
+            get(),
         )
     }
+    single<Cache>(DownloadCache) {
+        SimpleCache(
+            get<Context>().filesDir.resolve("download"),
+            NoOpCacheEvictor(),
+            get(),
+        )
+    }
+    single<SongCache> { Media3SongCache(get(PlayerCache)) }
+    single<SongCache>(DownloadSongCache) { Media3SongCache(get(DownloadCache)) }
+    single<PlatformActions> { AndroidPlatformActions(get()) }
+    single<LyricsImageSharer> { AndroidLyricsImageSharer(get()) }
+    single { DownloadUtil(get(), get(), get(), get(DownloadCache), get(PlayerCache)) }
 
-    @Singleton
-    @Provides
-    @DownloadCache
-    fun provideDownloadCache(
-        @ApplicationContext context: Context,
-        databaseProvider: DatabaseProvider,
-    ): Cache = SimpleCache(
-        context.filesDir.resolve("download"),
-        NoOpCacheEvictor(),
-        databaseProvider,
-    )
+    singleOf(::ListenTogetherClient)
+    singleOf(::ListenTogetherManager)
+    single { SyncUtils(get<Context>().filesDir, get(), get(), get()) }
+    singleOf(::EqualizerService)
+    singleOf(::EQProfileRepository)
+    single { PlaylistWidgetManager(get(), get(), get(ApplicationScope)) }
+    singleOf(::MetrolistWidgetManager)
+    singleOf(::AndroidAppSession) bind AppSession::class
 
-    @Singleton
-    @Provides
-    fun provideListenTogetherClient(
-        @ApplicationContext context: Context,
-    ): ListenTogetherClient = ListenTogetherClient(context)
-
-    @Singleton
-    @Provides
-    fun provideListenTogetherManager(
-        @ApplicationContext context: Context,
-        client: ListenTogetherClient,
-    ): ListenTogetherManager = ListenTogetherManager(client, context)
+    // Unscoped in Hilt, so a new instance per injection.
+    factoryOf(::LyricsHelper)
+    factoryOf(::MediaLibrarySessionCallback)
 }

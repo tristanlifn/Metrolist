@@ -1,0 +1,107 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.metrolist.music.ui.theme
+
+import androidx.compose.ui.graphics.Color
+import androidx.palette.graphics.Palette
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.request.crossfade
+import coil3.toBitmap
+import com.materialkolor.score.Score
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+actual suspend fun artworkGradientColors(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+    memoryCacheKey: String?,
+): List<Color>? {
+    val request =
+        ImageRequest
+            .Builder(context)
+            .data(url)
+            .size(100, 100)
+            .allowHardware(false)
+            .apply { memoryCacheKey?.let { memoryCacheKey(it) } }
+            .build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    val palette =
+        withContext(Dispatchers.Default) {
+            Palette
+                .from(bitmap)
+                .maximumColorCount(8)
+                .resizeBitmapArea(100 * 100)
+                .generate()
+        }
+    return gradientFrom(Color(palette.rankedColors(1, fallbackColor).first()))
+}
+
+private suspend fun artworkPalette(
+    context: PlatformContext,
+    url: String,
+): Palette? {
+    val request = ImageRequest.Builder(context).data(url).allowHardware(false).build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    return withContext(Dispatchers.Default) { Palette.from(bitmap).generate() }
+}
+
+internal actual suspend fun artworkColorsByPopulation(
+    context: PlatformContext,
+    url: String,
+): List<Color> =
+    artworkPalette(context, url)
+        ?.swatches
+        ?.sortedByDescending { it.population }
+        ?.map { Color(it.rgb) }
+        .orEmpty()
+
+actual suspend fun artworkVibrantColors(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Pair<Color, Color>? =
+    artworkPalette(context, url)?.let { palette ->
+        Color(palette.getVibrantColor(fallbackColor)) to Color(palette.getDarkVibrantColor(fallbackColor))
+    }
+
+actual suspend fun artworkThemeColor(
+    context: PlatformContext,
+    url: String,
+    fallbackColor: Int,
+): Color? {
+    val request =
+        ImageRequest
+            .Builder(context)
+            .data(url)
+            .allowHardware(false)
+            .crossfade(false)
+            .build()
+    val bitmap =
+        runCatching { SingletonImageLoader.get(context).execute(request) }.getOrNull()?.image?.toBitmap()
+            ?: return null
+    return withContext(Dispatchers.Default) {
+        Color(Palette.from(bitmap).maximumColorCount(8).generate().rankedColors(1, fallbackColor).first())
+    }
+}
+
+fun Palette.rankedColors(
+    desiredColorCount: Int,
+    fallbackColor: Int,
+): List<Int> =
+    Score.score(
+        swatches.associate { it.rgb to it.population },
+        desiredColorCount,
+        fallbackColor,
+        true,
+    )

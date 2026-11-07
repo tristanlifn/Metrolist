@@ -27,6 +27,7 @@ import androidx.mediarouter.app.MediaRouteControllerDialog
 import androidx.mediarouter.app.MediaRouteControllerDialogFragment
 import androidx.mediarouter.app.MediaRouteDialogFactory
 import com.google.android.gms.cast.framework.CastButtonFactory
+import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.EnableGoogleCastKey
@@ -39,7 +40,7 @@ fun CastButton(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current
-    val castHandler = playerConnection?.service?.castConnectionHandler
+    val castHandler = (playerConnection as? PlayerConnection)?.service?.castConnectionHandler
     val isCasting by castHandler?.isCasting?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
     val (enabled) = rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val contentDescription = stringResource(R.string.google_cast)

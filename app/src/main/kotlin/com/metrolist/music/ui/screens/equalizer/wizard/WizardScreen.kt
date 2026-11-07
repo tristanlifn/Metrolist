@@ -12,14 +12,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.res.stringResource
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.eq_download_db
+import com.metrolist.music.resources.eq_downloading
+import com.metrolist.music.resources.graphic_eq
+import com.metrolist.music.resources.navigate_next
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.wizard_model_name
+import com.metrolist.music.resources.wizard_model_placeholder
+import com.metrolist.music.resources.wizard_multiple_variants
+import com.metrolist.music.resources.wizard_no_models
+import com.metrolist.music.resources.wizard_save_profiles
+import com.metrolist.music.resources.wizard_search_model_hint
+import com.metrolist.music.resources.wizard_select_eq_profiles
+import com.metrolist.music.resources.wizard_select_model
+import com.metrolist.music.resources.wizard_select_profiles
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * EQ Wizard - Device Setup Flow
@@ -27,7 +43,7 @@ import com.metrolist.music.R
  */
 @Composable
 fun WizardScreen(
-    viewModel: WizardViewModel = hiltViewModel(),
+    viewModel: WizardViewModel = koinViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -68,14 +84,14 @@ private fun WizardScreenContent(
                 title = {
                     Text(
                         text = when (state.currentStep) {
-                            WizardStep.MODEL_SELECTION -> stringResource(R.string.wizard_select_model)
-                            WizardStep.VARIANT_SELECTION -> stringResource(R.string.wizard_select_profiles)
+                            WizardStep.MODEL_SELECTION -> stringResource(Res.string.wizard_select_model)
+                            WizardStep.VARIANT_SELECTION -> stringResource(Res.string.wizard_select_profiles)
                         }
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = if (state.canGoBack) onBackClicked else onNavigateBack) {
-                        Icon(painterResource(R.drawable.arrow_back), contentDescription = null)
+                        Icon(painterResource(Res.drawable.arrow_back), contentDescription = null)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -168,7 +184,7 @@ private fun ModelSelectionStep(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = stringResource(R.string.eq_downloading),
+                        text = stringResource(Res.string.eq_downloading),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -176,12 +192,12 @@ private fun ModelSelectionStep(
             } else {
                 Button(onClick = onDownloadDatabase) {
                     Icon(
-                        painter = painterResource(R.drawable.download),
+                        painter = painterResource(Res.drawable.download),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.eq_download_db))
+                    Text(stringResource(Res.string.eq_download_db))
                 }
             }
         }
@@ -194,7 +210,7 @@ private fun ModelSelectionStep(
             .padding(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.wizard_search_model_hint),
+            text = stringResource(Res.string.wizard_search_model_hint),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -202,10 +218,10 @@ private fun ModelSelectionStep(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChanged,
-            label = { Text(stringResource(R.string.wizard_model_name)) },
-            placeholder = { Text(stringResource(R.string.wizard_model_placeholder)) },
+            label = { Text(stringResource(Res.string.wizard_model_name)) },
+            placeholder = { Text(stringResource(Res.string.wizard_model_placeholder)) },
             leadingIcon = {
-                Icon(painterResource(R.drawable.search), contentDescription = null)
+                Icon(painterResource(Res.drawable.search), contentDescription = null)
             },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
@@ -226,7 +242,7 @@ private fun ModelSelectionStep(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(R.string.wizard_no_models),
+                    text = stringResource(Res.string.wizard_no_models),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -267,7 +283,7 @@ private fun ModelItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.graphic_eq),
+                painter = painterResource(Res.drawable.graphic_eq),
                 contentDescription = null,
                 modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.primary
@@ -280,14 +296,14 @@ private fun ModelItem(
                 )
                 if (model.hasMultipleVariants) {
                     Text(
-                        text = stringResource(R.string.wizard_multiple_variants),
+                        text = stringResource(Res.string.wizard_multiple_variants),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             Icon(
-                painter = painterResource(R.drawable.navigate_next),
+                painter = painterResource(Res.drawable.navigate_next),
                 contentDescription = null
             )
         }
@@ -317,7 +333,7 @@ private fun VariantSelectionStep(
         ) {
             item {
                 Text(
-                    text = stringResource(R.string.wizard_select_eq_profiles, modelName),
+                    text = stringResource(Res.string.wizard_select_eq_profiles, modelName),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -352,7 +368,7 @@ private fun VariantSelectionStep(
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.wizard_save_profiles),
+                        text = stringResource(Res.string.wizard_save_profiles),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )

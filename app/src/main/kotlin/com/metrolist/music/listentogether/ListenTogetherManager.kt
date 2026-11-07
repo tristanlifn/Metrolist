@@ -20,12 +20,12 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.MediaMetadata.Album
 import com.metrolist.music.models.MediaMetadata.Artist
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.QueueEntry
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.getArtistSeparator
 import com.metrolist.music.utils.joinToArtistString
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,8 +39,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 internal fun canonicalPlaybackQueue(
     currentTrack: TrackInfo,
@@ -71,13 +69,10 @@ internal fun shouldSeekDuringActivePlayback(
  * Manager that bridges the Listen Together WebSocket client with the music player.
  * Handles syncing playback actions between connected users.
  */
-@Singleton
-class ListenTogetherManager
-    @Inject
-    constructor(
+class ListenTogetherManager(
         private val client: ListenTogetherClient,
-        @ApplicationContext private val context: Context,
-    ) {
+        private val context: Context,
+    ) : ListenTogetherSession {
         companion object {
             private const val TAG = "ListenTogetherManager"
 
@@ -145,7 +140,7 @@ class ListenTogetherManager
         // Expose client state
         val connectionState = client.connectionState
         val roomState = client.roomState
-        val role = client.role
+        override val role = client.role
         val userId = client.userId
         val pendingJoinRequests = client.pendingJoinRequests
         val bufferingUsers = client.bufferingUsers
@@ -153,9 +148,10 @@ class ListenTogetherManager
         val events = client.events
         val blockedUsernames = client.blockedUsernames
         val pendingSuggestions = client.pendingSuggestions
+        override val pendingSuggestionCount = pendingSuggestions.map { it.size }
 
-        val isInRoom: Boolean get() = client.isInRoom
-        val isHost: Boolean get() = client.isHost
+        override val isInRoom: Boolean get() = client.isInRoom
+        override val isHost: Boolean get() = client.isHost
         val hasPersistedSession: Boolean get() = client.hasPersistedSession
 
         private val playerListener =
@@ -1262,20 +1258,20 @@ class ListenTogetherManager
                                     return@enqueueQueueMutation
                                 }
                                 result.onSuccess { list ->
-                                    val mediaItem =
+                                    val metadata =
                                         list
                                             .firstOrNull()
                                             ?.toMediaMetadata()
                                             ?.copy(
                                                 suggestedBy = track.suggestedBy.takeIf(String::isNotEmpty),
-                                            )?.toMediaItem()
-                                    if (mediaItem != null) {
+                                            )
+                                    if (metadata != null) {
                                         connection.allowInternalSync = true
                                         try {
                                             if (action.insertNext == true) {
-                                                connection.playNext(mediaItem)
+                                                connection.playNext(metadata)
                                             } else {
-                                                connection.addToQueue(mediaItem)
+                                                connection.addToQueue(metadata)
                                             }
                                         } finally {
                                             connection.allowInternalSync = false
@@ -1860,7 +1856,7 @@ class ListenTogetherManager
             val currentQueue =
                 try {
                     playerConnection?.let { connection ->
-                        upcomingQueueItems(connection.queueWindows.value, connection.currentWindowIndex.value)
+                        upcomingQueueItems(connection.queue.value, connection.currentQueuePosition.value)
                             .map { it.toTrackInfo() }
                     }
                 } catch (e: Exception) {
@@ -1891,7 +1887,7 @@ class ListenTogetherManager
                 scope.launch {
                     playerConnection
                         ?.let { connection ->
-                            combine(connection.queueWindows, connection.currentWindowIndex) { windows, currentIndex ->
+                            combine(connection.queue, connection.currentQueuePosition) { windows, currentIndex ->
                                 upcomingQueueItems(windows, currentIndex).map { it.toTrackInfo() }
                             }
                         }?.distinctUntilChanged()
@@ -1945,8 +1941,8 @@ class ListenTogetherManager
             lastSyncedVolume = null
         }
 
-        private fun androidx.media3.common.Timeline.Window.toTrackInfo(): TrackInfo {
-            val metadata = mediaItem.metadata ?: return TrackInfo("unknown", "Unknown", "Unknown", "", 0, "")
+        private fun QueueEntry.toTrackInfo(): TrackInfo {
+            val metadata = metadata ?: return TrackInfo("unknown", "Unknown", "Unknown", "", 0, "")
             val durationMs = if (metadata.duration > 0) metadata.duration.toLong() * 1000 else 180000L
             return TrackInfo(
                 id = metadata.id,
@@ -1979,7 +1975,7 @@ class ListenTogetherManager
          * Request sync state from server (for guests to re-sync)
          * Call this when a guest presses play/pause to sync with host
          */
-        fun requestSync() {
+        override fun requestSync() {
             if (!isInRoom || isHost) {
                 Timber.tag(TAG).d("requestSync: not applicable (isInRoom=$isInRoom, isHost=$isHost)")
                 return
@@ -1999,6 +1995,15 @@ class ListenTogetherManager
          * Suggest the given track to the host (guest only)
          */
         fun suggestTrack(track: TrackInfo) = client.suggestTrack(track)
+
+        override fun suggestTrack(
+            id: String,
+            title: String,
+            artist: String,
+            album: String?,
+            duration: Long,
+            thumbnail: String?,
+        ) = suggestTrack(TrackInfo(id, title, artist, album, duration, thumbnail))
 
         /**
          * Approve a suggestion (host only)

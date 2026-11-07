@@ -5,16 +5,10 @@
 
 package com.metrolist.music.di
 
-import javax.inject.Qualifier
+import org.koin.core.qualifier.named
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class PlayerCache
+val PlayerCache = named("PlayerCache")
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class DownloadCache
+val DownloadCache = named("DownloadCache")
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ApplicationScope
+val ApplicationScope = named("ApplicationScope")

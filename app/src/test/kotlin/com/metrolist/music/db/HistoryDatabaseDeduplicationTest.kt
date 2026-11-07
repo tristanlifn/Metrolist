@@ -34,8 +34,10 @@ class HistoryDatabaseDeduplicationTest {
         database = Room.inMemoryDatabaseBuilder(context, InternalDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        database.dao.insert(SongEntity(id = SONG_ID, title = "Song"))
-        database.dao.insert(SongEntity(id = OTHER_SONG_ID, title = "Other song"))
+        runBlocking {
+            database.dao.insert(SongEntity(id = SONG_ID, title = "Song"))
+            database.dao.insert(SongEntity(id = OTHER_SONG_ID, title = "Other song"))
+        }
     }
 
     @After
@@ -95,7 +97,7 @@ class HistoryDatabaseDeduplicationTest {
             lastMondayStart = LAST_MONDAY.atStartOfDay(),
         ).first()
 
-    private fun insertEvent(id: Long, songId: String, timestamp: LocalDateTime) {
+    private fun insertEvent(id: Long, songId: String, timestamp: LocalDateTime) = runBlocking {
         database.dao.insert(
             Event(
                 id = id,

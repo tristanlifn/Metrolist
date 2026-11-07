@@ -1,0 +1,1178 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.metrolist.music.ui.screens.settings
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.metrolist.music.LocalPlayerAwareWindowInsets
+import com.metrolist.music.constants.AudioNormalizationKey
+import com.metrolist.music.constants.AudioOffload
+import com.metrolist.music.constants.AudioTrackPlaybackParamsKey
+import com.metrolist.music.constants.AudioQuality
+import com.metrolist.music.constants.AudioQualityKey
+import com.metrolist.music.constants.AutoDownloadOnLikeKey
+import com.metrolist.music.constants.CrossfadeDurationKey
+import com.metrolist.music.constants.CrossfadeEnabledKey
+import com.metrolist.music.constants.CrossfadeGaplessKey
+import com.metrolist.music.constants.AutoLoadMoreKey
+import com.metrolist.music.constants.AutoRadioQueueKey
+import com.metrolist.music.constants.AutoSkipNextOnErrorKey
+import com.metrolist.music.constants.AutoplayKey
+import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
+import com.metrolist.music.constants.EnableGoogleCastKey
+import com.metrolist.music.constants.HistoryDuration
+import com.metrolist.music.constants.KeepScreenOn
+import com.metrolist.music.constants.LoudnessLevel
+import com.metrolist.music.constants.LoudnessLevelKey
+import com.metrolist.music.constants.PauseOnMute
+import com.metrolist.music.constants.PersistentQueueKey
+import com.metrolist.music.constants.PersistentShuffleAcrossQueuesKey
+import com.metrolist.music.constants.PreventDuplicateTracksInQueueKey
+import com.metrolist.music.constants.RememberShuffleAndRepeatKey
+import com.metrolist.music.constants.ResumeOnBluetoothConnectKey
+import com.metrolist.music.constants.SeekExtraSeconds
+import com.metrolist.music.constants.ShufflePlaylistFirstKey
+import com.metrolist.music.constants.SimilarContent
+import com.metrolist.music.constants.SkipSilenceInstantKey
+import com.metrolist.music.constants.SkipSilenceKey
+import com.metrolist.music.constants.StopMusicOnTaskClearKey
+import com.metrolist.music.constants.VarispeedKey
+import com.metrolist.music.ui.component.DefaultDialog
+import com.metrolist.music.ui.component.EnumDialog
+import com.metrolist.music.ui.component.IconButton
+import com.metrolist.music.ui.component.Material3SettingsGroup
+import com.metrolist.music.ui.component.Material3SettingsItem
+import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.rememberEnumPreference
+import com.metrolist.music.utils.rememberPreference
+import kotlin.math.roundToInt
+import com.metrolist.music.ui.component.SleepTimerDialog
+import com.metrolist.music.constants.SleepTimerEnabledKey
+import com.metrolist.music.constants.SleepTimerRepeatKey
+import com.metrolist.music.constants.SleepTimerCustomDaysKey
+import com.metrolist.music.constants.SleepTimerEndTimeKey
+import com.metrolist.music.constants.SleepTimerStartTimeKey
+import com.metrolist.music.constants.SleepTimerDayTimesKey
+import com.metrolist.music.ui.component.decodeDayTimes
+import com.metrolist.music.ui.component.encodeDayTimes
+import com.metrolist.music.constants.SleepTimerFadeOutKey
+import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
+import com.metrolist.music.ui.utils.getLoudnessLevelLabel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.arrow_forward
+import com.metrolist.music.resources.audio_normalization
+import com.metrolist.music.resources.audio_offload
+import com.metrolist.music.resources.audio_offload_description
+import com.metrolist.music.resources.audio_offload_disabled_by_crossfade
+import com.metrolist.music.resources.audio_quality
+import com.metrolist.music.resources.audio_quality_auto
+import com.metrolist.music.resources.audio_quality_high
+import com.metrolist.music.resources.audio_quality_low
+import com.metrolist.music.resources.audio_track_playback_params
+import com.metrolist.music.resources.audio_track_playback_params_description
+import com.metrolist.music.resources.auto_download_on_like
+import com.metrolist.music.resources.auto_download_on_like_desc
+import com.metrolist.music.resources.auto_load_more
+import com.metrolist.music.resources.auto_load_more_desc
+import com.metrolist.music.resources.auto_radio_queue
+import com.metrolist.music.resources.auto_radio_queue_desc
+import com.metrolist.music.resources.auto_skip_next_on_error
+import com.metrolist.music.resources.auto_skip_next_on_error_desc
+import com.metrolist.music.resources.autoplay
+import com.metrolist.music.resources.autoplay_desc
+import com.metrolist.music.resources.baseline_event_repeat_24
+import com.metrolist.music.resources.bluetooth
+import com.metrolist.music.resources.cast
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.clear_all
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.crossfade
+import com.metrolist.music.resources.crossfade_desc
+import com.metrolist.music.resources.crossfade_duration
+import com.metrolist.music.resources.crossfade_gapless
+import com.metrolist.music.resources.crossfade_gapless_desc
+import com.metrolist.music.resources.disable_load_more_when_repeat_all
+import com.metrolist.music.resources.disable_load_more_when_repeat_all_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.enable_automatic_sleeptimer
+import com.metrolist.music.resources.enable_similar_content
+import com.metrolist.music.resources.fast_forward
+import com.metrolist.music.resources.google_cast
+import com.metrolist.music.resources.google_cast_description
+import com.metrolist.music.resources.graphic_eq
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.history_duration
+import com.metrolist.music.resources.keep_screen_on_when_player_is_expanded
+import com.metrolist.music.resources.linear_scale
+import com.metrolist.music.resources.loudness_level
+import com.metrolist.music.resources.misc
+import com.metrolist.music.resources.more_time
+import com.metrolist.music.resources.pause_music_when_media_is_muted
+import com.metrolist.music.resources.persistent_queue
+import com.metrolist.music.resources.persistent_queue_desc
+import com.metrolist.music.resources.persistent_shuffle_desc
+import com.metrolist.music.resources.persistent_shuffle_title
+import com.metrolist.music.resources.player
+import com.metrolist.music.resources.player_and_audio
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.prevent_duplicate_tracks_in_queue
+import com.metrolist.music.resources.prevent_duplicate_tracks_in_queue_desc
+import com.metrolist.music.resources.queue
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.remember_shuffle_and_repeat
+import com.metrolist.music.resources.remember_shuffle_and_repeat_desc
+import com.metrolist.music.resources.repeat
+import com.metrolist.music.resources.resume_on_bluetooth_connect
+import com.metrolist.music.resources.screenshot
+import com.metrolist.music.resources.seconds
+import com.metrolist.music.resources.seek_seconds_addup
+import com.metrolist.music.resources.seek_seconds_addup_description
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.shuffle_playlist_first
+import com.metrolist.music.resources.shuffle_playlist_first_desc
+import com.metrolist.music.resources.similar
+import com.metrolist.music.resources.similar_content_desc
+import com.metrolist.music.resources.skip_next
+import com.metrolist.music.resources.skip_silence
+import com.metrolist.music.resources.skip_silence_desc
+import com.metrolist.music.resources.skip_silence_instant
+import com.metrolist.music.resources.skip_silence_instant_desc
+import com.metrolist.music.resources.sleep_timer
+import com.metrolist.music.resources.sleep_timer_fade_out_description
+import com.metrolist.music.resources.sleep_timer_fade_out_title
+import com.metrolist.music.resources.sleep_timer_repeat
+import com.metrolist.music.resources.sleep_timer_repeat_description
+import com.metrolist.music.resources.sleep_timer_stop_after_current_song_description
+import com.metrolist.music.resources.sleep_timer_stop_after_current_song_title
+import com.metrolist.music.resources.sleeptimer_description
+import com.metrolist.music.resources.speed
+import com.metrolist.music.resources.stop_music_on_task_clear
+import com.metrolist.music.resources.time_auto
+import com.metrolist.music.resources.timer
+import com.metrolist.music.resources.timer_arrow_down
+import com.metrolist.music.resources.varispeed
+import com.metrolist.music.resources.varispeed_description
+import com.metrolist.music.resources.volume_off_pause
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.BuildInfo
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlayerSettings(
+    navController: NavController,
+    // Platform-only settings shown after the general ones, such as Android alarms.
+    platformSection: @Composable () -> Unit = {},
+) {
+    val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
+        AudioQualityKey,
+        defaultValue = AudioQuality.AUTO
+    )
+    val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(
+        CrossfadeEnabledKey,
+        defaultValue = false
+    )
+    val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
+        CrossfadeDurationKey,
+        defaultValue = 5f
+    )
+    val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
+        CrossfadeGaplessKey,
+        defaultValue = true
+    )
+    val (persistentQueue, onPersistentQueueChange) = rememberPreference(
+        PersistentQueueKey,
+        defaultValue = true
+    )
+    val (skipSilence, onSkipSilenceChange) = rememberPreference(
+        SkipSilenceKey,
+        defaultValue = false
+    )
+    val (skipSilenceInstant, onSkipSilenceInstantChange) = rememberPreference(
+        SkipSilenceInstantKey,
+        defaultValue = false
+    )
+    val (audioNormalization, onAudioNormalizationChange) = rememberPreference(
+        AudioNormalizationKey,
+        defaultValue = true
+    )
+
+    val (loudnessLevel, onLoudnessLevelChange) = rememberEnumPreference(
+        LoudnessLevelKey,
+        defaultValue = LoudnessLevel.BALANCED,
+    )
+
+    val (audioOffload, onAudioOffloadChange) = rememberPreference(
+        key = AudioOffload,
+        defaultValue = false
+    )
+
+    val (audioTrackPlaybackParams, onAudioTrackPlaybackParamsChange) = rememberPreference(
+        key = AudioTrackPlaybackParamsKey,
+        defaultValue = true
+    )
+
+    val (varispeed, onVarispeedChange) = rememberPreference(
+        key = VarispeedKey,
+        defaultValue = false
+    )
+
+    val (enableGoogleCast, onEnableGoogleCastChange) = rememberPreference(
+        key = EnableGoogleCastKey,
+        defaultValue = true
+    )
+
+    val (seekExtraSeconds, onSeekExtraSeconds) = rememberPreference(
+        SeekExtraSeconds,
+        defaultValue = false
+    )
+
+    val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(
+        AutoLoadMoreKey,
+        defaultValue = true
+    )
+    val (autoRadioQueue, onAutoRadioQueueChange) = rememberPreference(
+        AutoRadioQueueKey,
+        defaultValue = true
+    )
+    val (disableLoadMoreWhenRepeatAll, onDisableLoadMoreWhenRepeatAllChange) = rememberPreference(
+        DisableLoadMoreWhenRepeatAllKey,
+        defaultValue = false
+    )
+    val (autoDownloadOnLike, onAutoDownloadOnLikeChange) = rememberPreference(
+        AutoDownloadOnLikeKey,
+        defaultValue = false
+    )
+    val (similarContentEnabled, similarContentEnabledChange) = rememberPreference(
+        key = SimilarContent,
+        defaultValue = true
+    )
+    val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(
+        AutoSkipNextOnErrorKey,
+        defaultValue = false
+    )
+    val (autoplay, onAutoplayChange) = rememberPreference(
+        AutoplayKey,
+        defaultValue = true
+    )
+    val (persistentShuffleAcrossQueues, onPersistentShuffleAcrossQueuesChange) = rememberPreference(
+        PersistentShuffleAcrossQueuesKey,
+        defaultValue = false
+    )
+    val (rememberShuffleAndRepeat, onRememberShuffleAndRepeatChange) = rememberPreference(
+        RememberShuffleAndRepeatKey,
+        defaultValue = true
+    )
+    val (shufflePlaylistFirst, onShufflePlaylistFirstChange) = rememberPreference(
+        ShufflePlaylistFirstKey,
+        defaultValue = false
+    )
+    val (preventDuplicateTracksInQueue, onPreventDuplicateTracksInQueueChange) = rememberPreference(
+        PreventDuplicateTracksInQueueKey,
+        defaultValue = false
+    )
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
+        StopMusicOnTaskClearKey,
+        defaultValue = false
+    )
+    val (pauseOnMute, onPauseOnMuteChange) = rememberPreference(
+        PauseOnMute,
+        defaultValue = false
+    )
+    val (resumeOnBluetoothConnect, onResumeOnBluetoothConnectChange) = rememberPreference(
+        ResumeOnBluetoothConnectKey,
+        defaultValue = false
+    )
+    val (keepScreenOn, onKeepScreenOnChange) = rememberPreference(
+        KeepScreenOn,
+        defaultValue = false
+    )
+    val (historyDuration, onHistoryDurationChange) = rememberPreference(
+        HistoryDuration,
+        defaultValue = 30f
+    )
+
+    var showAudioQualityDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showLoudnessLevelDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showAudioQualityDialog) {
+        EnumDialog(
+            onDismiss = { showAudioQualityDialog = false },
+            onSelect = {
+                onAudioQualityChange(it)
+                showAudioQualityDialog = false
+            },
+            title = stringResource(Res.string.audio_quality),
+            current = audioQuality,
+            values = AudioQuality.values().toList(),
+            valueText = {
+                when (it) {
+                    AudioQuality.AUTO -> stringResource(Res.string.audio_quality_auto)
+                    AudioQuality.HIGH -> stringResource(Res.string.audio_quality_high)
+                    AudioQuality.LOW -> stringResource(Res.string.audio_quality_low)
+                }
+            }
+        )
+    }
+
+    if (showLoudnessLevelDialog) {
+        EnumDialog(
+            onDismiss = { showLoudnessLevelDialog = false },
+            onSelect = {
+                onLoudnessLevelChange(it)
+                showLoudnessLevelDialog = false
+            },
+            title = stringResource(Res.string.loudness_level),
+            current = loudnessLevel,
+            values = LoudnessLevel.values().toList(),
+            valueText = { getLoudnessLevelLabel(it) }
+        )
+    }
+
+    Column(
+        Modifier
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                )
+            )
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+    ) {
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
+
+        Material3SettingsGroup(
+            title = stringResource(Res.string.player),
+            items = buildList {
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.audio_quality)) },
+                    description = {
+                        Text(
+                            when (audioQuality) {
+                                AudioQuality.AUTO -> stringResource(Res.string.audio_quality_auto)
+                                AudioQuality.HIGH -> stringResource(Res.string.audio_quality_high)
+                                AudioQuality.LOW -> stringResource(Res.string.audio_quality_low)
+                            }
+                        )
+                    },
+                    onClick = { showAudioQualityDialog = true }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.linear_scale),
+                    title = { Text(stringResource(Res.string.crossfade)) },
+                    description = { Text(stringResource(Res.string.crossfade_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = crossfadeEnabled,
+                            onCheckedChange = onCrossfadeEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (crossfadeEnabled) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onCrossfadeEnabledChange(!crossfadeEnabled) }
+                ))
+                if (crossfadeEnabled) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(Res.drawable.timer),
+                        title = { Text(stringResource(Res.string.crossfade_duration)) },
+                        description = {
+                            Column {
+                                Text(pluralStringResource(Res.plurals.seconds, crossfadeDuration.toInt(), crossfadeDuration.toInt()))
+                                Slider(
+                                    value = crossfadeDuration,
+                                    onValueChange = onCrossfadeDurationChange,
+                                    valueRange = 1f..15f,
+                                    steps = 14
+                                )
+                            }
+                        }
+                    ))
+                    add(Material3SettingsItem(
+                        icon = painterResource(Res.drawable.album),
+                        title = { Text(stringResource(Res.string.crossfade_gapless)) },
+                        description = { Text(stringResource(Res.string.crossfade_gapless_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = crossfadeGapless,
+                                onCheckedChange = onCrossfadeGaplessChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(if (crossfadeGapless) Res.drawable.check else Res.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
+                    ))
+                }
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.history),
+                    title = { Text(stringResource(Res.string.history_duration)) },
+                    description = {
+                        Column {
+                            Text(historyDuration.roundToInt().toString())
+                            Slider(
+                                value = historyDuration,
+                                onValueChange = onHistoryDurationChange,
+                                valueRange = 1f..100f
+                            )
+                        }
+                    }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.fast_forward),
+                    title = { Text(stringResource(Res.string.skip_silence)) },
+                    description = { Text(stringResource(Res.string.skip_silence_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = skipSilence,
+                            onCheckedChange = onSkipSilenceChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (skipSilence) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onSkipSilenceChange(!skipSilence) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.skip_silence_instant)) },
+                    description = { Text(stringResource(Res.string.skip_silence_instant_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = skipSilenceInstant,
+                            onCheckedChange = { onSkipSilenceInstantChange(it) },
+                            enabled = skipSilence,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (skipSilenceInstant) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.volume_up),
+                    title = { Text(stringResource(Res.string.audio_normalization)) },
+                    trailingContent = {
+                        Switch(
+                            checked = audioNormalization,
+                            onCheckedChange = onAudioNormalizationChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (audioNormalization) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAudioNormalizationChange(!audioNormalization) }
+                ))
+                if (audioNormalization) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(Res.drawable.volume_up),
+                        title = { Text(stringResource(Res.string.loudness_level)) },
+                        description = {
+                            Text(getLoudnessLevelLabel(loudnessLevel))
+                        },
+                        onClick = { showLoudnessLevelDialog = true }
+                    ))
+                }
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.audio_offload)) },
+                    description = {
+                        Text(
+                            if (crossfadeEnabled) stringResource(Res.string.audio_offload_disabled_by_crossfade)
+                            else stringResource(Res.string.audio_offload_description)
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = if (crossfadeEnabled) false else audioOffload,
+                            onCheckedChange = onAudioOffloadChange,
+                            enabled = !crossfadeEnabled,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (!crossfadeEnabled && audioOffload) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.varispeed)) },
+                    description = {
+                        Text(
+                            stringResource(Res.string.varispeed_description)
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = varispeed,
+                            onCheckedChange = onVarispeedChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (varispeed) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onVarispeedChange(!varispeed) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.speed),
+                    title = { Text(stringResource(Res.string.audio_track_playback_params)) },
+                    description = {
+                        Text(stringResource(Res.string.audio_track_playback_params_description))
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = audioTrackPlaybackParams,
+                            onCheckedChange = onAudioTrackPlaybackParamsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (audioTrackPlaybackParams) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAudioTrackPlaybackParamsChange(!audioTrackPlaybackParams) }
+                ))
+                // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
+                if (BuildInfo.castAvailable) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(Res.drawable.cast),
+                        title = { Text(stringResource(Res.string.google_cast)) },
+                        description = { Text(stringResource(Res.string.google_cast_description)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableGoogleCast,
+                                onCheckedChange = onEnableGoogleCastChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(if (enableGoogleCast) Res.drawable.check else Res.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onEnableGoogleCastChange(!enableGoogleCast) }
+                    ))
+                }
+                add(Material3SettingsItem(
+                    icon = painterResource(Res.drawable.arrow_forward),
+                    title = { Text(stringResource(Res.string.seek_seconds_addup)) },
+                    description = { Text(stringResource(Res.string.seek_seconds_addup_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = seekExtraSeconds,
+                            onCheckedChange = onSeekExtraSeconds,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (seekExtraSeconds) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onSeekExtraSeconds(!seekExtraSeconds) }
+                ))
+            }
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        var showSleepTimerDialog by remember { mutableStateOf(false) }
+
+        val (sleepTimerEnabled, onSleepTimerEnabledChange) = rememberPreference(
+            SleepTimerEnabledKey,
+            defaultValue = false
+        )
+        val (sleepTimerRepeat, onSleepTimerRepeatChange) = rememberPreference(
+            SleepTimerRepeatKey,
+            defaultValue = "daily"
+        )
+        val (sleepTimerStartTime, onSleepTimerStartTimeChange) = rememberPreference(
+            SleepTimerStartTimeKey,
+            defaultValue = "22:00"
+        )
+        val (sleepTimerEndTime, onSleepTimerEndTimeChange) = rememberPreference(
+            SleepTimerEndTimeKey,
+            defaultValue = "06:00"
+        )
+        val (sleepTimerCustomDays, onSleepTimerCustomDaysChange) = rememberPreference(
+            SleepTimerCustomDaysKey,
+            defaultValue = "0,1,2,3,4"
+        )
+        // Per-day time ranges used in custom mode
+        val (sleepTimerDayTimes, onSleepTimerDayTimesChange) = rememberPreference(
+            SleepTimerDayTimesKey,
+            defaultValue = ""
+        )
+
+        val (sleepTimerStopAfterCurrentSong, onSleepTimerStopAfterCurrentSongChange) = rememberPreference (
+        SleepTimerStopAfterCurrentSongKey,
+        defaultValue = false)
+        val (sleepTimerFadeOut, onSleepTimerFadeOutChange) = rememberPreference(
+            SleepTimerFadeOutKey,
+            false
+        )
+
+        if (showSleepTimerDialog) {
+            val customDays = sleepTimerCustomDays.split(",").mapNotNull { it.toIntOrNull() }
+            val dayTimesMap = decodeDayTimes(sleepTimerDayTimes)
+
+            SleepTimerDialog(
+                isVisible = true,
+                onDismiss = { showSleepTimerDialog = false },
+                onConfirm = { repeat, startTime, endTime, days, dayTimes ->
+                    onSleepTimerRepeatChange(repeat)
+                    onSleepTimerStartTimeChange(startTime)
+                    onSleepTimerEndTimeChange(endTime)
+                    onSleepTimerCustomDaysChange(days?.joinToString(",") ?: "0,1,2,3,4")
+                    onSleepTimerDayTimesChange(encodeDayTimes(dayTimes))
+                    showSleepTimerDialog = false
+                },
+                initialRepeat = sleepTimerRepeat,
+                initialStartTime = sleepTimerStartTime,
+                initialEndTime = sleepTimerEndTime,
+                initialCustomDays = customDays,
+                initialDayTimes = dayTimesMap
+            )
+        }
+
+        Material3SettingsGroup(
+            title = stringResource(Res.string.sleep_timer),
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.time_auto),
+                        title = { Text(stringResource(Res.string.enable_automatic_sleeptimer)) },
+                        description = { Text(stringResource(Res.string.sleeptimer_description)) },
+                        trailingContent = {
+                            Switch(
+                                checked = sleepTimerEnabled,
+                                onCheckedChange = onSleepTimerEnabledChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(if (sleepTimerEnabled) Res.drawable.check else Res.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onSleepTimerEnabledChange(!sleepTimerEnabled) }
+                    )
+                )
+
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(Res.drawable.baseline_event_repeat_24),
+                            title = { Text(stringResource(Res.string.sleep_timer_repeat)) },
+                            description = {
+                                Text(
+                                    stringResource(Res.string.sleep_timer_repeat_description)
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = sleepTimerEnabled,
+                                    onCheckedChange = {showSleepTimerDialog = true},
+                                    thumbContent = {
+                                        Icon(
+                                            painter = painterResource(if (sleepTimerEnabled) Res.drawable.check else Res.drawable.close
+                                            ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize)
+                                        )
+                                    }
+                                )
+                            },
+                            onClick = { showSleepTimerDialog = true }
+                        )
+                    )
+
+
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.more_time),
+                        title = { Text(stringResource(Res.string.sleep_timer_stop_after_current_song_title)) },
+                        description = { Text(stringResource(Res.string.sleep_timer_stop_after_current_song_description)) },
+                        trailingContent = {
+                            Switch(
+                                checked = sleepTimerStopAfterCurrentSong,
+                                onCheckedChange = onSleepTimerStopAfterCurrentSongChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(if (sleepTimerStopAfterCurrentSong) Res.drawable.check else Res.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onSleepTimerStopAfterCurrentSongChange(!sleepTimerStopAfterCurrentSong) }
+                    )
+                )
+
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.timer_arrow_down),
+                        title = { Text(stringResource(Res.string.sleep_timer_fade_out_title)) },
+                        description = { Text(stringResource(Res.string.sleep_timer_fade_out_description)) },
+                        trailingContent = {
+                            Switch(
+                                checked = sleepTimerFadeOut,
+                                onCheckedChange = onSleepTimerFadeOutChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(if (sleepTimerFadeOut) Res.drawable.check else Res.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onSleepTimerFadeOutChange(!sleepTimerFadeOut) }
+                    )
+                )
+
+            }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        platformSection()
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(Res.string.queue),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.queue_music),
+                    title = { Text(stringResource(Res.string.persistent_queue)) },
+                    description = { Text(stringResource(Res.string.persistent_queue_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = persistentQueue,
+                            onCheckedChange = onPersistentQueueChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (persistentQueue) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPersistentQueueChange(!persistentQueue) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.playlist_add),
+                    title = { Text(stringResource(Res.string.auto_load_more)) },
+                    description = { Text(stringResource(Res.string.auto_load_more_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoLoadMore,
+                            onCheckedChange = onAutoLoadMoreChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (autoLoadMore) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoLoadMoreChange(!autoLoadMore) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.radio),
+                    title = { Text(stringResource(Res.string.auto_radio_queue)) },
+                    description = { Text(stringResource(Res.string.auto_radio_queue_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoRadioQueue,
+                            onCheckedChange = onAutoRadioQueueChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (autoRadioQueue) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoRadioQueueChange(!autoRadioQueue) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.autoplay)) },
+                    description = { Text(stringResource(Res.string.autoplay_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoplay,
+                            onCheckedChange = onAutoplayChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (autoplay) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoplayChange(!autoplay) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.repeat),
+                    title = { Text(stringResource(Res.string.disable_load_more_when_repeat_all)) },
+                    description = { Text(stringResource(Res.string.disable_load_more_when_repeat_all_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = disableLoadMoreWhenRepeatAll,
+                            onCheckedChange = onDisableLoadMoreWhenRepeatAllChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (disableLoadMoreWhenRepeatAll) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.download),
+                    title = { Text(stringResource(Res.string.auto_download_on_like)) },
+                    description = { Text(stringResource(Res.string.auto_download_on_like_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoDownloadOnLike,
+                            onCheckedChange = onAutoDownloadOnLikeChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (autoDownloadOnLike) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.similar),
+                    title = { Text(stringResource(Res.string.enable_similar_content)) },
+                    description = { Text(stringResource(Res.string.similar_content_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = similarContentEnabled,
+                            onCheckedChange = similarContentEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (similarContentEnabled) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { similarContentEnabledChange(!similarContentEnabled) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.persistent_shuffle_title)) },
+                    description = { Text(stringResource(Res.string.persistent_shuffle_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = persistentShuffleAcrossQueues,
+                            onCheckedChange = onPersistentShuffleAcrossQueuesChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (persistentShuffleAcrossQueues) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.remember_shuffle_and_repeat)) },
+                    description = { Text(stringResource(Res.string.remember_shuffle_and_repeat_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = rememberShuffleAndRepeat,
+                            onCheckedChange = onRememberShuffleAndRepeatChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (rememberShuffleAndRepeat) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.shuffle_playlist_first)) },
+                    description = { Text(stringResource(Res.string.shuffle_playlist_first_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = shufflePlaylistFirst,
+                            onCheckedChange = onShufflePlaylistFirstChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (shufflePlaylistFirst) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.queue_music),
+                    title = { Text(stringResource(Res.string.prevent_duplicate_tracks_in_queue)) },
+                    description = { Text(stringResource(Res.string.prevent_duplicate_tracks_in_queue_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = preventDuplicateTracksInQueue,
+                            onCheckedChange = onPreventDuplicateTracksInQueueChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (preventDuplicateTracksInQueue) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.auto_skip_next_on_error)) },
+                    description = { Text(stringResource(Res.string.auto_skip_next_on_error_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoSkipNextOnError,
+                            onCheckedChange = onAutoSkipNextOnErrorChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (autoSkipNextOnError) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(Res.string.misc),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.clear_all),
+                    title = { Text(stringResource(Res.string.stop_music_on_task_clear)) },
+                    trailingContent = {
+                        Switch(
+                            checked = stopMusicOnTaskClear,
+                            onCheckedChange = onStopMusicOnTaskClearChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (stopMusicOnTaskClear) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.volume_off_pause),
+                    title = { Text(stringResource(Res.string.pause_music_when_media_is_muted)) },
+                    trailingContent = {
+                        Switch(
+                            checked = pauseOnMute,
+                            onCheckedChange = onPauseOnMuteChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (pauseOnMute) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPauseOnMuteChange(!pauseOnMute) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.bluetooth),
+                    title = { Text(stringResource(Res.string.resume_on_bluetooth_connect)) },
+                    trailingContent = {
+                        Switch(
+                            checked = resumeOnBluetoothConnect,
+                            onCheckedChange = onResumeOnBluetoothConnectChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (resumeOnBluetoothConnect) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.screenshot),
+                    title = { Text(stringResource(Res.string.keep_screen_on_when_player_is_expanded)) },
+                    trailingContent = {
+                        Switch(
+                            checked = keepScreenOn,
+                            onCheckedChange = onKeepScreenOnChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (keepScreenOn) Res.drawable.check else Res.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onKeepScreenOnChange(!keepScreenOn) }
+                )
+            )
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    TopAppBar(
+        title = { Text(stringResource(Res.string.player_and_audio)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(Res.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}

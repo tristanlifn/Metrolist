@@ -1,0 +1,111 @@
+name: Build Flatpak
+
+on:
+  # Called by "Bump to new version" with the release version and the commit to build.
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      ref:
+        type: string
+        required: false
+  workflow_dispatch:
+  push:
+    branches: ["main", "f/AndroidLinux"]
+    paths-ignore:
+      - "app/src/main/res/values-*/strings.xml"
+      - "app/src/main/res/values-*/metrolist_strings.xml"
+      - "fastlane/**"
+      - "**/*.md"
+  pull_request:
+    paths-ignore:
+      - "app/src/main/res/values-*/strings.xml"
+      - "app/src/main/res/values-*/metrolist_strings.xml"
+      - "fastlane/**"
+      - "**/*.md"
+
+permissions:
+  contents: read
+
+# A called workflow inherits the caller's github.workflow, so the group can't be based on it.
+concurrency:
+  group: build-flatpak-${{ inputs.version || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Gradle needs network access, which flatpak-builder doesn't allow, so the jar is built first.
+  jar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: "temurin"
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: true
+          cache-cleanup: on-success
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build desktop jar
+        run: |
+          ./gradlew --console=plain :desktop:packageUberJarForCurrentOS --warning-mode summary \
+            ${VERSION:+-PdesktopVersion=$VERSION}
+          mkdir -p desktop/build/flatpak
+          cp "$(ls -t desktop/build/compose/jars/*.jar | head -1)" desktop/build/flatpak/metrolist.jar
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: metrolist-desktop-jar
+          path: desktop/build/flatpak/metrolist.jar
+          retention-days: 1
+
+  flatpak:
+    needs: jar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download jar
+        uses: actions/download-artifact@v7
+        with:
+          name: metrolist-desktop-jar
+          path: desktop/build/flatpak
+
+      - name: Add release version to metadata
+        if: inputs.version != ''
+        run: |
+          sed -i "s|</component>|  <releases>\n    <release version=\"$VERSION\" date=\"$(date -u +%F)\"/>\n  </releases>\n</component>|" \
+            desktop/flatpak/com.metrolist.music.metainfo.xml
+          cat desktop/flatpak/com.metrolist.music.metainfo.xml
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
+        with:
+          bundle: Metrolist.flatpak
+          manifest-path: desktop/flatpak/com.metrolist.music.yml
+          cache-key: flatpak-builder-${{ hashFiles('desktop/flatpak/com.metrolist.music.yml') }}

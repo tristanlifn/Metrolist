@@ -33,18 +33,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.theme.bbh_bartle
 import kotlinx.coroutines.delay
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.and
+import com.metrolist.music.resources.wrapped_top_5_songs_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WrappedTop5SongsScreen(topSongs: List<SongWithStats>, isVisible: Boolean) {
@@ -71,7 +73,7 @@ fun WrappedTop5SongsScreen(topSongs: List<SongWithStats>, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
             ) {
                 Text(
-                    text = stringResource(id = R.string.wrapped_top_5_songs_title),
+                    text = stringResource(Res.string.wrapped_top_5_songs_title),
                     fontSize = 48.sp,
                     color = Color.White,
                     textAlign = TextAlign.Center
@@ -116,7 +118,7 @@ fun WrappedTop5SongsScreen(topSongs: List<SongWithStats>, isVisible: Boolean) {
                                     fontSize = 16.sp
                                 )
                                 Text(
-                                    text = song.artists.joinToString(" ${stringResource(R.string.and)} ") { it.name }.ifBlank { song.artistName.orEmpty() },
+                                    text = song.artists.joinToString(" ${stringResource(Res.string.and)} ") { it.name }.ifBlank { song.artistName.orEmpty() },
                                     color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 14.sp
                                 )

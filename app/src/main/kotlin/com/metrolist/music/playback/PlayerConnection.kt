@@ -8,6 +8,7 @@ package com.metrolist.music.playback
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM
 import androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
@@ -16,21 +17,19 @@ import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
-import com.metrolist.music.constants.SleepTimerCustomDaysKey
-import com.metrolist.music.constants.SleepTimerDayTimesKey
-import com.metrolist.music.constants.SleepTimerDefaultKey
-import com.metrolist.music.constants.SleepTimerEnabledKey
-import com.metrolist.music.constants.SleepTimerEndTimeKey
-import com.metrolist.music.constants.SleepTimerRepeatKey
-import com.metrolist.music.constants.SleepTimerStartTimeKey
+import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.currentMetadata
 import com.metrolist.music.extensions.getCurrentQueueIndex
 import com.metrolist.music.extensions.getQueueWindows
 import com.metrolist.music.extensions.metadata
+import com.metrolist.music.extensions.move
+import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.extensions.togglePlayPause
+import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.extensions.withUpdatedMetadata
+import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.queues.Queue
@@ -38,18 +37,22 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDateTime
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -57,7 +60,8 @@ class PlayerConnection(
     binder: MusicBinder,
     val database: MusicDatabase,
     scope: CoroutineScope,
-) : Player.Listener {
+) : Player.Listener,
+    MusicPlayer {
     private companion object {
         private const val TAG = "PlayerConnection"
     }
@@ -97,9 +101,9 @@ class PlayerConnection(
     /** Tracks whether player initialization completed successfully */
     private val isPlayerInitialized = MutableStateFlow(service.isPlayerReady.value)
 
-    val playbackState: MutableStateFlow<Int>
+    private val playbackStateCode: MutableStateFlow<Int>
     private val playWhenReady: MutableStateFlow<Boolean>
-    val isPlaying: kotlinx.coroutines.flow.StateFlow<Boolean>
+    override val isPlaying: StateFlow<Boolean>
 
     private val initialState: Triple<Int, Boolean, Boolean> =
         try {
@@ -122,10 +126,10 @@ class PlayerConnection(
     init {
         Timber.tag(TAG).d("PlayerConnection init: playerReady=${playerReadinessFlow.value}")
 
-        playbackState = MutableStateFlow(initialState.first)
+        playbackStateCode = MutableStateFlow(initialState.first)
         playWhenReady = MutableStateFlow(initialState.second)
         isPlaying =
-            combine(playbackState, playWhenReady) { state, ready ->
+            combine(playbackStateCode, playWhenReady) { state, ready ->
                 ready && state != STATE_ENDED
             }.stateIn(
                 scope,
@@ -146,7 +150,12 @@ class PlayerConnection(
         Timber.tag(TAG).d("PlayerConnection state flows initialized successfully")
     }
 
-    val isEffectivelyPlaying =
+    override val playbackState: StateFlow<PlaybackState> =
+        playbackStateCode
+            .map { it.toPlaybackState() }
+            .stateIn(scope, SharingStarted.Eagerly, initialState.first.toPlaybackState())
+
+    override val isEffectivelyPlaying =
         combine(
             isPlaying,
             service.castConnectionHandler?.isCasting ?: MutableStateFlow(false),
@@ -159,40 +168,57 @@ class PlayerConnection(
             initialState.third,
         )
 
-    val mediaMetadata = MutableStateFlow(getPlayerOrNull()?.currentMetadata)
+    override val mediaMetadata = MutableStateFlow(getPlayerOrNull()?.currentMetadata)
+
+    override val isReady: StateFlow<Boolean> get() = service.isPlayerReady
+
+    private val _newQueueStarted = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    override val newQueueStarted: Flow<Unit> = _newQueueStarted
     // stateIn so the latest DB result is cached and shared: on resume / re-subscription the value
     // is available immediately instead of re-running the Room query (which delayed now-playing
     // details, format and like-state on every foreground). Lazily keeps it hot across lifecycle
     // pauses, matching isPlaying above. StateFlow is still a Flow, so existing collectors are unaffected.
-    val currentSong =
+    override val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
-    val currentLyrics =
+    override val currentLyrics =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.lyrics(mediaMetadata?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
-    val currentFormat =
+    override val currentFormat =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.format(mediaMetadata?.id)
         }.stateIn(scope, SharingStarted.Lazily, null)
 
-    val queueTitle = MutableStateFlow<String?>(null)
-    val queueSessions = service.queueSessions
-    val activeQueueId = service.activeQueueId
-    val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
+    override val queueTitle = MutableStateFlow<String?>(null)
+    override val queueSessions = service.queueSessions
+    override val activeQueueId = service.activeQueueId
+    override val queue = MutableStateFlow<List<QueueEntry>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
     val currentWindowIndex = MutableStateFlow(-1)
+    override val currentQueuePosition: StateFlow<Int> get() = currentWindowIndex
 
-    val shuffleModeEnabled = MutableStateFlow(false)
-    val repeatMode = MutableStateFlow(REPEAT_MODE_OFF)
+    override val shuffleModeEnabled = MutableStateFlow(false)
+    private val repeatModeCode = MutableStateFlow(REPEAT_MODE_OFF)
+    override val repeatMode: StateFlow<RepeatMode> =
+        repeatModeCode.map { it.toRepeatMode() }.stateIn(scope, SharingStarted.Eagerly, RepeatMode.OFF)
 
-    val canSkipPrevious = MutableStateFlow(true)
-    val canSkipNext = MutableStateFlow(true)
+    override val canSkipPrevious = MutableStateFlow(true)
+    override val canSkipNext = MutableStateFlow(true)
 
-    val error = MutableStateFlow<PlaybackException?>(null)
-    val isMuted = service.isMuted
-    val currentStreamClient = service.currentStreamClient
+    private val playerException = MutableStateFlow<PlaybackException?>(null)
+    override val error: StateFlow<PlayerError?> =
+        playerException.map { it?.toPlayerError() }.stateIn(scope, SharingStarted.Eagerly, null)
+    override val isMuted = service.isMuted
+    override val currentStreamClient = service.currentStreamClient
+    override val volume: StateFlow<Float> get() = service.playerVolume
+    override val automixItems: StateFlow<List<MediaMetadata>> =
+        service.automixItems
+            .map { items -> items.mapNotNull { it.metadata } }
+            .stateIn(scope, SharingStarted.Lazily, emptyList())
+    override val sleepTimer: SleepTimerControl? get() = service.sleepTimer
+    override val cast: CastControl? get() = service.castConnectionHandler
 
     val waitingForNetworkConnection = service.waitingForNetworkConnection
 
@@ -229,19 +255,19 @@ class PlayerConnection(
         attachedPlayer = newPlayer
         newPlayer.addListener(this)
         // Refresh all state from new player
-        playbackState.value = newPlayer.playbackState
+        playbackStateCode.value = newPlayer.playbackState
         playWhenReady.value = newPlayer.playWhenReady
         mediaMetadata.value = newPlayer.currentMetadata
         queueTitle.value = service.queueTitle
-        queueWindows.value = newPlayer.getQueueWindows()
+        updateQueue(newPlayer)
         currentWindowIndex.value = newPlayer.getCurrentQueueIndex()
         currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
         shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
-        repeatMode.value = newPlayer.repeatMode
+        repeatModeCode.value = newPlayer.repeatMode
         Timber.tag(TAG).d("Attached to new player instance: $newPlayer")
     }
 
-    fun playQueue(queue: Queue) {
+    override fun playQueue(queue: Queue) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("playQueue blocked - Listen Together guest")
@@ -259,17 +285,17 @@ class PlayerConnection(
         }
     }
 
-    fun switchQueue(id: Long) {
+    override fun switchQueue(id: Long) {
         if (shouldBlockPlaybackChanges?.invoke() == true) return
         service.switchQueue(id)
     }
 
-    fun deleteQueue(id: Long) {
+    override fun deleteQueue(id: Long) {
         if (shouldBlockPlaybackChanges?.invoke() == true) return
         service.deleteQueue(id)
     }
 
-    fun refreshSongMetadata(song: Song) {
+    override fun refreshSongMetadata(song: Song) {
         val player = getPlayerOrNull() ?: return
         val updatedMetadata = song.toMediaMetadata()
         repeat(player.mediaItemCount) { index ->
@@ -281,7 +307,7 @@ class PlayerConnection(
         mediaMetadata.value = player.currentMetadata
     }
 
-    fun startRadioSeamlessly() {
+    override fun startRadioSeamlessly() {
         // Block if Listen Together guest
         if (shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("startRadioSeamlessly blocked - Listen Together guest")
@@ -298,39 +324,35 @@ class PlayerConnection(
         }
     }
 
-    fun playNext(item: MediaItem) = playNext(listOf(item))
-
-    fun playNext(items: List<MediaItem>) {
+    override fun playNext(items: List<MediaMetadata>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("playNext blocked - Listen Together guest")
             return
         }
         try {
-            service.playNext(items)
+            service.playNext(items.map { it.toMediaItem() })
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in playNext")
             throw e
         }
     }
 
-    fun addToQueue(item: MediaItem) = addToQueue(listOf(item))
-
-    fun addToQueue(items: List<MediaItem>) {
+    override fun addToQueue(items: List<MediaMetadata>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
             Timber.tag("PlayerConnection").d("addToQueue blocked - Listen Together guest")
             return
         }
         try {
-            service.addToQueue(items)
+            service.addToQueue(items.map { it.toMediaItem() })
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in addToQueue")
             throw e
         }
     }
 
-    fun toggleLike() {
+    override fun toggleLike() {
         try {
             service.toggleLike()
         } catch (e: Exception) {
@@ -338,15 +360,19 @@ class PlayerConnection(
         }
     }
 
-    fun toggleMute() {
+    override fun toggleMute() {
         service.toggleMute()
+    }
+
+    override fun setVolume(volume: Float) {
+        service.playerVolume.value = volume
     }
 
     fun setMuted(muted: Boolean) {
         service.setMuted(muted)
     }
 
-    fun toggleLibrary() {
+    override fun toggleLibrary() {
         try {
             service.toggleLibrary()
         } catch (e: Exception) {
@@ -357,7 +383,7 @@ class PlayerConnection(
     /**
      * Toggle play/pause - handles Cast when active
      */
-    fun togglePlayPause() {
+    override fun togglePlayPause() {
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) return
         try {
             val castHandler = service.castConnectionHandler
@@ -378,7 +404,7 @@ class PlayerConnection(
     /**
      * Start playback - handles Cast when active
      */
-    fun play() {
+    override fun play() {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -397,7 +423,7 @@ class PlayerConnection(
     /**
      * Pause playback - handles Cast when active
      */
-    fun pause() {
+    override fun pause() {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -413,7 +439,7 @@ class PlayerConnection(
     /**
      * Seek to position - handles Cast when active
      */
-    fun seekTo(position: Long) {
+    override fun seekTo(position: Long) {
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -426,7 +452,7 @@ class PlayerConnection(
         }
     }
 
-    fun seekToNext() {
+    override fun seekToNext() {
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -447,7 +473,7 @@ class PlayerConnection(
 
     var onRestartSong: (() -> Unit)? = null
 
-    fun seekToPrevious() {
+    override fun seekToPrevious() {
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -479,135 +505,129 @@ class PlayerConnection(
         }
     }
 
-    /** Parses "0=09:00-23:00;1=22:00-06:00" into Map<dayIndex, Pair<start, end>>. */
-    private fun parseDayTimes(raw: String): Map<Int, Pair<String, String>> {
-        if (raw.isBlank()) return emptyMap()
-        return raw
-            .split(";")
-            .mapNotNull { entry ->
-                val parts = entry.split("=")
-                if (parts.size != 2) return@mapNotNull null
-                val dayIndex = parts[0].toIntOrNull() ?: return@mapNotNull null
-                val times = parts[1].split("-")
-                if (times.size != 2) return@mapNotNull null
-                dayIndex to (times[0] to times[1])
-            }.toMap()
+    override val currentPosition: Long get() = getPlayerOrNull()?.currentPosition ?: 0L
+    override val duration: Long get() = getPlayerOrNull()?.duration ?: MusicPlayer.TIME_UNSET
+
+    override var playbackSpeed: Float
+        get() = getPlayerOrNull()?.playbackParameters?.speed ?: 1f
+        set(value) {
+            getPlayerOrNull()?.let { it.playbackParameters = PlaybackParameters(value, it.playbackParameters.pitch) }
+        }
+
+    override var pitch: Float
+        get() = getPlayerOrNull()?.playbackParameters?.pitch ?: 1f
+        set(value) {
+            getPlayerOrNull()?.let { it.playbackParameters = PlaybackParameters(it.playbackParameters.speed, value) }
+        }
+
+    override val hasPreviousItem: Boolean get() = getPlayerOrNull()?.hasPreviousMediaItem() ?: false
+    override val hasNextItem: Boolean get() = getPlayerOrNull()?.hasNextMediaItem() ?: false
+
+    override fun skipToNextItem() {
+        getPlayerOrNull()?.seekToNext()
     }
 
-    private fun checkAndStartAutomaticSleepTimer(): Boolean {
-        return try {
-            val sleepTimerEnabled = service.applicationContext.dataStore.get(SleepTimerEnabledKey) ?: false
-            Timber.tag(TAG).d("✓ Sleep Timer Check: enabled=$sleepTimerEnabled")
+    override fun skipToPreviousItem() {
+        getPlayerOrNull()?.seekToPreviousMediaItem()
+    }
 
-            if (!sleepTimerEnabled) {
-                Timber.tag(TAG).d("✗ Sleep Timer disabled - skipping")
-                return false
-            }
+    override fun retry() {
+        getPlayerOrNull()?.prepare()
+    }
 
-            if (service.sleepTimer?.isActive == true) {
-                Timber.tag(TAG).d("✗ Sleep Timer already active - skipping")
-                return false
-            }
+    override fun seekToItem(index: Int) {
+        getPlayerOrNull()?.seekToDefaultPosition(index)
+    }
 
-            val sleepTimerRepeat = service.applicationContext.dataStore.get(SleepTimerRepeatKey) ?: "daily"
-            val sleepTimerStartTime = service.applicationContext.dataStore.get(SleepTimerStartTimeKey) ?: "09:00"
-            val sleepTimerEndTime = service.applicationContext.dataStore.get(SleepTimerEndTimeKey) ?: "23:00"
-            val sleepTimerDefaultMinutes = (service.applicationContext.dataStore.get(SleepTimerDefaultKey) ?: 30f).roundToInt()
-            val sleepTimerCustomDaysStr = service.applicationContext.dataStore.get(SleepTimerCustomDaysKey) ?: "0,1,2,3,4"
-            val sleepTimerDayTimesStr = service.applicationContext.dataStore.get(SleepTimerDayTimesKey) ?: ""
-
-            Timber
-                .tag(
-                    TAG,
-                ).d(
-                    "Sleep Timer Config: repeat=$sleepTimerRepeat start=$sleepTimerStartTime end=$sleepTimerEndTime default=$sleepTimerDefaultMinutes custom=$sleepTimerCustomDaysStr",
-                )
-
-            val currentTime = LocalTime.now()
-            val today = LocalDate.now()
-            val dayOfWeek = today.dayOfWeek.value % 7
-            val adjustedDayOfWeek = if (dayOfWeek == 0) 6 else dayOfWeek - 1
-
-            Timber.tag(TAG).d("Current: time=$currentTime dayOfWeek=$adjustedDayOfWeek")
-
-            val isDayAllowed =
-                when (sleepTimerRepeat) {
-                    "daily" -> {
-                        true
-                    }
-
-                    "weekdays" -> {
-                        adjustedDayOfWeek in 0..4
-                    }
-
-                    "weekends" -> {
-                        adjustedDayOfWeek in 5..6
-                    }
-
-                    "weekdays_weekends" -> {
-                        true
-                    }
-
-                    // both groups active; per-day time handles the distinction
-                    "custom" -> {
-                        val customDays = sleepTimerCustomDaysStr.split(",").mapNotNull { it.trim().toIntOrNull() }
-                        Timber.tag(TAG).d("Custom days: $customDays, adjustedDayOfWeek=$adjustedDayOfWeek")
-                        adjustedDayOfWeek in customDays
-                    }
-
-                    else -> {
-                        false
-                    }
-                }
-
-            if (!isDayAllowed) {
-                Timber.tag(TAG).d("✗ Day not allowed for Sleep Timer")
-                return false
-            }
-
-// "daily" uses the single global time window.
-// All other modes store per-day times in the dayTimes map so that
-// e.g. weekdays and weekends can have different windows.
-            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-            val usesDayTimesMap = sleepTimerRepeat != "daily"
-            val (startStr, endStr) =
-                if (usesDayTimesMap) {
-                    parseDayTimes(sleepTimerDayTimesStr)[adjustedDayOfWeek]
-                        ?: (sleepTimerStartTime to sleepTimerEndTime)
-                } else {
-                    sleepTimerStartTime to sleepTimerEndTime
-                }
-
-            val startTime = LocalTime.parse(startStr, timeFormatter)
-            val endTime = LocalTime.parse(endStr, timeFormatter)
-
-            // Support overnight ranges (e.g. 22:00–06:00) in addition to normal ranges
-            val isTimeInRange =
-                if (endTime.isAfter(startTime)) {
-                    currentTime.isAfter(startTime) && currentTime.isBefore(endTime)
-                } else {
-                    currentTime.isAfter(startTime) || currentTime.isBefore(endTime)
-                }
-
-            Timber.tag(TAG).d("Time check: $currentTime between $startStr-$endStr? $isTimeInRange")
-
-            if (isTimeInRange) {
-                Timber.tag(TAG).i("AUTO SLEEP TIMER STARTED: $sleepTimerDefaultMinutes minutes")
-                service.sleepTimer?.start(sleepTimerDefaultMinutes)
-                return true
-            }
-
-            Timber.tag(TAG).d("✗ Time not in range")
-            return false
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Sleep Timer error")
-            return false
+    override fun moveItem(
+        from: Int,
+        to: Int,
+    ) {
+        val player = getPlayerOrNull() ?: return
+        if (!player.shuffleModeEnabled) {
+            player.moveMediaItem(from, to)
+        } else {
+            player.setShuffleOrder(
+                DefaultShuffleOrder(
+                    queue.value
+                        .map { it.index }
+                        .toMutableList()
+                        .move(from, to)
+                        .toIntArray(),
+                    System.currentTimeMillis(),
+                ),
+            )
         }
     }
 
+    override fun insertItem(
+        index: Int,
+        item: MediaMetadata,
+    ) {
+        getPlayerOrNull()?.addMediaItem(index, item.toMediaItem())
+    }
+
+    override fun removeItem(index: Int) {
+        getPlayerOrNull()?.removeMediaItem(index)
+    }
+
+    override fun clearQueue() {
+        getPlayerOrNull()?.run {
+            stop()
+            clearMediaItems()
+        }
+    }
+
+    override fun setShuffleModeEnabled(enabled: Boolean) {
+        getPlayerOrNull()?.shuffleModeEnabled = enabled
+    }
+
+    override fun setRepeatMode(mode: RepeatMode) {
+        getPlayerOrNull()?.repeatMode =
+            when (mode) {
+                RepeatMode.OFF -> REPEAT_MODE_OFF
+                RepeatMode.ONE -> Player.REPEAT_MODE_ONE
+                RepeatMode.ALL -> Player.REPEAT_MODE_ALL
+            }
+    }
+
+    override fun toggleRepeatMode() {
+        getPlayerOrNull()?.toggleRepeatMode()
+    }
+
+    override fun loadAutomix(playlistId: String) {
+        service.getAutomix(playlistId)
+    }
+
+    override fun playNextAutomix(index: Int) {
+        service.automixItems.value.getOrNull(index)?.let { service.playNextAutomix(it, index) }
+    }
+
+    override fun addToQueueAutomix(index: Int) {
+        service.automixItems.value.getOrNull(index)?.let { service.addToQueueAutomix(it, index) }
+    }
+
+    override fun clearAutomix() {
+        service.clearAutomix()
+    }
+
+    private fun updateQueue(player: Player) {
+        queue.value = player.getQueueWindows().map { QueueEntry(it.uid, it.firstPeriodIndex, it.mediaItem.metadata) }
+    }
+
+    private fun checkAndStartAutomaticSleepTimer(): Boolean {
+        val timer = service.sleepTimer ?: return false
+        if (timer.isActive) return false
+        val preferences = runBlocking(Dispatchers.IO) { service.applicationContext.dataStore.data.first() }
+        val minutes = automaticSleepTimerMinutes(preferences, LocalDateTime.now()) ?: return false
+        Timber.tag(TAG).i("Automatic sleep timer started: $minutes minutes")
+        timer.start(minutes)
+        return true
+    }
+
     override fun onPlaybackStateChanged(state: Int) {
-        playbackState.value = state
-        error.value = player.playerError
+        playbackStateCode.value = state
+        playerException.value = player.playerError
     }
 
     override fun onPlayWhenReadyChanged(
@@ -628,6 +648,9 @@ class PlayerConnection(
         reason: Int,
     ) {
         mediaMetadata.value = mediaItem?.metadata
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
+            _newQueueStarted.tryEmit(Unit)
+        }
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
@@ -637,7 +660,7 @@ class PlayerConnection(
         timeline: Timeline,
         reason: Int,
     ) {
-        queueWindows.value = player.getQueueWindows()
+        updateQueue(player)
         queueTitle.value = service.queueTitle
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
@@ -646,14 +669,14 @@ class PlayerConnection(
 
     override fun onShuffleModeEnabledChanged(enabled: Boolean) {
         shuffleModeEnabled.value = enabled
-        queueWindows.value = player.getQueueWindows()
+        updateQueue(player)
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
     override fun onRepeatModeChanged(mode: Int) {
         if (mode != player.repeatMode) return
-        repeatMode.value = mode
+        repeatModeCode.value = mode
         updateCanSkipPreviousAndNext()
     }
 
@@ -661,7 +684,7 @@ class PlayerConnection(
         if (playbackError != null) {
             reportException(playbackError)
         }
-        error.value = playbackError
+        playerException.value = playbackError
     }
 
     private fun updateCanSkipPreviousAndNext() {
@@ -690,3 +713,20 @@ class PlayerConnection(
         }
     }
 }
+
+private fun Int.toPlaybackState() =
+    when (this) {
+        Player.STATE_BUFFERING -> PlaybackState.BUFFERING
+        Player.STATE_READY -> PlaybackState.READY
+        Player.STATE_ENDED -> PlaybackState.ENDED
+        else -> PlaybackState.IDLE
+    }
+
+private fun Int.toRepeatMode() =
+    when (this) {
+        Player.REPEAT_MODE_ONE -> RepeatMode.ONE
+        Player.REPEAT_MODE_ALL -> RepeatMode.ALL
+        else -> RepeatMode.OFF
+    }
+
+private fun PlaybackException.toPlayerError() = PlayerError(errorCode, errorCodeName, this)

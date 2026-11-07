@@ -11,14 +11,14 @@ class CastConnectionHandler(
     context: Context,
     scope: CoroutineScope,
     musicService: MusicService,
-) {
-    val isCasting: StateFlow<Boolean> = MutableStateFlow(false)
-    val castDeviceName: StateFlow<String?> = MutableStateFlow(null)
-    val castPosition: StateFlow<Long> = MutableStateFlow(0L)
-    val castDuration: StateFlow<Long> = MutableStateFlow(0L)
-    val castIsPlaying: StateFlow<Boolean> = MutableStateFlow(false)
+) : CastControl {
+    override val isCasting: StateFlow<Boolean> = MutableStateFlow(false)
+    override val castDeviceName: StateFlow<String?> = MutableStateFlow(null)
+    override val castPosition: StateFlow<Long> = MutableStateFlow(0L)
+    override val castDuration: StateFlow<Long> = MutableStateFlow(0L)
+    override val castIsPlaying: StateFlow<Boolean> = MutableStateFlow(false)
     val castIsBuffering: StateFlow<Boolean> = MutableStateFlow(false)
-    val castVolume: StateFlow<Float> = MutableStateFlow(1f)
+    override val castVolume: StateFlow<Float> = MutableStateFlow(1f)
     val isSyncingFromCast = false
 
     fun initialize() = false
@@ -29,19 +29,19 @@ class CastConnectionHandler(
 
     fun loadMedia(metadata: MediaMetadata) = Unit
 
-    fun play() = Unit
+    override fun play() = Unit
 
-    fun pause() = Unit
+    override fun pause() = Unit
 
-    fun seekTo(position: Long) = Unit
+    override fun seekTo(position: Long) = Unit
 
-    fun setVolume(volume: Float) = Unit
+    override fun setVolume(volume: Float) = Unit
 
     fun skipToNext() = Unit
 
     fun skipToPrevious() = Unit
 
-    fun navigateToMediaIfInQueue(mediaId: String) = false
+    override fun navigateToMediaIfInQueue(mediaId: String) = false
 
     fun release() = Unit
 }

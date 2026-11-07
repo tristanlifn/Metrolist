@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -47,12 +46,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.theme.bbh_bartle
 import kotlinx.coroutines.delay
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album_art_for
+import com.metrolist.music.resources.wrapped_album_listening_time
+import com.metrolist.music.resources.wrapped_album_listening_time_minutes
+import com.metrolist.music.resources.wrapped_no_data
+import com.metrolist.music.resources.wrapped_top_5_albums_title
+import com.metrolist.music.resources.wrapped_top_album_title
+import com.metrolist.music.resources.wrapped_total_albums_subtitle
+import com.metrolist.music.resources.wrapped_total_albums_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
@@ -86,7 +94,7 @@ fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_total_albums_title),
+                    text = stringResource(Res.string.wrapped_total_albums_title),
                     modifier = Modifier.padding(horizontal = 24.dp),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         color = Color.White,
@@ -133,7 +141,7 @@ fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 600)) + slideInVertically(animationSpec = tween(1000, delayMillis = 600))
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_total_albums_subtitle),
+                    text = stringResource(Res.string.wrapped_total_albums_subtitle),
                     modifier = Modifier.padding(horizontal = 24.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.White.copy(alpha = 0.8f),
@@ -168,7 +176,7 @@ fun WrappedTopAlbumScreen(topAlbum: Album?, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_top_album_title),
+                    text = stringResource(Res.string.wrapped_top_album_title),
                     style = TextStyle(
                         fontFamily = bbh_bartle,
                         fontSize = 40.sp,
@@ -185,7 +193,7 @@ fun WrappedTopAlbumScreen(topAlbum: Album?, isVisible: Boolean) {
             ) {
                 AsyncImage(
                     model = topAlbum?.thumbnailUrl,
-                    contentDescription = stringResource(R.string.album_art_for, topAlbum?.title ?: ""),
+                    contentDescription = stringResource(Res.string.album_art_for, topAlbum?.title ?: ""),
                     modifier = Modifier
                         .size(200.dp)
                         .clip(RoundedCornerShape(3.dp)),
@@ -198,7 +206,7 @@ fun WrappedTopAlbumScreen(topAlbum: Album?, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 600)) + slideInVertically(animationSpec = tween(1000, delayMillis = 600))
             ) {
                 Text(
-                    text = topAlbum?.title ?: stringResource(id = R.string.wrapped_no_data),
+                    text = topAlbum?.title ?: stringResource(Res.string.wrapped_no_data),
                     fontSize = 24.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -211,7 +219,7 @@ fun WrappedTopAlbumScreen(topAlbum: Album?, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 800)) + slideInVertically(animationSpec = tween(1000, delayMillis = 800))
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_album_listening_time, topAlbum?.timeListened?.div(60000) ?: 0),
+                    text = stringResource(Res.string.wrapped_album_listening_time, topAlbum?.timeListened?.div(60000) ?: 0),
                     fontSize = 16.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -246,7 +254,7 @@ fun WrappedTop5AlbumsScreen(topAlbums: List<Album>, isVisible: Boolean) {
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
             ) {
                 Text(
-                    text = stringResource(R.string.wrapped_top_5_albums_title),
+                    text = stringResource(Res.string.wrapped_top_5_albums_title),
                     style = TextStyle(
                         fontFamily = bbh_bartle,
                         fontSize = 48.sp,
@@ -280,7 +288,7 @@ fun WrappedTop5AlbumsScreen(topAlbums: List<Album>, isVisible: Boolean) {
                             Spacer(modifier = Modifier.width(16.dp))
                             AsyncImage(
                                 model = album.thumbnailUrl,
-                                contentDescription = stringResource(R.string.album_art_for, album.title),
+                                contentDescription = stringResource(Res.string.album_art_for, album.title),
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(RoundedCornerShape(3.dp)),
@@ -296,7 +304,7 @@ fun WrappedTop5AlbumsScreen(topAlbums: List<Album>, isVisible: Boolean) {
                                     maxLines = 1
                                 )
                                 Text(
-                                    text = stringResource(R.string.wrapped_album_listening_time_minutes, album.timeListened?.div(60000) ?: 0),
+                                    text = stringResource(Res.string.wrapped_album_listening_time_minutes, album.timeListened?.div(60000) ?: 0),
                                     color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 14.sp
                                 )

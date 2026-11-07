@@ -25,8 +25,6 @@ val workflowDebugKeystoreFile = debugKeystorePathOverride?.let(::file)
 
 plugins {
     id("com.android.application")
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.protobuf)
@@ -34,7 +32,9 @@ plugins {
 
 android {
     namespace = "com.metrolist.music"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         applicationId = applicationIdOverride ?: baseApplicationId
@@ -227,10 +227,6 @@ tasks.named("preBuild") {
     dependsOn(cleanLegacyProtoSources)
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.addAll(
@@ -255,7 +251,8 @@ dependencies {
     implementation(libs.coroutines.guava)
 
     implementation(libs.activity)
-    implementation(libs.hilt.navigation)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.navigation.compose)
     implementation(libs.datastore)
 
     implementation(libs.compose.runtime)
@@ -291,15 +288,10 @@ dependencies {
     "gmsImplementation"(libs.mediarouter)
     "gmsImplementation"(libs.cast.framework)
 
-    implementation(libs.room.runtime)
-    implementation(libs.kuromoji.ipadic)
-    implementation(libs.tinypinyin)
-    ksp(libs.room.compiler)
 
-    implementation(libs.hilt)
-    ksp(libs.hilt.compiler)
+    implementation(libs.koin.android)
 
-    implementation(project(":innertube"))
+    implementation(project(":shared"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
@@ -319,4 +311,5 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.koin.test)
 }

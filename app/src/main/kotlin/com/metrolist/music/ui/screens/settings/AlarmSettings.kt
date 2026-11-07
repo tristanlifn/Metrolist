@@ -1,12 +1,12 @@
 package com.metrolist.music.ui.screens.settings
 
 import android.app.AlarmManager
+import com.metrolist.music.ui.utils.okLabel
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,13 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.playback.alarm.MusicAlarmEntry
 import com.metrolist.music.playback.alarm.MusicAlarmScheduler
@@ -68,6 +64,45 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add_circle
+import com.metrolist.music.resources.alarm
+import com.metrolist.music.resources.alarm_add
+import com.metrolist.music.resources.alarm_battery_optimization_desc
+import com.metrolist.music.resources.alarm_battery_optimization_title
+import com.metrolist.music.resources.alarm_delete
+import com.metrolist.music.resources.alarm_disabled
+import com.metrolist.music.resources.alarm_duplicate_time_warning
+import com.metrolist.music.resources.alarm_edit
+import com.metrolist.music.resources.alarm_empty
+import com.metrolist.music.resources.alarm_enabled
+import com.metrolist.music.resources.alarm_exact_permission_desc
+import com.metrolist.music.resources.alarm_exact_permission_title
+import com.metrolist.music.resources.alarm_new
+import com.metrolist.music.resources.alarm_next_prefix
+import com.metrolist.music.resources.alarm_no_playlists
+import com.metrolist.music.resources.alarm_not_scheduled
+import com.metrolist.music.resources.alarm_playlist
+import com.metrolist.music.resources.alarm_playlist_song_count
+import com.metrolist.music.resources.alarm_random_disabled
+import com.metrolist.music.resources.alarm_random_enabled
+import com.metrolist.music.resources.alarm_random_song
+import com.metrolist.music.resources.alarm_save
+import com.metrolist.music.resources.alarm_select_playlist
+import com.metrolist.music.resources.alarm_selected
+import com.metrolist.music.resources.alarm_time
+import com.metrolist.music.resources.alarm_time_picker_value
+import com.metrolist.music.resources.bedtime
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.warning
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -78,10 +113,10 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
     val scope = rememberCoroutineScope()
     val playlists by database.playlistsByNameAsc().collectAsStateWithLifecycle(initialValue = emptyList())
     val persistMutex = remember { Mutex() }
-    val selectPlaylistText = stringResource(R.string.alarm_select_playlist)
-    val randomEnabledText = stringResource(R.string.alarm_random_enabled)
-    val randomDisabledText = stringResource(R.string.alarm_random_disabled)
-    val notScheduledText = stringResource(R.string.alarm_not_scheduled)
+    val selectPlaylistText = stringResource(Res.string.alarm_select_playlist)
+    val randomEnabledText = stringResource(Res.string.alarm_random_enabled)
+    val randomDisabledText = stringResource(Res.string.alarm_random_disabled)
+    val notScheduledText = stringResource(Res.string.alarm_not_scheduled)
 
     var alarms by remember { mutableStateOf(emptyList<MusicAlarmEntry>()) }
     var showEditor by remember { mutableStateOf(false) }
@@ -101,9 +136,9 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !canScheduleExact) {
             add(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.warning),
-                    title = { Text(stringResource(R.string.alarm_exact_permission_title)) },
-                    description = { Text(stringResource(R.string.alarm_exact_permission_desc)) },
+                    icon = painterResource(Res.drawable.warning),
+                    title = { Text(stringResource(Res.string.alarm_exact_permission_title)) },
+                    description = { Text(stringResource(Res.string.alarm_exact_permission_desc)) },
                     onClick = {
                         try {
                             val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
@@ -118,9 +153,9 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
         if (!ignoringBatteryOptimization) {
             add(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.warning),
-                    title = { Text(stringResource(R.string.alarm_battery_optimization_title)) },
-                    description = { Text(stringResource(R.string.alarm_battery_optimization_desc)) },
+                    icon = painterResource(Res.drawable.warning),
+                    title = { Text(stringResource(Res.string.alarm_battery_optimization_title)) },
+                    description = { Text(stringResource(Res.string.alarm_battery_optimization_desc)) },
                     onClick = {
                         try {
                             context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
@@ -175,12 +210,12 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
     }
 
     Material3SettingsGroup(
-        title = if (showTitle) stringResource(R.string.alarm) else null,
+        title = if (showTitle) stringResource(Res.string.alarm) else null,
         items = buildList {
             add(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.add_circle),
-                    title = { Text(stringResource(R.string.alarm_add)) },
+                    icon = painterResource(Res.drawable.add_circle),
+                    title = { Text(stringResource(Res.string.alarm_add)) },
                     onClick = {
                         editorTarget = null
                         showEditor = true
@@ -191,8 +226,8 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
             if (alarms.isEmpty()) {
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.bedtime),
-                        title = { Text(stringResource(R.string.alarm_empty)) }
+                        icon = painterResource(Res.drawable.bedtime),
+                        title = { Text(stringResource(Res.string.alarm_empty)) }
                     )
                 )
             } else {
@@ -216,18 +251,18 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                             append(" • ")
                             append(if (alarm.randomSong) randomEnabledText else randomDisabledText)
                             append("\n")
-                            append(stringResource(R.string.alarm_next_prefix, triggerText))
+                            append(stringResource(Res.string.alarm_next_prefix, triggerText))
                         }
 
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.bedtime),
+                            icon = painterResource(Res.drawable.bedtime),
                             title = {
                                 Text(
                                     String.format(locale, "%02d:%02d", alarm.hour, alarm.minute) +
                                         if (alarm.enabled) {
                                             ""
                                         } else {
-                                            " (${stringResource(R.string.alarm_disabled)})"
+                                            " (${stringResource(Res.string.alarm_disabled)})"
                                         }
                                 )
                             },
@@ -252,8 +287,8 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                                         }
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
-                                            contentDescription = stringResource(R.string.alarm_delete)
+                                            painter = painterResource(Res.drawable.delete),
+                                            contentDescription = stringResource(Res.string.alarm_delete)
                                         )
                                     }
                                 }
@@ -292,10 +327,10 @@ private fun AlarmTimePickerDialog(
         onDismiss = onDismiss,
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(Res.string.cancel))
             }
             TextButton(onClick = { onConfirm(timePickerState.hour, timePickerState.minute) }) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         }
     ) {
@@ -315,7 +350,7 @@ private fun AlarmSwitch(
         enabled = enabled,
         thumbContent = {
             Icon(
-                painter = painterResource(if (checked) R.drawable.check else R.drawable.close),
+                painter = painterResource(if (checked) Res.drawable.check else Res.drawable.close),
                 contentDescription = null,
                 modifier = Modifier.size(SwitchDefaults.IconSize)
             )
@@ -332,10 +367,10 @@ private fun AlarmEditorDialog(
     onDismiss: () -> Unit,
     onSave: (MusicAlarmEntry) -> Unit
 ) {
-    val context = LocalContext.current
+    val platformActions = koinInject<PlatformActions>()
     val locale = LocalLocale.current.platformLocale
-    val noPlaylistsText = stringResource(R.string.alarm_no_playlists)
-    val selectPlaylistText = stringResource(R.string.alarm_select_playlist)
+    val noPlaylistsText = stringResource(Res.string.alarm_no_playlists)
+    val selectPlaylistText = stringResource(Res.string.alarm_select_playlist)
 
     var showPlaylistDialog by remember { mutableStateOf(false) }
     var showTimePickerDialog by remember { mutableStateOf(false) }
@@ -353,7 +388,7 @@ private fun AlarmEditorDialog(
 
     if (showTimePickerDialog) {
         AlarmTimePickerDialog(
-            title = stringResource(R.string.alarm_time),
+            title = stringResource(Res.string.alarm_time),
             initialHour = hour,
             initialMinute = minute,
             onDismiss = { showTimePickerDialog = false },
@@ -368,10 +403,10 @@ private fun AlarmEditorDialog(
     if (showPlaylistDialog) {
         DefaultDialog(
             onDismiss = { showPlaylistDialog = false },
-            title = { Text(stringResource(R.string.alarm_playlist)) },
+            title = { Text(stringResource(Res.string.alarm_playlist)) },
             buttons = {
                 TextButton(onClick = { showPlaylistDialog = false }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         ) {
@@ -414,7 +449,7 @@ private fun AlarmEditorDialog(
                                     )
                                     Text(
                                         text = pluralStringResource(
-                                            R.plurals.alarm_playlist_song_count,
+                                            Res.plurals.alarm_playlist_song_count,
                                             playlist.songCount,
                                             playlist.songCount
                                         ),
@@ -424,8 +459,8 @@ private fun AlarmEditorDialog(
                                 }
                                 if (selected) {
                                     Icon(
-                                        painter = painterResource(R.drawable.check),
-                                        contentDescription = stringResource(R.string.alarm_selected),
+                                        painter = painterResource(Res.drawable.check),
+                                        contentDescription = stringResource(Res.string.alarm_selected),
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -442,15 +477,15 @@ private fun AlarmEditorDialog(
         title = {
             Text(
                 if (existing == null) {
-                    stringResource(R.string.alarm_new)
+                    stringResource(Res.string.alarm_new)
                 } else {
-                    stringResource(R.string.alarm_edit)
+                    stringResource(Res.string.alarm_edit)
                 }
             )
         },
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(Res.string.cancel))
             }
             TextButton(
                 enabled = !hasSameTimeAlarm && hasValidPlaylist,
@@ -459,7 +494,7 @@ private fun AlarmEditorDialog(
                         return@TextButton
                     }
                     if (!hasValidPlaylist) {
-                        Toast.makeText(context, selectPlaylistText, Toast.LENGTH_SHORT).show()
+                        platformActions.toast(selectPlaylistText)
                         return@TextButton
                     }
                     onSave(
@@ -473,7 +508,7 @@ private fun AlarmEditorDialog(
                     )
                 }
             ) {
-                Text(stringResource(R.string.alarm_save))
+                Text(stringResource(Res.string.alarm_save))
             }
         }
     ) {
@@ -483,7 +518,7 @@ private fun AlarmEditorDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.alarm_enabled),
+                    text = stringResource(Res.string.alarm_enabled),
                     modifier = Modifier.weight(1f)
                 )
                 AlarmSwitch(checked = enabled, onCheckedChange = { enabled = it })
@@ -495,7 +530,7 @@ private fun AlarmEditorDialog(
             ) {
                 Text(
                     text = stringResource(
-                        R.string.alarm_time_picker_value,
+                        Res.string.alarm_time_picker_value,
                         String.format(locale, "%02d:%02d", hour, minute)
                     )
                 )
@@ -506,7 +541,7 @@ private fun AlarmEditorDialog(
             OutlinedButton(
                 onClick = {
                     if (playlists.isEmpty()) {
-                        Toast.makeText(context, noPlaylistsText, Toast.LENGTH_SHORT).show()
+                        platformActions.toast(noPlaylistsText)
                     } else {
                         showPlaylistDialog = true
                     }
@@ -522,7 +557,7 @@ private fun AlarmEditorDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.alarm_random_song),
+                    text = stringResource(Res.string.alarm_random_song),
                     modifier = Modifier.weight(1f)
                 )
                 AlarmSwitch(checked = randomSong, onCheckedChange = { randomSong = it })
@@ -530,7 +565,7 @@ private fun AlarmEditorDialog(
 
             if (hasSameTimeAlarm) {
                 Text(
-                    text = stringResource(R.string.alarm_duplicate_time_warning),
+                    text = stringResource(Res.string.alarm_duplicate_time_warning),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )

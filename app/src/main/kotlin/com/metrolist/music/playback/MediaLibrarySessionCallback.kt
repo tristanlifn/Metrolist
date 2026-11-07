@@ -51,7 +51,6 @@ import com.metrolist.music.utils.get
 import com.metrolist.music.utils.getArtistSeparator
 import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.reportException
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -62,7 +61,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import javax.inject.Inject
 import com.metrolist.music.constants.AndroidAutoSectionsOrderKey
 import com.metrolist.music.constants.AndroidAutoYouTubePlaylistsKey
 import com.metrolist.music.constants.AutoRadioQueueKey
@@ -73,10 +71,8 @@ import com.metrolist.music.ui.screens.settings.deserializeSections
 import com.metrolist.music.ui.screens.settings.serializeSections
 import kotlinx.coroutines.withContext
 
-class MediaLibrarySessionCallback
-@Inject
-constructor(
-    @ApplicationContext val context: Context,
+class MediaLibrarySessionCallback(
+    val context: Context,
     val database: MusicDatabase,
     val downloadUtil: DownloadUtil,
 ) : MediaLibrarySession.Callback {
@@ -424,7 +420,7 @@ constructor(
         val builtInItems =
             if (request.offset < 2 && request.limit > 0) {
                 val likedSongCount = database.likedSongsCount().first()
-                val downloadedSongCount = downloadUtil.downloads.value.size
+                val downloadedSongCount = downloadUtil.media3Downloads.value.size
                 listOf(
                     browsableMediaItem(
                         "${MusicService.PLAYLIST}/${PlaylistEntity.LIKED_PLAYLIST_ID}",
@@ -479,7 +475,7 @@ constructor(
                 database.likedSongsByCreateDateDesc(songRequest.limit, songRequest.offset)
 
             playlistId == PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> {
-                val downloads = downloadUtil.downloads.value
+                val downloads = downloadUtil.media3Downloads.value
                 val completedSongIds = downloads.entries
                     .asSequence()
                     .filter { it.value.state == Download.STATE_COMPLETED }
@@ -693,7 +689,7 @@ constructor(
                     val songs = when (playlistId) {
                         PlaylistEntity.LIKED_PLAYLIST_ID -> database.likedSongs(SongSortType.CREATE_DATE, descending = true)
                         PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> {
-                            val downloads = downloadUtil.downloads.value
+                            val downloads = downloadUtil.media3Downloads.value
                             database
                                 .allSongs()
                                 .flowOn(Dispatchers.IO)
@@ -852,8 +848,8 @@ constructor(
                                 service.adoptQueue(radioQueue, radioStatus.title, radioStatus.items.size) //Used to make the radio queue load more songs when near the end
                             }
                             return@future MediaItemsWithStartPosition(
-                                radioStatus.items,
-                                radioStatus.items.indexOfFirst { it.mediaId == selectedSong.id }.coerceAtLeast(0),
+                                radioStatus.items.map { it.toMediaItem() },
+                                radioStatus.items.indexOfFirst { it.id == selectedSong.id }.coerceAtLeast(0),
                                 C.TIME_UNSET,
                             )
                         }
@@ -864,7 +860,7 @@ constructor(
                         service.adoptQueue(
                             ListQueue(
                                 title = selectedSong.song.title,
-                                items = items,
+                                items = listOf(selectedSong.toMediaMetadata()),
                             ),
                             title = selectedSong.song.title,
                         )

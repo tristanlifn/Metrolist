@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.screens.equalizer
 
 import android.annotation.SuppressLint
+import com.metrolist.music.ui.utils.okLabel
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,18 +39,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.eq.data.SavedEQProfile
 import timber.log.Timber
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.band_count
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_profile_confirmation
+import com.metrolist.music.resources.delete_profile_desc
+import com.metrolist.music.resources.discover_tune
+import com.metrolist.music.resources.eq_disabled
+import com.metrolist.music.resources.eq_wizard
+import com.metrolist.music.resources.equalizer
+import com.metrolist.music.resources.equalizer_header
+import com.metrolist.music.resources.error_eq_apply_failed
+import com.metrolist.music.resources.error_title
+import com.metrolist.music.resources.import_error_title
+import com.metrolist.music.resources.import_from_file
+import com.metrolist.music.resources.import_profile
+import com.metrolist.music.resources.no_profiles
+import com.metrolist.music.resources.upload
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 
 /**
  * EQ Screen - Manage and select EQ profiles
@@ -57,7 +78,7 @@ import timber.log.Timber
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun EqScreen(
-    viewModel: EQViewModel = hiltViewModel(),
+    viewModel: EQViewModel = koinViewModel(),
 ) {
     val navController = LocalNavController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -137,14 +158,14 @@ fun EqScreen(
         AlertDialog(
             onDismissRequest = { showError = null },
             title = {
-                Text(stringResource(R.string.import_error_title))
+                Text(stringResource(Res.string.import_error_title))
             },
             text = {
                 Text(showError ?: "")
             },
             confirmButton = {
                 TextButton(onClick = { showError = null }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         )
@@ -155,14 +176,14 @@ fun EqScreen(
         AlertDialog(
             onDismissRequest = { viewModel.clearError() },
             title = {
-                Text(stringResource(R.string.error_title))
+                Text(stringResource(Res.string.error_title))
             },
             text = {
-                Text(stringResource(R.string.error_eq_apply_failed, state.error ?: ""))
+                Text(stringResource(Res.string.error_eq_apply_failed, state.error ?: ""))
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearError() }) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             }
         )
@@ -187,11 +208,11 @@ private fun EqScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.equalizer_header)) },
+                title = { Text(stringResource(Res.string.equalizer_header)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
+                            painter = painterResource(Res.drawable.arrow_back),
                             contentDescription = null
                         )
                     }
@@ -200,8 +221,8 @@ private fun EqScreenContent(
                     Box {
                         IconButton(onClick = onAddClicked) {
                             Icon(
-                                painter = painterResource(R.drawable.add),
-                                contentDescription = stringResource(R.string.import_profile)
+                                painter = painterResource(Res.drawable.add),
+                                contentDescription = stringResource(Res.string.import_profile)
                             )
                         }
                         DropdownMenu(
@@ -209,20 +230,20 @@ private fun EqScreenContent(
                             onDismissRequest = onAddMenuDismissed
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.eq_wizard)) },
+                                text = { Text(stringResource(Res.string.eq_wizard)) },
                                 leadingIcon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.discover_tune),
+                                        painter = painterResource(Res.drawable.discover_tune),
                                         contentDescription = null
                                     )
                                 },
                                 onClick = onWizardClicked
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.import_from_file)) },
+                                text = { Text(stringResource(Res.string.import_from_file)) },
                                 leadingIcon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.upload),
+                                        painter = painterResource(Res.drawable.upload),
                                         contentDescription = null
                                     )
                                 },
@@ -285,20 +306,20 @@ private fun EqScreenContent(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.equalizer),
+                                painter = painterResource(Res.drawable.equalizer),
                                 contentDescription = null,
                                 modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = stringResource(R.string.no_profiles),
+                                text = stringResource(Res.string.no_profiles),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(onClick = onAddClicked) {
-                                Text(stringResource(R.string.import_profile))
+                                Text(stringResource(Res.string.import_profile))
                             }
                         }
                     }
@@ -318,7 +339,7 @@ private fun NoEqualizationItem(
     ListItem(
         content = {
             Text(
-                stringResource(R.string.eq_disabled),
+                stringResource(Res.string.eq_disabled),
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
             )
         },
@@ -352,9 +373,8 @@ private fun EQProfileItem(
         },
         supportingContent = {
             Text(
-                pluralStringResource(
-                    id = R.plurals.band_count,
-                    count = profile.bands.size,
+                pluralStringResource(Res.plurals.band_count,
+                    profile.bands.size,
                     profile.bands.size
                 )
             )
@@ -368,8 +388,8 @@ private fun EQProfileItem(
         trailingContent = {
             IconButton(onClick = { showDeleteDialog = true }) {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
-                    contentDescription = stringResource(R.string.delete_profile_desc),
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = stringResource(Res.string.delete_profile_desc),
                     tint = MaterialTheme.colorScheme.error
                 )
             }
@@ -383,10 +403,10 @@ private fun EQProfileItem(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_profile_desc)) },
+            title = { Text(stringResource(Res.string.delete_profile_desc)) },
             text = {
                 Text(
-                    stringResource(R.string.delete_profile_confirmation, profile.name)
+                    stringResource(Res.string.delete_profile_confirmation, profile.name)
                 )
             },
             confirmButton = {
@@ -396,12 +416,12 @@ private fun EQProfileItem(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(okLabel())
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             }
         )

@@ -33,13 +33,10 @@ import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SongEntity
-import com.metrolist.music.di.DownloadCache
-import com.metrolist.music.di.PlayerCache
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.utils.InnerTubeXPlayer
 import com.metrolist.music.utils.enumPreference
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -48,8 +45,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
@@ -59,19 +55,14 @@ import timber.log.Timber
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.Executor
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class DownloadUtil
-@Inject
-constructor(
-    @ApplicationContext private val context: Context,
+class DownloadUtil(
+    private val context: Context,
     val database: MusicDatabase,
     val databaseProvider: DatabaseProvider,
-    @DownloadCache val downloadCache: Cache,
-    @PlayerCache val playerCache: Cache,
-) {
+    val downloadCache: Cache,
+    val playerCache: Cache,
+) : SongDownloads {
     private val TAG = "DownloadUtil"
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
@@ -91,7 +82,19 @@ constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val downloadPreparations = Semaphore(3)
 
-    val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
+    private val _media3Downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
+    val media3Downloads = _media3Downloads.asStateFlow()
+
+    private val downloadStates = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
+    override val downloads = downloadStates.asStateFlow()
+
+    // Called from the download manager's thread and from scope; the lock keeps both maps in the same order.
+    @Synchronized
+    private fun updateDownloads(transform: (Map<String, Download>) -> Map<String, Download>) {
+        val updated = transform(_media3Downloads.value)
+        _media3Downloads.value = updated
+        downloadStates.value = updated.mapValues { it.value.state.toDownloadState() }
+    }
 
     private val dataSourceFactory =
         ResolvingDataSource.Factory(
@@ -254,7 +257,7 @@ constructor(
                             songUrlCache.invalidate(download.request.id)
                         }
 
-                        downloads.update { map ->
+                        updateDownloads { map ->
                             map.toMutableMap().apply {
                                 set(download.request.id, download)
                             }
@@ -284,17 +287,19 @@ constructor(
                         val downloadId = download.request.id
                         songUrlCache.invalidate(downloadId)
 
-                        runCatching {
-                            database.updateDownloadedInfo(downloadId, false, null)
-                        }.onSuccess {
-                            downloads.update { map ->
-                                map.toMutableMap().apply {
-                                    remove(downloadId)
+                        scope.launch {
+                            runCatching {
+                                database.updateDownloadedInfo(downloadId, false, null)
+                            }.onSuccess {
+                                updateDownloads { map ->
+                                    map.toMutableMap().apply {
+                                        remove(downloadId)
+                                    }
                                 }
+                                Timber.tag(TAG).d("Successfully removed download $downloadId from in-memory map")
+                            }.onFailure { error ->
+                                Timber.tag(TAG).e(error, "Failed to update database for removed download $downloadId, keeping in-memory entry")
                             }
-                            Timber.tag(TAG).d("Successfully removed download $downloadId from in-memory map")
-                        }.onFailure { error ->
-                            Timber.tag(TAG).e(error, "Failed to update database for removed download $downloadId, keeping in-memory entry")
                         }
                     }
                 }
@@ -308,7 +313,7 @@ constructor(
                 result[cursor.download.request.id] = cursor.download
             }
         }
-        downloads.value = result
+        updateDownloads { result }
         scope.launch {
             result.values
                 .filter { it.state == Download.STATE_COMPLETED }
@@ -316,16 +321,10 @@ constructor(
         }
     }
 
-    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
-
-    fun download(song: Song) = download(song.toMediaMetadata())
-
-    fun download(song: SongItem) = download(song.toMediaMetadata())
-
-    fun download(mediaMetadata: MediaMetadata) {
+    override fun download(mediaMetadata: MediaMetadata) {
         scope.launch {
             downloadPreparations.withPermit {
-                if (!shouldPrepareDownload(downloads.value[mediaMetadata.id]?.state)) return@withPermit
+                if (!shouldPrepareDownload(media3Downloads.value[mediaMetadata.id]?.state)) return@withPermit
 
                 mediaMetadata.album?.let { album ->
                     if (database.albumEntity(album.id) == null) {
@@ -388,12 +387,16 @@ constructor(
         }
     }
 
-    fun download(songId: String) {
+    override fun download(songId: String) {
         scope.launch {
             database.getSongByIdBlocking(songId)?.let { song ->
                 download(song)
             }
         }
+    }
+
+    override fun remove(songId: String) {
+        DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, songId, false)
     }
 
     fun release() {
@@ -418,6 +421,17 @@ constructor(
         return false
     }
 }
+
+private fun Int.toDownloadState() =
+    when (this) {
+        Download.STATE_QUEUED -> DownloadState.QUEUED
+        Download.STATE_STOPPED -> DownloadState.STOPPED
+        Download.STATE_DOWNLOADING -> DownloadState.DOWNLOADING
+        Download.STATE_COMPLETED -> DownloadState.COMPLETED
+        Download.STATE_FAILED -> DownloadState.FAILED
+        Download.STATE_REMOVING -> DownloadState.REMOVING
+        else -> DownloadState.RESTARTING
+    }
 
 internal fun shouldPrepareDownload(downloadState: Int?): Boolean = downloadState != Download.STATE_COMPLETED
 

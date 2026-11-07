@@ -7,6 +7,7 @@ package com.metrolist.music.db
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import com.metrolist.music.db.entities.AlbumArtistMap
 import com.metrolist.music.db.entities.AlbumEntity
@@ -44,24 +45,26 @@ class ArtistPageCacheTest {
         database = Room.inMemoryDatabaseBuilder(context, InternalDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        database.runInTransaction {
-            database.dao.insert(
-                ArtistEntity(
-                    id = ARTIST_ID,
-                    name = "Artist",
-                    thumbnailUrl = "https://example.invalid/artist.jpg",
-                    channelId = "UCchannel",
-                    lastUpdateTime = UPDATED_AT,
-                    bookmarkedAt = BOOKMARKED_AT,
-                    isPodcastChannel = true,
-                    cachedPageJson = CACHED_PAGE,
-                ),
-            )
-            database.dao.insert(AlbumEntity(id = ALBUM_ID, title = "Album", songCount = 1, duration = 0))
-            database.dao.insert(SongEntity(id = SONG_ID, title = "Song", albumId = ALBUM_ID))
-            database.dao.insert(SongArtistMap(songId = SONG_ID, artistId = ARTIST_ID, position = 0))
-            database.dao.insert(SongAlbumMap(songId = SONG_ID, albumId = ALBUM_ID, index = 0))
-            database.dao.insert(AlbumArtistMap(albumId = ALBUM_ID, artistId = ARTIST_ID, order = 0))
+        runBlocking {
+            database.withTransaction {
+                database.dao.insert(
+                    ArtistEntity(
+                        id = ARTIST_ID,
+                        name = "Artist",
+                        thumbnailUrl = "https://example.invalid/artist.jpg",
+                        channelId = "UCchannel",
+                        lastUpdateTime = UPDATED_AT,
+                        bookmarkedAt = BOOKMARKED_AT,
+                        isPodcastChannel = true,
+                        cachedPageJson = CACHED_PAGE,
+                    ),
+                )
+                database.dao.insert(AlbumEntity(id = ALBUM_ID, title = "Album", songCount = 1, duration = 0))
+                database.dao.insert(SongEntity(id = SONG_ID, title = "Song", albumId = ALBUM_ID))
+                database.dao.insert(SongArtistMap(songId = SONG_ID, artistId = ARTIST_ID, position = 0))
+                database.dao.insert(SongAlbumMap(songId = SONG_ID, albumId = ALBUM_ID, index = 0))
+                database.dao.insert(AlbumArtistMap(albumId = ALBUM_ID, artistId = ARTIST_ID, order = 0))
+            }
         }
     }
 
@@ -71,14 +74,14 @@ class ArtistPageCacheTest {
     }
 
     @Test
-    fun `reading a song leaves the cached artist page on disk`() {
+    fun `reading a song leaves the cached artist page on disk`() = runBlocking<Unit> {
         val artist = database.dao.getSongByIdBlocking(SONG_ID)!!.artists.single()
 
         assertNull(artist.cachedPageJson)
     }
 
     @Test
-    fun `reading a song keeps every other artist column`() {
+    fun `reading a song keeps every other artist column`() = runBlocking<Unit> {
         val artist = database.dao.getSongByIdBlocking(SONG_ID)!!.artists.single()
 
         assertEquals(ARTIST_ID, artist.id)
@@ -106,7 +109,7 @@ class ArtistPageCacheTest {
     }
 
     @Test
-    fun `storing a thumbnail found while playing keeps the cached page`() {
+    fun `storing a thumbnail found while playing keeps the cached page`() = runBlocking<Unit> {
         database.dao.updateArtistThumbnail(ARTIST_ID, "https://example.invalid/fetched.jpg")
 
         val artist = database.dao.getArtistById(ARTIST_ID)

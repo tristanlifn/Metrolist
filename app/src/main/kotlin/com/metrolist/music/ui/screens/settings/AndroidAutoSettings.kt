@@ -38,13 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.AndroidAutoSearchLocalLimitKey
 import com.metrolist.music.constants.AndroidAutoSectionsOrderKey
 import com.metrolist.music.constants.AndroidAutoTargetPlaylistKey
@@ -59,6 +56,38 @@ import kotlinx.coroutines.flow.map
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.albums
+import com.metrolist.music.resources.android_auto
+import com.metrolist.music.resources.android_auto_reorder_hint
+import com.metrolist.music.resources.android_auto_search_local_songs_limit
+import com.metrolist.music.resources.android_auto_search_local_songs_limit_desc
+import com.metrolist.music.resources.android_auto_search_options
+import com.metrolist.music.resources.android_auto_target_playlist
+import com.metrolist.music.resources.android_auto_target_playlist_auto
+import com.metrolist.music.resources.android_auto_visible_sections
+import com.metrolist.music.resources.android_auto_youtube_playlists
+import com.metrolist.music.resources.android_auto_youtube_playlists_desc
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.artist
+import com.metrolist.music.resources.artists
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.drag_handle
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.liked_songs
+import com.metrolist.music.resources.manage_search
+import com.metrolist.music.resources.mixes
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlists
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.songs
+import com.metrolist.music.resources.unlimited
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 enum class AndroidAutoSection(val id: String) {
     LIKED("liked"),
@@ -70,11 +99,11 @@ enum class AndroidAutoSection(val id: String) {
 
 @Composable
 fun AndroidAutoSection.label(): String = when (this) {
-    AndroidAutoSection.LIKED -> stringResource(R.string.liked_songs)
-    AndroidAutoSection.SONGS -> stringResource(R.string.songs)
-    AndroidAutoSection.ARTISTS -> stringResource(R.string.artists)
-    AndroidAutoSection.ALBUMS -> stringResource(R.string.albums)
-    AndroidAutoSection.PLAYLISTS -> stringResource(R.string.playlists)
+    AndroidAutoSection.LIKED -> stringResource(Res.string.liked_songs)
+    AndroidAutoSection.SONGS -> stringResource(Res.string.songs)
+    AndroidAutoSection.ARTISTS -> stringResource(Res.string.artists)
+    AndroidAutoSection.ALBUMS -> stringResource(Res.string.albums)
+    AndroidAutoSection.PLAYLISTS -> stringResource(Res.string.playlists)
 }
 
 fun serializeSections(sections: List<Pair<AndroidAutoSection, Boolean>>): String =
@@ -145,7 +174,7 @@ fun AndroidAutoSettings(
 
     val playlistLabels: @Composable (String) -> String = { id ->
         if (id == MediaSessionConstants.TARGET_PLAYLIST_AUTO) {
-            stringResource(R.string.android_auto_target_playlist_auto)
+            stringResource(Res.string.android_auto_target_playlist_auto)
         } else {
             userPlaylists.find { it.id == id }?.name ?: id
         }
@@ -159,11 +188,11 @@ fun AndroidAutoSettings(
     ) {
         // Visible sections
         Material3SettingsGroup(
-            title = stringResource(R.string.android_auto_visible_sections),
+            title = stringResource(Res.string.android_auto_visible_sections),
             items = listOf(
                 Material3SettingsItem(
                     title = {},
-                    description = { Text(stringResource(R.string.android_auto_reorder_hint)) },
+                    description = { Text(stringResource(Res.string.android_auto_reorder_hint)) },
                     onClick = null
                 )
             )
@@ -183,18 +212,18 @@ fun AndroidAutoSettings(
                             Material3SettingsItem(
                                 icon = painterResource(
                                     when (section) {
-                                        AndroidAutoSection.LIKED -> R.drawable.favorite
-                                        AndroidAutoSection.SONGS -> R.drawable.music_note
-                                        AndroidAutoSection.ARTISTS -> R.drawable.artist
-                                        AndroidAutoSection.ALBUMS -> R.drawable.album
-                                        AndroidAutoSection.PLAYLISTS -> R.drawable.queue_music
+                                        AndroidAutoSection.LIKED -> Res.drawable.favorite
+                                        AndroidAutoSection.SONGS -> Res.drawable.music_note
+                                        AndroidAutoSection.ARTISTS -> Res.drawable.artist
+                                        AndroidAutoSection.ALBUMS -> Res.drawable.album
+                                        AndroidAutoSection.PLAYLISTS -> Res.drawable.queue_music
                                     }
                                 ),
                                 title = { Text(section.label()) },
                                 trailingContent = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            painter = painterResource(R.drawable.drag_handle),
+                                            painter = painterResource(Res.drawable.drag_handle),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(24.dp)
@@ -217,7 +246,7 @@ fun AndroidAutoSettings(
                                     thumbContent = {
                                         Icon(
                                             painter = painterResource(
-                                                if (enabled) R.drawable.check else R.drawable.close
+                                                if (enabled) Res.drawable.check else Res.drawable.close
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -247,7 +276,7 @@ fun AndroidAutoSettings(
         if (showTargetPlaylistDialog) {
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showTargetPlaylistDialog = false },
-                title = { Text(stringResource(R.string.android_auto_target_playlist)) },
+                title = { Text(stringResource(Res.string.android_auto_target_playlist)) },
                 text = {
                     androidx.compose.foundation.lazy.LazyColumn {
                         items(playlistOptions) { value ->
@@ -278,18 +307,18 @@ fun AndroidAutoSettings(
                     androidx.compose.material3.TextButton(
                         onClick = { showTargetPlaylistDialog = false }
                     ) {
-                        Text(stringResource(android.R.string.cancel))
+                        Text(stringResource(Res.string.cancel))
                     }
                 }
             )
         }
         
         Material3SettingsGroup(
-            title = stringResource(R.string.android_auto_target_playlist),
+            title = stringResource(Res.string.android_auto_target_playlist),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.playlist_add),
-                    title = { Text(stringResource(R.string.android_auto_target_playlist)) },
+                    icon = painterResource(Res.drawable.playlist_add),
+                    title = { Text(stringResource(Res.string.android_auto_target_playlist)) },
                     description = { Text(playlistLabels(targetPlaylist)) },
                     onClick = { showTargetPlaylistDialog = true }
                 )
@@ -300,12 +329,12 @@ fun AndroidAutoSettings(
 
         // YouTube playlists
         Material3SettingsGroup(
-            title = stringResource(R.string.mixes),
+            title = stringResource(Res.string.mixes),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.queue_music),
-                    title = { Text(stringResource(R.string.android_auto_youtube_playlists)) },
-                    description = { Text(stringResource(R.string.android_auto_youtube_playlists_desc)) },
+                    icon = painterResource(Res.drawable.queue_music),
+                    title = { Text(stringResource(Res.string.android_auto_youtube_playlists)) },
+                    description = { Text(stringResource(Res.string.android_auto_youtube_playlists_desc)) },
                     trailingContent = {
                         Switch(
                             checked = youtubePlaylistsEnabled,
@@ -313,7 +342,7 @@ fun AndroidAutoSettings(
                             thumbContent = {
                                 Icon(
                                     painter = painterResource(
-                                        if (youtubePlaylistsEnabled) R.drawable.check else R.drawable.close
+                                        if (youtubePlaylistsEnabled) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -330,22 +359,22 @@ fun AndroidAutoSettings(
 
         // Search options
         Material3SettingsGroup(
-            title = stringResource(R.string.android_auto_search_options),
+            title = stringResource(Res.string.android_auto_search_options),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.manage_search),
-                    title = { Text(stringResource(R.string.android_auto_search_local_songs_limit)) },
+                    icon = painterResource(Res.drawable.manage_search),
+                    title = { Text(stringResource(Res.string.android_auto_search_local_songs_limit)) },
                     description = {
                         val limitValues =
                             remember { listOf(10, 25, 50, 75, 100, 150, 200, -1) }
                         Column {
-                            Text(stringResource(R.string.android_auto_search_local_songs_limit_desc))
+                            Text(stringResource(Res.string.android_auto_search_local_songs_limit_desc))
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text =
                                     when (androidAutoSearchLocalLimit) {
-                                        -1 -> stringResource(R.string.unlimited)
-                                        else -> "$androidAutoSearchLocalLimit ${stringResource(R.string.songs)}"
+                                        -1 -> stringResource(Res.string.unlimited)
+                                        else -> "$androidAutoSearchLocalLimit ${stringResource(Res.string.songs)}"
                                     },
                             )
                             Slider(
@@ -368,14 +397,14 @@ fun AndroidAutoSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.android_auto)) },
+        title = { Text(stringResource(Res.string.android_auto)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

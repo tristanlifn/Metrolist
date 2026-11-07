@@ -28,10 +28,6 @@ import com.metrolist.music.db.entities.RecognitionHistory
 import com.metrolist.music.widget.MusicRecognizerWidgetReceiver
 import com.metrolist.shazamkit.models.RecognitionResult
 import com.metrolist.shazamkit.models.RecognitionStatus
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,16 +39,11 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.koin.android.ext.android.get
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDateTime
-
-@EntryPoint
-@InstallIn(SingletonComponent::class)
-interface RecognitionEntryPoint {
-    fun databaseDao(): DatabaseDao
-}
 
 class RecognitionForegroundService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
@@ -341,11 +332,7 @@ class RecognitionForegroundService : Service() {
             .apply()
 
         runCatching {
-            EntryPointAccessors
-                .fromApplication(
-                    applicationContext,
-                    RecognitionEntryPoint::class.java,
-                ).databaseDao()
+            get<DatabaseDao>()
                 .insert(
                     RecognitionHistory(
                         trackId = result.trackId,

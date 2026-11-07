@@ -7,6 +7,7 @@ package com.metrolist.music.db
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.ArtistEntity
@@ -47,7 +48,7 @@ class AndroidAutoDatabasePaginationTest {
     @Test
     fun `song relation query stays below Room recursive fetch threshold`() = runBlocking {
         val libraryDate = LocalDateTime.of(2026, 1, 1, 0, 0)
-        database.runInTransaction {
+        database.withTransaction {
             database.dao.insert(ArtistEntity(id = "artist", name = "Artist"))
             database.dao.insert(
                 AlbumEntity(

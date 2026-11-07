@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.screens.wrapped
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,15 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.metrolist.music.LocalNavController
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.pages.ConclusionPage
 import com.metrolist.music.ui.screens.wrapped.pages.PlaylistPage
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedIntro
@@ -57,6 +53,14 @@ import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalArtistsScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalSongsScreen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.back_button_desc
+import com.metrolist.music.resources.volume_off
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.ui.utils.BackHandler
 
 sealed class WrappedScreenType {
     object Welcome : WrappedScreenType()
@@ -200,12 +204,12 @@ fun WrappedScreenContent() {
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(painterResource(R.drawable.arrow_back), stringResource(R.string.back_button_desc), tint = Color.White)
+                        Icon(painterResource(Res.drawable.arrow_back), stringResource(Res.string.back_button_desc), tint = Color.White)
                     }
                 },
                 actions = {
                     IconButton(onClick = { audioService.toggleMute() }) {
-                        val icon = if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                        val icon = if (isMuted) Res.drawable.volume_off else Res.drawable.volume_up
                         Icon(painterResource(icon), "Mute", tint = Color.White)
                     }
                 },

@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.metrolist.music.eq.data.EQProfileRepository
 import com.metrolist.music.eq.data.GitHubAutoEqSearch
 import com.metrolist.music.eq.data.SavedEQProfile
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,15 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 /**
  * ViewModel for Wizard Screen
  * Handles device search and EQ profile selection using the AutoEQ database
  */
-@HiltViewModel
-class WizardViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+class WizardViewModel(
+    private val context: Context,
     private val eqProfileRepository: EQProfileRepository
 ) : ViewModel() {
 

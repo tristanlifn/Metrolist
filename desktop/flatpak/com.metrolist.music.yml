@@ -1,0 +1,116 @@
+id: com.metrolist.music
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk21
+command: metrolist
+finish-args:
+  - --share=network
+  - --share=ipc
+  # AWT has no Wayland backend, so the window goes through XWayland.
+  - --socket=x11
+  - --socket=pulseaudio
+  - --device=dri
+  - --own-name=org.mpris.MediaPlayer2.metrolist
+  # Signing in reads the YouTube cookies of a Firefox-family browser profile.
+  - --filesystem=~/.mozilla/firefox:ro
+  - --filesystem=xdg-config/mozilla/firefox:ro
+  - --filesystem=~/.librewolf:ro
+  - --filesystem=xdg-config/librewolf:ro
+  - --filesystem=~/.zen:ro
+  - --filesystem=xdg-config/zen:ro
+  # Exported files are saved to Documents.
+  - --filesystem=xdg-documents
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/man
+  - '*.a'
+  - '*.la'
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk21/install.sh
+
+  - name: libass
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url: https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz
+        sha256: 2dca25c0e0c837ddf00b52011b3f82cac1e4ddd3ad018227806b0c2288864acc
+
+  # mpv renders nothing here, so libplacebo only needs its CPU-side parts.
+  - name: libplacebo
+    buildsystem: meson
+    config-opts:
+      - -Dvulkan=disabled
+      - -Dopengl=disabled
+      - -Dd3d11=disabled
+      - -Dglslang=disabled
+      - -Dshaderc=disabled
+      - -Dlcms=disabled
+      - -Dlibdovi=disabled
+      - -Ddemos=false
+      - -Dtests=false
+    sources:
+      - type: git
+        url: https://github.com/haasn/libplacebo.git
+        tag: v7.360.1
+        commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
+
+  # Audio-only libmpv; output goes through the PulseAudio socket (PipeWire's pulse server).
+  - name: mpv
+    buildsystem: meson
+    config-opts:
+      - -Dlibmpv=true
+      - -Dcplayer=false
+      - -Dlua=disabled
+      - -Djavascript=disabled
+      - -Dlibarchive=disabled
+      - -Dlibbluray=disabled
+      - -Ddvdnav=disabled
+      - -Dcdda=disabled
+      - -Dpipewire=disabled
+      - -Dalsa=disabled
+      - -Djack=disabled
+      - -Dx11=disabled
+      - -Dwayland=disabled
+      - -Dgl=disabled
+      - -Degl=disabled
+      - -Dvulkan=disabled
+      - -Ddrm=disabled
+      - -Dvaapi=disabled
+      - -Dvdpau=disabled
+      - -Dmanpage-build=disabled
+      - -Dhtml-build=disabled
+      - -Dpdf-build=disabled
+    sources:
+      - type: git
+        url: https://github.com/mpv-player/mpv.git
+        tag: v0.41.0
+        commit: 41f6a645068483470267271e1d09966ca3b9f413
+
+  - name: metrolist
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 metrolist.jar /app/lib/metrolist/metrolist.jar
+      - install -Dm755 metrolist.sh /app/bin/metrolist
+      - install -Dm644 com.metrolist.music.desktop -t /app/share/applications
+      - install -Dm644 com.metrolist.music.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/com.metrolist.music.png
+    sources:
+      # Built on the host by build.sh, since Gradle can't download dependencies inside flatpak-builder.
+      - type: file
+        path: ../build/flatpak/metrolist.jar
+      - type: file
+        path: metrolist.sh
+      - type: file
+        path: com.metrolist.music.desktop
+      - type: file
+        path: com.metrolist.music.metainfo.xml
+      - type: file
+        path: ../../assets/ic_launcher-playstore.png
+        dest-filename: icon.png

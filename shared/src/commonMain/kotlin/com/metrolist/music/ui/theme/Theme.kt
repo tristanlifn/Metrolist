@@ -1,0 +1,68 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.metrolist.music.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.SaverScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
+
+val DefaultThemeColor = Color(0xFFED5564)
+
+@Composable
+expect fun systemDynamicColorScheme(darkTheme: Boolean): ColorScheme?
+
+@Composable
+fun MetrolistTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    pureBlack: Boolean = false,
+    themeColor: Color = DefaultThemeColor,
+    content: @Composable () -> Unit,
+) {
+    // System wallpaper colours replace the default seed where the platform has them (Android 12+).
+    val baseColorScheme =
+        (if (themeColor == DefaultThemeColor) systemDynamicColorScheme(darkTheme) else null)
+            ?: rememberDynamicColorScheme(
+                seedColor = themeColor,
+                isDark = darkTheme,
+                specVersion = ColorSpec.SpecVersion.SPEC_2025,
+                style = PaletteStyle.TonalSpot,
+            )
+
+    // Apply pureBlack modification if needed, similar to original logic
+    val colorScheme = remember(baseColorScheme, pureBlack, darkTheme) {
+        if (darkTheme && pureBlack) {
+            baseColorScheme.pureBlack(true)
+        } else {
+            baseColorScheme
+        }
+    }
+
+    // Use standard MaterialTheme instead of MaterialExpressiveTheme
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content,
+    )
+}
+
+fun ColorScheme.pureBlack(apply: Boolean) =
+    if (apply) copy(
+        surface = Color.Black,
+        background = Color.Black
+    ) else this
+
+val ColorSaver = object : Saver<Color, Int> {
+    override fun restore(value: Int): Color = Color(value)
+    override fun SaverScope.save(value: Color): Int = value.toArgb()
+}

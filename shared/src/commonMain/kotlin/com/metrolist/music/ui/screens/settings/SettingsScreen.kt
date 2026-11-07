@@ -1,0 +1,272 @@
+/**
+ * Metrolist Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.metrolist.music.ui.screens.settings
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.metrolist.music.LocalPlayerAwareWindowInsets
+import com.metrolist.music.ui.component.IconButton
+import com.metrolist.music.ui.component.Material3SettingsGroup
+import com.metrolist.music.ui.component.Material3SettingsItem
+import com.metrolist.music.ui.component.ReleaseNotesCard
+import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.Updater
+import androidx.compose.runtime.remember
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.about
+import com.metrolist.music.resources.ai_lyrics_translation
+import com.metrolist.music.resources.android_auto
+import com.metrolist.music.resources.appearance
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.backup_restore
+import com.metrolist.music.resources.changelog
+import com.metrolist.music.resources.content
+import com.metrolist.music.resources.default_links
+import com.metrolist.music.resources.ic_android_auto
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.new_version_available
+import com.metrolist.music.resources.newspaper
+import com.metrolist.music.resources.open_app_settings_error
+import com.metrolist.music.resources.palette
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.player_and_audio
+import com.metrolist.music.resources.privacy
+import com.metrolist.music.resources.restore
+import com.metrolist.music.resources.security
+import com.metrolist.music.resources.settings
+import com.metrolist.music.resources.settings_section_player_content
+import com.metrolist.music.resources.settings_section_privacy
+import com.metrolist.music.resources.settings_section_storage
+import com.metrolist.music.resources.settings_section_system
+import com.metrolist.music.resources.settings_section_ui
+import com.metrolist.music.resources.storage
+import com.metrolist.music.resources.translate
+import com.metrolist.music.resources.update
+import com.metrolist.music.resources.updater
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.utils.PlatformActions
+import org.koin.compose.koinInject
+import com.metrolist.music.utils.BuildInfo
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    navController: NavController,
+    latestVersionName: String,
+) {
+    val uriHandler = LocalUriHandler.current
+    val platformActions = koinInject<PlatformActions>()
+    val hasAndroidAuto = remember { platformActions.isAndroidAutoInstalled }
+
+    Column(
+        Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+    ) {
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
+
+        // User Interface Section
+        Material3SettingsGroup(
+            title = stringResource(Res.string.settings_section_ui),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.palette),
+                    title = { Text(stringResource(Res.string.appearance)) },
+                    onClick = { navController.navigate("settings/appearance") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Player & Content Section (moved up and combined with content)
+        Material3SettingsGroup(
+            title = stringResource(Res.string.settings_section_player_content),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.play),
+                    title = { Text(stringResource(Res.string.player_and_audio)) },
+                    onClick = { navController.navigate("settings/player") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.language),
+                    title = { Text(stringResource(Res.string.content)) },
+                    onClick = { navController.navigate("settings/content") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.translate),
+                    title = { Text(stringResource(Res.string.ai_lyrics_translation)) },
+                    onClick = { navController.navigate("settings/ai") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Android Auto Section — only shown if Android Auto is installed
+        if (hasAndroidAuto) {
+            Material3SettingsGroup(
+                title = "Android Auto",
+                items = listOf(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.ic_android_auto),
+                        title = { Text(stringResource(Res.string.android_auto)) },
+                        onClick = { navController.navigate("settings/android_auto") }
+                    )
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        
+        // Privacy & Security Section
+        Material3SettingsGroup(
+            title = stringResource(Res.string.settings_section_privacy),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.security),
+                    title = { Text(stringResource(Res.string.privacy)) },
+                    onClick = { navController.navigate("settings/privacy") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Storage & Data Section
+        Material3SettingsGroup(
+            title = stringResource(Res.string.settings_section_storage),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.storage),
+                    title = { Text(stringResource(Res.string.storage)) },
+                    onClick = { navController.navigate("settings/storage") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(Res.drawable.restore),
+                    title = { Text(stringResource(Res.string.backup_restore)) },
+                    onClick = { navController.navigate("settings/backup_restore") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // System & About Section
+        Material3SettingsGroup(
+            title = stringResource(Res.string.settings_section_system),
+            items = buildList {
+                if (platformActions.hasDefaultLinkSettings) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(Res.drawable.link),
+                            title = { Text(stringResource(Res.string.default_links)) },
+                            onClick = {
+                                if (!platformActions.openDefaultLinkSettings()) {
+                                    platformActions.toast(Res.string.open_app_settings_error, long = true)
+                                }
+                            }
+                        )
+                    )
+                }
+                if (BuildInfo.updaterAvailable) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(Res.drawable.update),
+                            title = { Text(stringResource(Res.string.updater)) },
+                            onClick = { navController.navigate("settings/updater") }
+                        )
+                    )
+                }
+                val showChangelog = com.metrolist.music.LocalChangelogState.current
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.newspaper),
+                        title = { Text(stringResource(Res.string.changelog)) },
+                        onClick = { showChangelog.value = true }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(Res.drawable.info),
+                        title = { Text(stringResource(Res.string.about)) },
+                        onClick = { navController.navigate("settings/about") }
+                    )
+                )
+                if (BuildInfo.updaterAvailable && latestVersionName != BuildInfo.baseVersionName) {
+                    val releaseInfo = Updater.getCachedLatestRelease()
+                    val downloadUrl = releaseInfo?.let { Updater.getDownloadUrlForCurrentVariant(it) }
+
+                    if (downloadUrl != null) {
+                        add(
+                            Material3SettingsItem(
+                                icon = painterResource(Res.drawable.update),
+                                title = { 
+                                    Text(
+                                        text = stringResource(Res.string.new_version_available),
+                                    )
+                                },
+                                description = {
+                                    Text(
+                                        text = latestVersionName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                showBadge = true,
+                                onClick = { uriHandler.openUri(downloadUrl) }
+                            )
+                        )
+                    }
+                }
+            }
+        )
+    if (BuildInfo.updaterAvailable && latestVersionName != BuildInfo.baseVersionName) {
+            Spacer(modifier = Modifier.height(16.dp))
+            ReleaseNotesCard()
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    TopAppBar(
+        title = { Text(stringResource(Res.string.settings)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(Res.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}

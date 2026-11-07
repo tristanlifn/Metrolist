@@ -29,14 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.LocalWrappedManager
 import com.metrolist.music.ui.screens.wrapped.PlaylistCreationState
 import com.metrolist.music.ui.screens.wrapped.WrappedConstants
@@ -46,6 +43,16 @@ import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.theme.bbh_bartle
 import kotlinx.coroutines.delay
 import kotlin.random.Random
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album_cover_desc
+import com.metrolist.music.resources.wrapped_create_playlist
+import com.metrolist.music.resources.wrapped_playlist_ready
+import com.metrolist.music.resources.wrapped_playlist_saved
+import com.metrolist.music.resources.wrapped_playlist_title
+import com.metrolist.music.resources.wrapped_playlistv1
+import com.metrolist.music.resources.wrapped_playlistv2
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun PlaylistPage() {
@@ -55,9 +62,9 @@ fun PlaylistPage() {
 
     val (playlistImageRes, playlistImageName) = remember {
         if (Random.nextBoolean()) {
-            Pair(R.drawable.wrapped_playlistv1, "wrapped_playlistv1")
+            Pair(Res.drawable.wrapped_playlistv1, "wrapped_playlistv1")
         } else {
-            Pair(R.drawable.wrapped_playlistv2, "wrapped_playlistv2")
+            Pair(Res.drawable.wrapped_playlistv2, "wrapped_playlistv2")
         }
     }
 
@@ -83,7 +90,7 @@ fun PlaylistPage() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AutoResizingText(
-                text = stringResource(R.string.wrapped_playlist_ready),
+                text = stringResource(Res.string.wrapped_playlist_ready),
                 style = TextStyle(
                     fontFamily = bbh_bartle,
                     fontSize = 40.sp,
@@ -94,15 +101,15 @@ fun PlaylistPage() {
             )
             Spacer(modifier = Modifier.height(32.dp))
             Image(
-                painter = painterResource(id = playlistImageRes),
-                contentDescription = stringResource(R.string.album_cover_desc),
+                painter = painterResource(playlistImageRes),
+                contentDescription = stringResource(Res.string.album_cover_desc),
                 modifier = Modifier
                     .size(256.dp)
                     .clip(RoundedCornerShape(3.dp))
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.wrapped_playlist_title, WrappedConstants.YEAR),
+                text = stringResource(Res.string.wrapped_playlist_title, WrappedConstants.YEAR),
                 style = TextStyle(
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
@@ -122,7 +129,7 @@ fun PlaylistPage() {
             ) {
                 when (playlistCreationState) {
                     is PlaylistCreationState.Idle -> Text(
-                        text = stringResource(R.string.wrapped_create_playlist),
+                        text = stringResource(Res.string.wrapped_create_playlist),
                         style = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold)
                     )
                     is PlaylistCreationState.Creating -> CircularProgressIndicator(
@@ -131,7 +138,7 @@ fun PlaylistPage() {
                         strokeWidth = 2.dp
                     )
                     is PlaylistCreationState.Success -> Text(
-                        text = stringResource(R.string.wrapped_playlist_saved),
+                        text = stringResource(Res.string.wrapped_playlist_saved),
                         style = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold)
                     )
                 }

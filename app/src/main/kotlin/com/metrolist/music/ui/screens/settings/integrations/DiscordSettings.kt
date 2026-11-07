@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import android.app.Activity
+import com.metrolist.music.ui.utils.okLabel
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -61,8 +62,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 
@@ -71,12 +70,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.DiscordActivityNameKey
 import com.metrolist.music.constants.DiscordActivityTypeKey
 import com.metrolist.music.constants.DiscordAdvancedModeKey
@@ -98,6 +95,7 @@ import com.metrolist.music.db.entities.Song
 import com.metrolist.music.discord.DiscordDefaults
 import com.metrolist.music.discord.DiscordRpcManager
 import com.metrolist.music.discord.DiscordTemplateRenderer
+import com.metrolist.music.playback.PlaybackState
 import com.metrolist.music.ui.component.EnumDialog
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
@@ -106,7 +104,6 @@ import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
-import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -114,6 +111,61 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_login
+import com.metrolist.music.resources.action_logout
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.discord
+import com.metrolist.music.resources.discord_activity_competing
+import com.metrolist.music.resources.discord_activity_listening
+import com.metrolist.music.resources.discord_activity_name
+import com.metrolist.music.resources.discord_activity_playing
+import com.metrolist.music.resources.discord_activity_type
+import com.metrolist.music.resources.discord_activity_watching
+import com.metrolist.music.resources.discord_advanced_mode
+import com.metrolist.music.resources.discord_advanced_mode_description
+import com.metrolist.music.resources.discord_button_1
+import com.metrolist.music.resources.discord_button_2
+import com.metrolist.music.resources.discord_button_label
+import com.metrolist.music.resources.discord_button_url
+import com.metrolist.music.resources.discord_buttons
+import com.metrolist.music.resources.discord_connect_description
+import com.metrolist.music.resources.discord_details
+import com.metrolist.music.resources.discord_enable_button_1
+import com.metrolist.music.resources.discord_enable_button_2
+import com.metrolist.music.resources.discord_error_banner_title
+import com.metrolist.music.resources.discord_error_invalid_scope
+import com.metrolist.music.resources.discord_error_loopback_timeout
+import com.metrolist.music.resources.discord_error_loopback_unbound
+import com.metrolist.music.resources.discord_error_no_browser
+import com.metrolist.music.resources.discord_error_token_refresh_failed
+import com.metrolist.music.resources.discord_information_warning
+import com.metrolist.music.resources.discord_integration
+import com.metrolist.music.resources.discord_presence
+import com.metrolist.music.resources.discord_rpc_preview
+import com.metrolist.music.resources.discord_state
+import com.metrolist.music.resources.discord_status
+import com.metrolist.music.resources.discord_status_authorized
+import com.metrolist.music.resources.discord_status_authorizing
+import com.metrolist.music.resources.discord_status_connected
+import com.metrolist.music.resources.discord_status_dnd
+import com.metrolist.music.resources.discord_status_idle
+import com.metrolist.music.resources.discord_status_not_initialized
+import com.metrolist.music.resources.discord_status_online
+import com.metrolist.music.resources.dismiss
+import com.metrolist.music.resources.enable_discord_rpc
+import com.metrolist.music.resources.not_logged_in
+import com.metrolist.music.resources.options
+import com.metrolist.music.resources.warning
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.metrolist.music.utils.safeEdit
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -125,11 +177,12 @@ fun DiscordSettings(
     val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
 
     var position by rememberSaveable(playbackState) {
-        mutableLongStateOf(playerConnection.player.currentPosition)
+        mutableLongStateOf(playerConnection.currentPosition)
     }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val dataStore = koinInject<DataStore<Preferences>>()
 
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
@@ -173,22 +226,22 @@ fun DiscordSettings(
     val connectionStatus by DiscordRpcManager.connectionStatus.collectAsState()
 
     val statusText = when {
-        connectionStatus == DiscordRpcManager.Status.Connected -> stringResource(R.string.discord_status_connected)
-        connectionStatus == DiscordRpcManager.Status.Authorizing -> stringResource(R.string.discord_status_authorizing)
-        !DiscordRpcManager.isInitialized() -> stringResource(R.string.discord_status_not_initialized)
-        DiscordRpcManager.isAuthorized() -> stringResource(R.string.discord_status_authorized)
+        connectionStatus == DiscordRpcManager.Status.Connected -> stringResource(Res.string.discord_status_connected)
+        connectionStatus == DiscordRpcManager.Status.Authorizing -> stringResource(Res.string.discord_status_authorizing)
+        !DiscordRpcManager.isInitialized() -> stringResource(Res.string.discord_status_not_initialized)
+        DiscordRpcManager.isAuthorized() -> stringResource(Res.string.discord_status_authorized)
         else -> ""
     }
 
     val lastErrorKey by DiscordRpcManager.lastError.collectAsState()
     val lastErrorText = lastErrorKey?.let { key ->
         val resId = when (key) {
-            "discord_error_loopback_unbound" -> R.string.discord_error_loopback_unbound
-            "discord_error_loopback_timeout" -> R.string.discord_error_loopback_timeout
-            "discord_error_no_browser" -> R.string.discord_error_no_browser
-            "discord_error_token_refresh_failed" -> R.string.discord_error_token_refresh_failed
-            "discord_error_invalid_scope" -> R.string.discord_error_invalid_scope
-            else -> R.string.discord_error_banner_title
+            "discord_error_loopback_unbound" -> Res.string.discord_error_loopback_unbound
+            "discord_error_loopback_timeout" -> Res.string.discord_error_loopback_timeout
+            "discord_error_no_browser" -> Res.string.discord_error_no_browser
+            "discord_error_token_refresh_failed" -> Res.string.discord_error_token_refresh_failed
+            "discord_error_invalid_scope" -> Res.string.discord_error_invalid_scope
+            else -> Res.string.discord_error_banner_title
         }
         stringResource(resId)
     }
@@ -208,25 +261,25 @@ fun DiscordSettings(
     }
 
     LaunchedEffect(playbackState) {
-        if (playbackState == STATE_READY) {
+        if (playbackState == PlaybackState.READY) {
             while (isActive) {
                 delay(100)
-                position = playerConnection.player.currentPosition
+                position = playerConnection.currentPosition
             }
         }
     }
 
     val activityTypeLabel = when (activityType) {
-        "0" -> stringResource(R.string.discord_activity_playing)
-        "3" -> stringResource(R.string.discord_activity_watching)
-        "5" -> stringResource(R.string.discord_activity_competing)
-        else -> stringResource(R.string.discord_activity_listening)
+        "0" -> stringResource(Res.string.discord_activity_playing)
+        "3" -> stringResource(Res.string.discord_activity_watching)
+        "5" -> stringResource(Res.string.discord_activity_competing)
+        else -> stringResource(Res.string.discord_activity_listening)
     }
 
     val userStatusLabel = when (userStatus) {
-        "idle" -> stringResource(R.string.discord_status_idle)
-        "dnd" -> stringResource(R.string.discord_status_dnd)
-        else -> stringResource(R.string.discord_status_online)
+        "idle" -> stringResource(Res.string.discord_status_idle)
+        "dnd" -> stringResource(Res.string.discord_status_dnd)
+        else -> stringResource(Res.string.discord_status_online)
     }
 
     fun onPrefChanged() {
@@ -265,7 +318,7 @@ fun DiscordSettings(
                     verticalAlignment = Alignment.Top,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.warning),
+                        painter = painterResource(Res.drawable.warning),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
@@ -273,7 +326,7 @@ fun DiscordSettings(
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.discord_information_warning),
+                            text = stringResource(Res.string.discord_information_warning),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -282,7 +335,7 @@ fun DiscordSettings(
                             onClick = { infoDismissed = true },
                             modifier = Modifier.align(Alignment.End),
                         ) {
-                            Text(stringResource(R.string.dismiss))
+                            Text(stringResource(Res.string.dismiss))
                         }
                     }
                 }
@@ -312,7 +365,7 @@ fun DiscordSettings(
                     verticalAlignment = Alignment.Top,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.warning),
+                        painter = painterResource(Res.drawable.warning),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.size(24.dp),
@@ -320,7 +373,7 @@ fun DiscordSettings(
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.discord_error_banner_title),
+                            text = stringResource(Res.string.discord_error_banner_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             fontWeight = FontWeight.Bold,
@@ -336,7 +389,7 @@ fun DiscordSettings(
                             onClick = { DiscordRpcManager.clearLastError() },
                             modifier = Modifier.align(Alignment.End),
                         ) {
-                            Text(stringResource(R.string.dismiss))
+                            Text(stringResource(Res.string.dismiss))
                         }
                     }
                 }
@@ -377,7 +430,7 @@ fun DiscordSettings(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(R.drawable.discord),
+                            painter = painterResource(Res.drawable.discord),
                             contentDescription = null,
                             modifier =
                                 Modifier
@@ -396,7 +449,7 @@ fun DiscordSettings(
                             if (isLoggedIn) {
                                 displayName
                             } else {
-                                stringResource(R.string.not_logged_in)
+                                stringResource(Res.string.not_logged_in)
                             },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
@@ -411,7 +464,7 @@ fun DiscordSettings(
                     }
                     if (!isLoggedIn) {
                         Text(
-                            text = stringResource(R.string.discord_connect_description),
+                            text = stringResource(Res.string.discord_connect_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -431,7 +484,7 @@ fun DiscordSettings(
                             }
                         }
                     }) {
-                        Text(stringResource(R.string.action_logout))
+                        Text(stringResource(Res.string.action_logout))
                     }
                 }
             }
@@ -474,7 +527,7 @@ fun DiscordSettings(
                                 }
                             },
                         ) {
-                            Text(stringResource(R.string.action_login))
+                            Text(stringResource(Res.string.action_login))
                         }
                     }
                 }
@@ -491,11 +544,11 @@ fun DiscordSettings(
         }
 
         Material3SettingsGroup(
-            title = stringResource(R.string.options),
+            title = stringResource(Res.string.options),
             items =
                 listOf(
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.enable_discord_rpc)) },
+                        title = { Text(stringResource(Res.string.enable_discord_rpc)) },
                         trailingContent = {
                             Switch(
                                 checked = discordRPC,
@@ -503,8 +556,7 @@ fun DiscordSettings(
                                 enabled = isLoggedIn,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (discordRPC) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (discordRPC) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -516,8 +568,8 @@ fun DiscordSettings(
                         onClick = { if (isLoggedIn) onDiscordRPCChange(!discordRPC) },
                     ),
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.discord_advanced_mode)) },
-                        description = { Text(stringResource(R.string.discord_advanced_mode_description)) },
+                        title = { Text(stringResource(Res.string.discord_advanced_mode)) },
+                        description = { Text(stringResource(Res.string.discord_advanced_mode_description)) },
                         trailingContent = {
                             Switch(
                                 checked = advancedMode,
@@ -528,8 +580,7 @@ fun DiscordSettings(
                                 enabled = isLoggedIn,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (advancedMode) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (advancedMode) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -557,26 +608,26 @@ fun DiscordSettings(
                 Spacer(Modifier.height(8.dp))
 
                 Material3SettingsGroup(
-                    title = stringResource(R.string.discord_presence),
+                    title = stringResource(Res.string.discord_presence),
                     items =
                         listOf(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.discord_activity_type)) },
+                                title = { Text(stringResource(Res.string.discord_activity_type)) },
                                 description = { Text(activityTypeLabel) },
                                 onClick = { showActivityTypeDialog = true },
                             ),
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.discord_activity_name)) },
+                                title = { Text(stringResource(Res.string.discord_activity_name)) },
                                 description = { Text(activityName.ifEmpty { "(default)" }) },
                                 onClick = { showActivityNameDialog = true },
                             ),
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.discord_state)) },
+                                title = { Text(stringResource(Res.string.discord_state)) },
                                 description = { Text(stateTemplate) },
                                 onClick = { showStateDialog = true },
                             ),
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.discord_details)) },
+                                title = { Text(stringResource(Res.string.discord_details)) },
                                 description = { Text(detailsTemplate) },
                                 onClick = { showDetailsDialog = true },
                             ),
@@ -586,12 +637,12 @@ fun DiscordSettings(
                 Spacer(Modifier.height(8.dp))
 
                 Material3SettingsGroup(
-                    title = stringResource(R.string.discord_buttons),
+                    title = stringResource(Res.string.discord_buttons),
                     items =
                         buildList {
                             add(
                                 Material3SettingsItem(
-                                    title = { Text(stringResource(R.string.discord_enable_button_1)) },
+                                    title = { Text(stringResource(Res.string.discord_enable_button_1)) },
                                     trailingContent = {
                                         Switch(
                                             checked = btn1Enabled,
@@ -601,8 +652,7 @@ fun DiscordSettings(
                                             },
                                             thumbContent = {
                                                 Icon(
-                                                    painter = painterResource(
-                                                        id = if (btn1Enabled) R.drawable.check else R.drawable.close
+                                                    painter = painterResource(if (btn1Enabled) Res.drawable.check else Res.drawable.close
                                                     ),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -619,14 +669,14 @@ fun DiscordSettings(
                             if (btn1Enabled) {
                                 add(
                                     Material3SettingsItem(
-                                        title = { Text("${stringResource(R.string.discord_button_1)} — ${stringResource(R.string.discord_button_label)}") },
+                                        title = { Text("${stringResource(Res.string.discord_button_1)} — ${stringResource(Res.string.discord_button_label)}") },
                                         description = { Text(btn1Label) },
                                         onClick = { showBtn1LabelDialog = true },
                                     ),
                                 )
                                 add(
                                     Material3SettingsItem(
-                                        title = { Text("${stringResource(R.string.discord_button_1)} — ${stringResource(R.string.discord_button_url)}") },
+                                        title = { Text("${stringResource(Res.string.discord_button_1)} — ${stringResource(Res.string.discord_button_url)}") },
                                         description = { Text(btn1Url) },
                                         onClick = { showBtn1UrlDialog = true },
                                     ),
@@ -634,7 +684,7 @@ fun DiscordSettings(
                             }
                             add(
                                 Material3SettingsItem(
-                                    title = { Text(stringResource(R.string.discord_enable_button_2)) },
+                                    title = { Text(stringResource(Res.string.discord_enable_button_2)) },
                                     trailingContent = {
                                         Switch(
                                             checked = btn2Enabled,
@@ -644,8 +694,7 @@ fun DiscordSettings(
                                             },
                                             thumbContent = {
                                                 Icon(
-                                                    painter = painterResource(
-                                                        id = if (btn2Enabled) R.drawable.check else R.drawable.close
+                                                    painter = painterResource(if (btn2Enabled) Res.drawable.check else Res.drawable.close
                                                     ),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -662,14 +711,14 @@ fun DiscordSettings(
                             if (btn2Enabled) {
                                 add(
                                     Material3SettingsItem(
-                                        title = { Text("${stringResource(R.string.discord_button_2)} — ${stringResource(R.string.discord_button_label)}") },
+                                        title = { Text("${stringResource(Res.string.discord_button_2)} — ${stringResource(Res.string.discord_button_label)}") },
                                         description = { Text(btn2Label) },
                                         onClick = { showBtn2LabelDialog = true },
                                     ),
                                 )
                                 add(
                                     Material3SettingsItem(
-                                        title = { Text("${stringResource(R.string.discord_button_2)} — ${stringResource(R.string.discord_button_url)}") },
+                                        title = { Text("${stringResource(Res.string.discord_button_2)} — ${stringResource(Res.string.discord_button_url)}") },
                                         description = { Text(btn2Url) },
                                         onClick = { showBtn2UrlDialog = true },
                                     ),
@@ -681,11 +730,11 @@ fun DiscordSettings(
                 Spacer(Modifier.height(8.dp))
 
                 Material3SettingsGroup(
-                    title = stringResource(R.string.discord_status),
+                    title = stringResource(Res.string.discord_status),
                     items =
                         listOf(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.discord_status)) },
+                                title = { Text(stringResource(Res.string.discord_status)) },
                                 description = { Text(userStatusLabel) },
                                 onClick = { showUserStatusDialog = true },
                             ),
@@ -699,7 +748,7 @@ fun DiscordSettings(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.discord_rpc_preview),
+            text = stringResource(Res.string.discord_rpc_preview),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
@@ -730,19 +779,19 @@ fun DiscordSettings(
                 onActivityTypeChange(value)
                 showActivityTypeDialog = false
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { it[DiscordActivityTypeKey] = value }
+                    dataStore.safeEdit { it[DiscordActivityTypeKey] = value }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
-            title = stringResource(R.string.discord_activity_type),
+            title = stringResource(Res.string.discord_activity_type),
             current = activityType,
             values = listOf(DiscordDefaults.ACTIVITY_TYPE_LISTENING, DiscordDefaults.ACTIVITY_TYPE_PLAYING, DiscordDefaults.ACTIVITY_TYPE_WATCHING, DiscordDefaults.ACTIVITY_TYPE_COMPETING),
             valueText = { value ->
                 when (value) {
-                    "0" -> stringResource(R.string.discord_activity_playing)
-                    "3" -> stringResource(R.string.discord_activity_watching)
-                    "5" -> stringResource(R.string.discord_activity_competing)
-                    else -> stringResource(R.string.discord_activity_listening)
+                    "0" -> stringResource(Res.string.discord_activity_playing)
+                    "3" -> stringResource(Res.string.discord_activity_watching)
+                    "5" -> stringResource(Res.string.discord_activity_competing)
+                    else -> stringResource(Res.string.discord_activity_listening)
                 }
             },
         )
@@ -750,12 +799,12 @@ fun DiscordSettings(
 
     if (showActivityNameDialog) {
         TemplateFieldDialog(
-            title = stringResource(R.string.discord_activity_name),
+            title = stringResource(Res.string.discord_activity_name),
             value = activityName,
             onDone = {
                 onActivityNameChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordActivityNameKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordActivityNameKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -765,12 +814,12 @@ fun DiscordSettings(
 
     if (showStateDialog) {
         TemplateFieldDialog(
-            title = stringResource(R.string.discord_state),
+            title = stringResource(Res.string.discord_state),
             value = stateTemplate,
             onDone = {
                 onStateTemplateChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordStateTemplateKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordStateTemplateKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -780,12 +829,12 @@ fun DiscordSettings(
 
     if (showDetailsDialog) {
         TemplateFieldDialog(
-            title = stringResource(R.string.discord_details),
+            title = stringResource(Res.string.discord_details),
             value = detailsTemplate,
             onDone = {
                 onDetailsTemplateChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordDetailsTemplateKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordDetailsTemplateKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -795,12 +844,12 @@ fun DiscordSettings(
 
     if (showBtn1LabelDialog) {
         TemplateFieldDialog(
-            title = "${stringResource(R.string.discord_button_1)} — ${stringResource(R.string.discord_button_label)}",
+            title = "${stringResource(Res.string.discord_button_1)} — ${stringResource(Res.string.discord_button_label)}",
             value = btn1Label,
             onDone = {
                 onBtn1LabelChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordButton1LabelKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordButton1LabelKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -810,12 +859,12 @@ fun DiscordSettings(
 
     if (showBtn1UrlDialog) {
         TemplateFieldDialog(
-            title = "${stringResource(R.string.discord_button_1)} — ${stringResource(R.string.discord_button_url)}",
+            title = "${stringResource(Res.string.discord_button_1)} — ${stringResource(Res.string.discord_button_url)}",
             value = btn1Url,
             onDone = {
                 onBtn1UrlChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordButton1UrlKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordButton1UrlKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -825,12 +874,12 @@ fun DiscordSettings(
 
     if (showBtn2LabelDialog) {
         TemplateFieldDialog(
-            title = "${stringResource(R.string.discord_button_2)} — ${stringResource(R.string.discord_button_label)}",
+            title = "${stringResource(Res.string.discord_button_2)} — ${stringResource(Res.string.discord_button_label)}",
             value = btn2Label,
             onDone = {
                 onBtn2LabelChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordButton2LabelKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordButton2LabelKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -840,12 +889,12 @@ fun DiscordSettings(
 
     if (showBtn2UrlDialog) {
         TemplateFieldDialog(
-            title = "${stringResource(R.string.discord_button_2)} — ${stringResource(R.string.discord_button_url)}",
+            title = "${stringResource(Res.string.discord_button_2)} — ${stringResource(Res.string.discord_button_url)}",
             value = btn2Url,
             onDone = {
                 onBtn2UrlChange(it)
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordButton2UrlKey] = it }
+                    dataStore.safeEdit { prefs -> prefs[DiscordButton2UrlKey] = it }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
@@ -860,32 +909,32 @@ fun DiscordSettings(
                 onUserStatusChange(value)
                 showUserStatusDialog = false
                 coroutineScope.launch(Dispatchers.IO) {
-                    context.safeDataStoreEdit { prefs -> prefs[DiscordUserStatusKey] = value }
+                    dataStore.safeEdit { prefs -> prefs[DiscordUserStatusKey] = value }
                     withContext(Dispatchers.Main) { onPrefChanged() }
                 }
             },
-            title = stringResource(R.string.discord_status),
+            title = stringResource(Res.string.discord_status),
             current = userStatus,
             values = listOf(DiscordDefaults.USER_STATUS, DiscordDefaults.STATUS_IDLE, DiscordDefaults.STATUS_DND),
             valueText = { value ->
                 when (value) {
-                    "idle" -> stringResource(R.string.discord_status_idle)
-                    "dnd" -> stringResource(R.string.discord_status_dnd)
-                    else -> stringResource(R.string.discord_status_online)
+                    "idle" -> stringResource(Res.string.discord_status_idle)
+                    "dnd" -> stringResource(Res.string.discord_status_dnd)
+                    else -> stringResource(Res.string.discord_status_online)
                 }
             },
         )
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.discord_integration)) },
+        title = { Text(stringResource(Res.string.discord_integration)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }
@@ -908,13 +957,13 @@ private fun TemplateFieldDialog(
         title = { Text(text = title) },
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(Res.string.cancel))
             }
             TextButton(onClick = {
                 onDone(text)
                 onDismiss()
             }) {
-                Text(stringResource(android.R.string.ok))
+                Text(okLabel())
             }
         },
     ) {
@@ -997,10 +1046,10 @@ fun RichPresence(
     }
 
     val activityPrefix = when (activityType) {
-        "0" -> stringResource(R.string.discord_activity_playing)
-        "3" -> stringResource(R.string.discord_activity_watching)
-        "5" -> stringResource(R.string.discord_activity_competing)
-        else -> stringResource(R.string.discord_activity_listening)
+        "0" -> stringResource(Res.string.discord_activity_playing)
+        "3" -> stringResource(Res.string.discord_activity_watching)
+        "5" -> stringResource(Res.string.discord_activity_competing)
+        else -> stringResource(Res.string.discord_activity_listening)
     }
 
     Surface(

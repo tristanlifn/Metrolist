@@ -1,27 +1,15 @@
 package com.metrolist.music.di
 
-import android.content.Context
-import com.metrolist.music.db.DatabaseDao
+import com.metrolist.music.ui.screens.wrapped.AndroidWrappedPreloader
 import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
+import com.metrolist.music.utils.WrappedPreloader
+import org.koin.dsl.bind
 import com.metrolist.music.ui.screens.wrapped.WrappedManager
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-@Module
-@InstallIn(SingletonComponent::class)
-object WrappedModule {
-    @Provides
-    @Singleton
-    fun provideWrappedManager(
-        databaseDao: DatabaseDao,
-        @ApplicationContext context: Context,
-    ): WrappedManager = WrappedManager(databaseDao, context)
-
-    @Provides
-    @Singleton
-    fun provideWrappedAudioService(@ApplicationContext context: Context): WrappedAudioService = WrappedAudioService(context)
+val wrappedModule = module {
+    singleOf(::WrappedManager)
+    singleOf(::WrappedAudioService)
+    single<WrappedPreloader> { AndroidWrappedPreloader(get(), get(), get(ApplicationScope)) }
 }

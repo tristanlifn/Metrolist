@@ -6,12 +6,6 @@
 package com.metrolist.music.utils
 
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.MutablePreferences
@@ -20,10 +14,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.protobuf.value
 import com.metrolist.music.extensions.toEnum
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.properties.ReadOnlyProperty
 import timber.log.Timber
@@ -43,9 +34,15 @@ val Context.dataStore: DataStore<Preferences>
             // deep sleep, causing IOException in FileStorageConnection.writeScope()
             // that crashes the process and triggers a soft reboot.
             File(filesDir, "datastore").mkdirs()
-            return preferencesDataStore(name = "settings")
-                .getValue(this, ::dataStore)
-                .also { dataStoreInstance = it }
+            val dataStoreDir = File(filesDir, "datastore")
+            val dataStore = preferencesDataStore(name = "settings").getValue(this, ::dataStore)
+            return object : DataStore<Preferences> by dataStore {
+                override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
+                    // Same Samsung workaround as above, re-applied before every write.
+                    dataStoreDir.mkdirs()
+                    return dataStore.updateData(transform)
+                }
+            }.also { dataStoreInstance = it }
         }
     }
 
@@ -56,30 +53,7 @@ val Context.dataStore: DataStore<Preferences>
  */
 suspend fun Context.safeDataStoreEdit(
     transform: suspend (MutablePreferences) -> Unit,
-): Boolean {
-    return try {
-        File(filesDir, "datastore").mkdirs()
-        dataStore.edit(transform)
-        true
-    } catch (e: IOException) {
-        Timber.e(e, "DataStore edit failed")
-        reportException(e)
-        false
-    }
-}
-
-operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key]
-    }
-
-fun <T> DataStore<Preferences>.get(
-    key: Preferences.Key<T>,
-    defaultValue: T,
-): T =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key] ?: defaultValue
-    }
+): Boolean = dataStore.safeEdit(transform)
 
 fun <T> preference(
     context: Context,
@@ -92,79 +66,3 @@ inline fun <reified T : Enum<T>> enumPreference(
     key: Preferences.Key<String>,
     defaultValue: T,
 ) = ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key].toEnum(defaultValue) }
-
-@Composable
-fun <T> rememberPreference(
-    key: Preferences.Key<T>,
-    defaultValue: T,
-    removeIfDefault: Boolean = false
-): MutableState<T> {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val state =
-        remember {
-            context.dataStore.data
-                .map { it[key] ?: defaultValue }
-                .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
-
-    return remember(key) {
-        object : MutableState<T> {
-            override var value: T
-                get() = state.value
-                set(value) {
-                    coroutineScope.launch {
-                        context.safeDataStoreEdit {
-                            if (removeIfDefault  && value == defaultValue)
-                                it.remove(key)
-                            else
-                                it[key] = value
-                        }
-                    }
-                }
-
-            override fun component1() = value
-
-            override fun component2(): (T) -> Unit = { value = it }
-        }
-    }
-}
-
-@Composable
-inline fun <reified T : Enum<T>> rememberEnumPreference(
-    key: Preferences.Key<String>,
-    defaultValue: T,
-    removeIfDefault: Boolean = false
-): MutableState<T> {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val state =
-        remember {
-            context.dataStore.data
-                .map { it[key].toEnum(defaultValue = defaultValue) }
-                .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
-
-    return remember(key) {
-        object : MutableState<T> {
-            override var value: T
-                get() = state.value
-                set(value) {
-                    coroutineScope.launch {
-                        context.safeDataStoreEdit {
-                            if (removeIfDefault  && value == defaultValue)
-                                it.remove(key)
-                            else
-                                it[key] = value.name
-                        }
-                    }
-                }
-
-            override fun component1() = value
-
-            override fun component2(): (T) -> Unit = { value = it }
-        }
-    }
-}

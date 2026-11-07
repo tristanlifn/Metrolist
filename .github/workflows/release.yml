@@ -216,9 +216,22 @@ jobs:
           name: ${{ matrix.variant == 'gms' && 'Metrolist-with-Google-Cast' || matrix.variant == 'izzy' && 'Metrolist-izzy' || 'Metrolist' }}
           path: app/build/outputs/apk/${{ matrix.variant }}/release/out/*.apk
 
-  create-release:
-    needs: [check-version, build]
+  flatpak:
+    needs: check-version
     if: needs.check-version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_flatpak.yml
+    with:
+      version: ${{ needs.check-version.outputs.new_version }}
+      ref: ${{ needs.check-version.outputs.ref }}
+
+  create-release:
+    needs: [check-version, build, flatpak]
+    # A failed Flatpak build shouldn't hold back the Android release; it just goes out without the bundle.
+    if: >-
+      !cancelled() && needs.build.result == 'success' &&
+      (needs.check-version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch')
     permissions:
       contents: write
     runs-on: ubuntu-24.04
@@ -240,8 +253,9 @@ jobs:
           mkdir -p release_files
 
           find downloaded_artifacts -name "*.apk" -exec cp {} release_files/ \;
+          find downloaded_artifacts -name "*.flatpak" -exec cp {} release_files/ \;
 
-          echo "APKs ready for release:"
+          echo "Files ready for release:"
           ls -la release_files/
 
       - name: Parse release notes from changelog
@@ -281,7 +295,7 @@ jobs:
             --title "${{ needs.check-version.outputs.new_version }}" \
             --notes-file attributed_release_notes.md \
             --latest \
-            release_files/*.apk
+            release_files/*
 
           echo "Release created successfully!"
 
