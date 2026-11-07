@@ -25,10 +25,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.search_library
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun LibrarySearchHeader(
@@ -59,7 +64,7 @@ fun LibrarySearchHeader(
                 onValueChange = onSearchQueryChange,
                 placeholder = {
                     Text(
-                        text = stringResource(R.string.search_library),
+                        text = stringResource(Res.string.search_library),
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
@@ -82,8 +87,8 @@ fun LibrarySearchHeader(
 
             IconButton(onClick = onBack) {
                 Icon(
-                    painter = painterResource(R.drawable.close),
-                    contentDescription = stringResource(R.string.close),
+                    painter = painterResource(Res.drawable.close),
+                    contentDescription = stringResource(Res.string.close),
                 )
             }
         } else {
@@ -95,12 +100,12 @@ fun LibrarySearchHeader(
 @Composable
 fun LibrarySearchEmptyPlaceholder(
     modifier: Modifier = Modifier,
-    icon: Int = R.drawable.search,
+    icon: DrawableResource = Res.drawable.search,
     text: String? = null,
 ) {
     EmptyPlaceholder(
         icon = icon,
-        text = text ?: stringResource(R.string.no_results_found),
+        text = text ?: stringResource(Res.string.no_results_found),
         modifier = modifier,
     )
 }

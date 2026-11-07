@@ -61,8 +61,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -84,6 +82,30 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ai_lyrics_translated
+import com.metrolist.music.resources.ai_translating_lyrics
+import com.metrolist.music.resources.auto_scroll
+import com.metrolist.music.resources.background_color
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.customize_colors
+import com.metrolist.music.resources.error
+import com.metrolist.music.resources.gradient
+import com.metrolist.music.resources.player_background_blur
+import com.metrolist.music.resources.player_background_solid
+import com.metrolist.music.resources.player_background_style
+import com.metrolist.music.resources.secondary_text_color
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.share_as_image
+import com.metrolist.music.resources.share_as_text
+import com.metrolist.music.resources.share_lyrics
+import com.metrolist.music.resources.share_selected
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.text_color
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun LyricsTranslationHeader(
@@ -108,7 +130,7 @@ internal fun LyricsTranslationHeader(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = stringResource(R.string.ai_translating_lyrics),
+                        text = stringResource(Res.string.ai_translating_lyrics),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -119,7 +141,7 @@ internal fun LyricsTranslationHeader(
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.error),
+                        painter = painterResource(Res.drawable.error),
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
@@ -135,12 +157,12 @@ internal fun LyricsTranslationHeader(
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.check),
+                        painter = painterResource(Res.drawable.check),
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = stringResource(R.string.ai_lyrics_translated),
+                        text = stringResource(Res.string.ai_lyrics_translated),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -191,9 +213,9 @@ internal fun LyricsActionOverlay(
             exit = slideOutVertically { it } + fadeOut()
         ) {
             FilledTonalButton(onClick = onSyncClick) {
-                Icon(painterResource(R.drawable.sync), stringResource(R.string.auto_scroll), Modifier.size(20.dp))
+                Icon(painterResource(Res.drawable.sync), stringResource(Res.string.auto_scroll), Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.auto_scroll))
+                Text(stringResource(Res.string.auto_scroll))
             }
         }
         
@@ -207,15 +229,15 @@ internal fun LyricsActionOverlay(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 FilledTonalButton(onClick = onCancelSelection) {
-                    Icon(painterResource(R.drawable.close), stringResource(R.string.cancel), Modifier.size(20.dp))
+                    Icon(painterResource(Res.drawable.close), stringResource(Res.string.cancel), Modifier.size(20.dp))
                 }
                 FilledTonalButton(
                     onClick = onShareSelection,
                     enabled = anySelected
                 ) {
-                    Icon(painterResource(R.drawable.share), stringResource(R.string.share_selected), Modifier.size(20.dp))
+                    Icon(painterResource(Res.drawable.share), stringResource(Res.string.share_selected), Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.share))
+                    Text(stringResource(Res.string.share))
                 }
             }
         }
@@ -241,7 +263,7 @@ internal fun LyricsShareDialog(
             modifier = Modifier.padding(16.dp).fillMaxWidth(0.85f)
         ) {
             Column(Modifier.padding(20.dp)) {
-                Text(stringResource(R.string.share_lyrics), fontWeight = FontWeight.Normal, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(Res.string.share_lyrics), fontWeight = FontWeight.Normal, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(16.dp))
                 
                 Row(
@@ -256,9 +278,9 @@ internal fun LyricsShareDialog(
                     }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(R.drawable.share), null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(painterResource(Res.drawable.share), null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(12.dp))
-                    Text(stringResource(R.string.share_as_text), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(Res.string.share_as_text), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
                 
                 Row(
@@ -267,9 +289,9 @@ internal fun LyricsShareDialog(
                     }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(R.drawable.share), null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(painterResource(Res.drawable.share), null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(12.dp))
-                    Text(stringResource(R.string.share_as_image), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(Res.string.share_as_image), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
                 
                 Row(
@@ -277,7 +299,7 @@ internal fun LyricsShareDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = stringResource(R.string.cancel),
+                        text = stringResource(Res.string.cancel),
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Medium,
@@ -345,16 +367,16 @@ internal fun LyricsColorPickerDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp)
             ) {
-                Text(stringResource(R.string.customize_colors), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text(stringResource(Res.string.customize_colors), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(12.dp))
                 
-                Text(stringResource(R.string.player_background_style), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.player_background_style), style = MaterialTheme.typography.titleMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                     LyricsBackgroundStyle.entries.forEach { style ->
                         val label = when(style) {
-                            LyricsBackgroundStyle.SOLID -> stringResource(R.string.player_background_solid)
-                            LyricsBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
-                            else -> stringResource(R.string.gradient)
+                            LyricsBackgroundStyle.SOLID -> stringResource(Res.string.player_background_solid)
+                            LyricsBackgroundStyle.BLUR -> stringResource(Res.string.player_background_blur)
+                            else -> stringResource(Res.string.gradient)
                         }
                         FilterChip(selected = bgStyle == style, onClick = { bgStyle = style }, label = { Text(label) })
                     }
@@ -381,21 +403,21 @@ internal fun LyricsColorPickerDialog(
                 
                 Spacer(Modifier.height(18.dp))
                 
-                Text(stringResource(R.string.background_color), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.background_color), style = MaterialTheme.typography.titleMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                     (pal + listOf(Color(0xFF242424), Color(0xFF121212), Color.White, Color.Black, Color(0xFFF5F5F5))).distinct().take(8).forEach { color ->
                         Box(Modifier.size(32.dp).background(color, RoundedCornerShape(8.dp)).clickable { previewBackgroundColor = color }.border(2.dp, if (previewBackgroundColor == color) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp)))
                     }
                 }
                 
-                Text(stringResource(R.string.text_color), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.text_color), style = MaterialTheme.typography.titleMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                     (pal + listOf(Color.White, Color.Black, Color(0xFF1DB954))).distinct().take(8).forEach { color ->
                         Box(Modifier.size(32.dp).background(color, RoundedCornerShape(8.dp)).clickable { previewTextColor = color }.border(2.dp, if (previewTextColor == color) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp)))
                     }
                 }
                 
-                Text(stringResource(R.string.secondary_text_color), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.secondary_text_color), style = MaterialTheme.typography.titleMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                     (pal.map { it.copy(alpha = 0.7f) } + listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.7f), Color(0xFF1DB954))).distinct().take(8).forEach { color ->
                         Box(Modifier.size(32.dp).background(color, RoundedCornerShape(8.dp)).clickable { previewSecondaryTextColor = color }.border(2.dp, if (previewSecondaryTextColor == color) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp)))
@@ -407,7 +429,7 @@ internal fun LyricsColorPickerDialog(
                 Button(onClick = {
                     onShare(previewBackgroundColor, previewTextColor, previewSecondaryTextColor, bgStyle)
                 }, Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.share))
+                    Text(stringResource(Res.string.share))
                 }
             }
         }

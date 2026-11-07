@@ -25,12 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.and
+import com.metrolist.music.resources.song_dropdown_more_results
+import org.jetbrains.compose.resources.stringResource
 
 
 @Composable
@@ -99,7 +101,7 @@ fun SongSelectDropdown(
                                     maxLines = 1,
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                val displayArtists = song.artists.joinToString(" ${stringResource(R.string.and)} ") { it.name }.ifBlank { song.artistName }
+                                val displayArtists = song.artists.joinToString(" ${stringResource(Res.string.and)} ") { it.name }.ifBlank { song.artistName }
                                 displayArtists?.let {
                                     Text(
                                         text = it,
@@ -121,7 +123,7 @@ fun SongSelectDropdown(
                         text = {
                             Text(
                                 text = stringResource(
-                                    R.string.song_dropdown_more_results,
+                                    Res.string.song_dropdown_more_results,
                                     remainingCount,
                                 ),
                             )

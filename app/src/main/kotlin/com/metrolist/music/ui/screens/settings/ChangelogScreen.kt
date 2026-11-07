@@ -21,8 +21,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -30,10 +28,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.utils.ReleaseInfo
 import com.metrolist.music.utils.Updater
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.changelog
+import com.metrolist.music.resources.changelog_empty
+import com.metrolist.music.resources.github
+import com.metrolist.music.resources.github_releases_url
+import com.metrolist.music.resources.list_bullet
+import com.metrolist.music.resources.view_on_github
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 private val markdownLinkRegex = Regex("(@[a-zA-Z0-9_-]+)|(https?://[\\w-]+(\\.[\\w-]+)+[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])")
 
@@ -80,7 +86,7 @@ fun ChangelogScreen(
             ) {
                 item {
                     Text(
-                        text = stringResource(R.string.changelog),
+                        text = stringResource(Res.string.changelog),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
@@ -115,7 +121,7 @@ fun ChangelogScreen(
                 } else if (releases.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                            Text(text = stringResource(R.string.changelog_empty))
+                            Text(text = stringResource(Res.string.changelog_empty))
                         }
                     }
                 } else {
@@ -133,11 +139,11 @@ fun ChangelogScreen(
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
             ) {
-                val githubReleasesUrl = stringResource(R.string.github_releases_url)
+                val githubReleasesUrl = stringResource(Res.string.github_releases_url)
                 ExtendedFloatingActionButton(
                     onClick = { uriHandler.openUri(githubReleasesUrl) },
-                    icon = { Icon(painterResource(R.drawable.github), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    text = { Text(stringResource(R.string.view_on_github)) },
+                    icon = { Icon(painterResource(Res.drawable.github), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    text = { Text(stringResource(Res.string.view_on_github)) },
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
@@ -248,7 +254,7 @@ fun MarkdownText(text: String) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         if (isListItem) {
                             Text(
-                                text = stringResource(R.string.list_bullet),
+                                text = stringResource(Res.string.list_bullet),
                                 modifier = Modifier.padding(end = 8.dp),
                                 style = MaterialTheme.typography.bodyLarge
                             )

@@ -53,9 +53,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -96,6 +93,32 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.StatsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.albums
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.artists
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.continuous
+import com.metrolist.music.resources.filter_all
+import com.metrolist.music.resources.months
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_month
+import com.metrolist.music.resources.n_playlist
+import com.metrolist.music.resources.n_selected
+import com.metrolist.music.resources.n_time
+import com.metrolist.music.resources.n_week
+import com.metrolist.music.resources.n_year
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.songs
+import com.metrolist.music.resources.stats
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.weeks
+import com.metrolist.music.resources.years
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -342,44 +365,44 @@ fun StatsScreen(
                                 listOf(
                                     StatPeriod.WEEK_1.ordinal to
                                         pluralStringResource(
-                                            R.plurals.n_week,
+                                            Res.plurals.n_week,
                                             1,
                                             1,
                                         ),
                                     StatPeriod.MONTH_1.ordinal to
                                         pluralStringResource(
-                                            R.plurals.n_month,
+                                            Res.plurals.n_month,
                                             1,
                                             1,
                                         ),
                                     StatPeriod.MONTH_3.ordinal to
                                         pluralStringResource(
-                                            R.plurals.n_month,
+                                            Res.plurals.n_month,
                                             3,
                                             3,
                                         ),
                                     StatPeriod.MONTH_6.ordinal to
                                         pluralStringResource(
-                                            R.plurals.n_month,
+                                            Res.plurals.n_month,
                                             6,
                                             6,
                                         ),
                                     StatPeriod.YEAR_1.ordinal to
                                         pluralStringResource(
-                                            R.plurals.n_year,
+                                            Res.plurals.n_year,
                                             1,
                                             1,
                                         ),
-                                    StatPeriod.ALL.ordinal to stringResource(R.string.filter_all),
+                                    StatPeriod.ALL.ordinal to stringResource(Res.string.filter_all),
                                 )
                             }
                         },
                     options =
                         listOf(
-                            OptionStats.CONTINUOUS to stringResource(id = R.string.continuous),
-                            OptionStats.WEEKS to stringResource(R.string.weeks),
-                            OptionStats.MONTHS to stringResource(R.string.months),
-                            OptionStats.YEARS to stringResource(R.string.years),
+                            OptionStats.CONTINUOUS to stringResource(Res.string.continuous),
+                            OptionStats.WEEKS to stringResource(Res.string.weeks),
+                            OptionStats.MONTHS to stringResource(Res.string.months),
+                            OptionStats.YEARS to stringResource(Res.string.years),
                         ),
                     selectedOption = selectedOption,
                     onSelectionChange = {
@@ -396,7 +419,7 @@ fun StatsScreen(
                     NavigationTitle(
                         title =
                             pluralStringResource(
-                                R.plurals.n_playlist,
+                                Res.plurals.n_playlist,
                                 visibleStatsPlaylists.size,
                                 visibleStatsPlaylists.size,
                             ),
@@ -432,7 +455,7 @@ fun StatsScreen(
             if (!isSearching) {
                 item(key = "mostPlayedSongs") {
                     NavigationTitle(
-                        title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
+                        title = "${mostPlayedSongsStats.size} ${stringResource(Res.string.songs)}",
                         onPlayAllClick =
                             if (orderedMostPlayedSongs.isNotEmpty()) {
                                 {
@@ -461,7 +484,7 @@ fun StatsScreen(
                                 subtitle =
                                     joinByBullet(
                                         pluralStringResource(
-                                            R.plurals.n_time,
+                                            Res.plurals.n_time,
                                             song.songCountListened,
                                             song.songCountListened,
                                         ),
@@ -511,7 +534,7 @@ fun StatsScreen(
             if (!isSearching) {
                 item(key = "mostPlayedArtists") {
                     NavigationTitle(
-                        title = "${mostPlayedArtists.size} ${stringResource(id = R.string.artists)}",
+                        title = "${mostPlayedArtists.size} ${stringResource(Res.string.artists)}",
                         modifier = Modifier.animateItem(),
                     )
 
@@ -527,7 +550,7 @@ fun StatsScreen(
                                 subtitle =
                                     joinByBullet(
                                         pluralStringResource(
-                                            R.plurals.n_time,
+                                            Res.plurals.n_time,
                                             artist.songCount,
                                             artist.songCount,
                                         ),
@@ -560,7 +583,7 @@ fun StatsScreen(
             if (!isSearching) {
                 item(key = "mostPlayedAlbums") {
                     NavigationTitle(
-                        title = "${mostPlayedAlbums.size} ${stringResource(id = R.string.albums)}",
+                        title = "${mostPlayedAlbums.size} ${stringResource(Res.string.albums)}",
                         modifier = Modifier.animateItem(),
                     )
 
@@ -577,7 +600,7 @@ fun StatsScreen(
                                     subtitle =
                                         joinByBullet(
                                             pluralStringResource(
-                                                R.plurals.n_time,
+                                                Res.plurals.n_time,
                                                 album.songCountListened ?: 0,
                                                 album.songCountListened ?: 0,
                                             ),
@@ -647,8 +670,8 @@ fun StatsScreen(
             if (query.text.isNotEmpty() && filteredArtists.isEmpty()) {
                 item(key = "no_result") {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        icon = Res.drawable.search,
+                        text = stringResource(Res.string.no_results_found),
                     )
                 }
             }
@@ -658,7 +681,7 @@ fun StatsScreen(
             HideOnScrollFAB(
                 visible = true,
                 lazyListState = lazyListState,
-                icon = R.drawable.shuffle,
+                icon = Res.drawable.shuffle,
                 onClick = {
                     playerConnection.playQueue(
                         ListQueue(
@@ -674,7 +697,7 @@ fun StatsScreen(
     TopAppBar(
         title = {
             if (inSelectMode) {
-                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                Text(pluralStringResource(Res.plurals.n_selected, selection.size, selection.size))
             } else if (isSearching) {
                 Row {
                     TextField(
@@ -682,7 +705,7 @@ fun StatsScreen(
                         onValueChange = { query = it },
                         placeholder = {
                             Text(
-                                text = stringResource(R.string.search),
+                                text = stringResource(Res.string.search),
                                 style = MaterialTheme.typography.titleLarge,
                             )
                         },
@@ -706,7 +729,7 @@ fun StatsScreen(
                     if (sArtists.isNotEmpty()) {
                         androidx.compose.material3.IconButton(onClick = clearArtistSelection) {
                             Icon(
-                                painter = painterResource(R.drawable.close),
+                                painter = painterResource(Res.drawable.close),
                                 contentDescription = "Clear Artists",
                                 tint = MaterialTheme.colorScheme.onSurface,
                             )
@@ -714,14 +737,14 @@ fun StatsScreen(
                     }
                 }
             } else {
-                Text(stringResource(R.string.stats))
+                Text(stringResource(Res.string.stats))
             }
         },
         navigationIcon = {
             if (inSelectMode) {
                 androidx.compose.material3.IconButton(onClick = onExitSelectionMode) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(Res.drawable.close),
                         contentDescription = "Select Button",
                     )
                 }
@@ -742,7 +765,7 @@ fun StatsScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
+                        painter = painterResource(Res.drawable.arrow_back),
                         contentDescription = "Back Button",
                     )
                 }
@@ -761,7 +784,7 @@ fun StatsScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = "More Button",
                     )
                 }
@@ -770,7 +793,7 @@ fun StatsScreen(
                     onClick = { isSearching = true },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.search),
+                        painter = painterResource(Res.drawable.search),
                         contentDescription = "Search Button",
                     )
                 }
@@ -779,7 +802,7 @@ fun StatsScreen(
                     onLongClick = { showTimeTransfer = true },
                 ) {
                     Icon(
-                        painterResource(R.drawable.sync),
+                        painterResource(Res.drawable.sync),
                         contentDescription = "Time Transfer",
                     )
                 }
@@ -788,4 +811,3 @@ fun StatsScreen(
     )
 }
 
-enum class OptionStats { WEEKS, MONTHS, YEARS, CONTINUOUS }

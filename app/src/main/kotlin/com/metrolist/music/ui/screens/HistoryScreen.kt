@@ -48,9 +48,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.util.fastForEachReversed
@@ -60,7 +57,6 @@ import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.extensions.metadata
@@ -83,6 +79,23 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.DateAgo
 import com.metrolist.music.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.last_week
+import com.metrolist.music.resources.local_history
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_selected
+import com.metrolist.music.resources.remote_history
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.this_week
+import com.metrolist.music.resources.today
+import com.metrolist.music.resources.yesterday
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -146,10 +159,10 @@ fun HistoryScreen(
     @Composable
     fun dateAgoToString(dateAgo: DateAgo): String =
         when (dateAgo) {
-            DateAgo.Today -> stringResource(R.string.today)
-            DateAgo.Yesterday -> stringResource(R.string.yesterday)
-            DateAgo.ThisWeek -> stringResource(R.string.this_week)
-            DateAgo.LastWeek -> stringResource(R.string.last_week)
+            DateAgo.Today -> stringResource(Res.string.today)
+            DateAgo.Yesterday -> stringResource(Res.string.yesterday)
+            DateAgo.ThisWeek -> stringResource(Res.string.this_week)
+            DateAgo.LastWeek -> stringResource(Res.string.last_week)
             is DateAgo.Other -> dateAgo.date.format(DateTimeFormatter.ofPattern("yyyy/MM"))
         }
 
@@ -227,11 +240,11 @@ fun HistoryScreen(
                     chips =
                         if (isLoggedIn) {
                             listOf(
-                                HistorySource.LOCAL to stringResource(R.string.local_history),
-                                HistorySource.REMOTE to stringResource(R.string.remote_history),
+                                HistorySource.LOCAL to stringResource(Res.string.local_history),
+                                HistorySource.REMOTE to stringResource(Res.string.remote_history),
                             )
                         } else {
-                            listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
+                            listOf(HistorySource.LOCAL to stringResource(Res.string.local_history))
                         },
                     currentValue = historySource,
                     onValueUpdate = {
@@ -278,7 +291,7 @@ fun HistoryScreen(
                                     },
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.more_vert),
+                                        painter = painterResource(Res.drawable.more_vert),
                                         contentDescription = null,
                                     )
                                 }
@@ -360,7 +373,7 @@ fun HistoryScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -399,7 +412,7 @@ fun HistoryScreen(
             }
         }
 
-        val historyTitle = stringResource(R.string.history)
+        val historyTitle = stringResource(Res.string.history)
 
         HideOnScrollFAB(
             visible =
@@ -409,7 +422,7 @@ fun HistoryScreen(
                     allEvents.isNotEmpty()
                 },
             lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
+            icon = Res.drawable.shuffle,
             onClick = {
                 if (historySource == HistorySource.REMOTE && historyPage != null) {
                     val songs = filteredRemoteContent?.flatMap { it.songs } ?: emptyList()
@@ -436,14 +449,14 @@ fun HistoryScreen(
     TopAppBar(
         title = {
             if (inSelectMode) {
-                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                Text(pluralStringResource(Res.plurals.n_selected, selection.size, selection.size))
             } else if (isSearching) {
                 TextField(
                     value = query,
                     onValueChange = { query = it },
                     placeholder = {
                         Text(
-                            text = stringResource(R.string.search),
+                            text = stringResource(Res.string.search),
                             style = MaterialTheme.typography.titleLarge,
                         )
                     },
@@ -464,14 +477,14 @@ fun HistoryScreen(
                             .focusRequester(focusRequester),
                 )
             } else {
-                Text(stringResource(R.string.history))
+                Text(stringResource(Res.string.history))
             }
         },
         navigationIcon = {
             if (inSelectMode) {
                 IconButton(onClick = onExitSelectionMode) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(Res.drawable.close),
                         contentDescription = null,
                     )
                 }
@@ -492,7 +505,7 @@ fun HistoryScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
+                        painter = painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }
@@ -532,7 +545,7 @@ fun HistoryScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                     )
                 }
@@ -541,7 +554,7 @@ fun HistoryScreen(
                     onClick = { isSearching = true },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.search),
+                        painter = painterResource(Res.drawable.search),
                         contentDescription = null,
                     )
                 }

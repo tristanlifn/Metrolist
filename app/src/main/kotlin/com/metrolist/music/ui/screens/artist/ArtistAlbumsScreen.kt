@@ -40,14 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_ALBUM
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.GridItemSize
@@ -59,6 +56,11 @@ import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.viewmodels.ArtistAlbumsViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.n_album
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -118,7 +120,7 @@ fun ArtistAlbumsScreen(
                     Spacer(Modifier.weight(1f))
 
                     Text(
-                        text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
+                        text = pluralStringResource(Res.plurals.n_album, albums.size, albums.size),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.secondary,
                     )
@@ -149,7 +151,7 @@ fun ArtistAlbumsScreen(
                     onLongClick = navController::backToMain,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.arrow_back),
+                        painter = painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }

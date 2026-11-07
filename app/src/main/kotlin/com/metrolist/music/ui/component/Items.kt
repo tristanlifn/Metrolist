@@ -63,9 +63,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -137,6 +134,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import kotlin.jvm.JvmName
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.and
+import com.metrolist.music.resources.backup
+import com.metrolist.music.resources.cached
+import com.metrolist.music.resources.cached_playlist
+import com.metrolist.music.resources.done
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.explicit
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.liked
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.trending_up
+import com.metrolist.music.resources.uploaded_playlist
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 const val ActiveBoxAlpha = 0.6f
 
@@ -215,7 +234,7 @@ private fun ArtistLinksText(
     overflow: TextOverflow,
 ) {
     val navController = LocalNavController.current
-    val andString = stringResource(R.string.and)
+    val andString = stringResource(Res.string.and)
     val artistNameAliases = LocalArtistNameAliases.current
     val annotatedString = remember(artists, andString, color, artistNameAliases) {
         buildAnnotatedString {
@@ -300,7 +319,7 @@ inline fun ListItem(
                         )
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.offline),
+                        painter = painterResource(Res.drawable.offline),
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier
@@ -522,7 +541,7 @@ fun SongListItem(
                   if (subtitleOverride == null) {
                       Text(
                            text = joinByBullet(
-                               song.orderedArtists.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                               song.orderedArtists.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                                    ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                                },
                               makeTimeString(song.song.duration * 1000L)
@@ -612,7 +631,7 @@ fun SongGridItem(
         val artistNameAliases = LocalArtistNameAliases.current
         Text(
             text = joinByBullet(
-                song.orderedArtists.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                song.orderedArtists.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                     ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                 },
                 makeTimeString(song.song.duration * 1000L)
@@ -650,7 +669,7 @@ fun ArtistListItem(
     badges: @Composable RowScope.() -> Unit = {
         if (artist.artist.bookmarkedAt != null) {
             Icon(
-                painter = painterResource(R.drawable.favorite),
+                painter = painterResource(Res.drawable.favorite),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier
@@ -662,7 +681,7 @@ fun ArtistListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(
     title = artist.artist.name,
-    subtitle = if (artist.songCount > 0) pluralStringResource(R.plurals.n_song, artist.songCount, artist.songCount) else null,
+    subtitle = if (artist.songCount > 0) pluralStringResource(Res.plurals.n_song, artist.songCount, artist.songCount) else null,
     badges = badges,
     thumbnailContent = {
         AsyncImage(
@@ -694,7 +713,7 @@ fun ArtistGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = artist.artist.name,
-    subtitle = if (artist.songCount > 0) pluralStringResource(R.plurals.n_song, artist.songCount, artist.songCount) else "",
+    subtitle = if (artist.songCount > 0) pluralStringResource(Res.plurals.n_song, artist.songCount, artist.songCount) else "",
     badges = badges,
     thumbnailContent = {
         AsyncImage(
@@ -763,8 +782,8 @@ fun AlbumListItem(
         badges()
         Text(
             text = joinByBullet(
-                album.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-                pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount),
+                album.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") { it.name },
+                pluralStringResource(Res.plurals.n_song, album.album.songCount, album.album.songCount),
                 album.album.year?.toString()
             ),
             style = MaterialTheme.typography.bodySmall,
@@ -841,7 +860,7 @@ fun AlbumGridItem(
     },
      subtitle = {
          Text(
-             text = album.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+             text = album.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") { it.name },
              style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 1,
@@ -921,13 +940,13 @@ fun PlaylistListItem(
         val remoteSongCount = playlist.playlist.remoteSongCount
         if (playlist.songCount == 0 && remoteSongCount != null) {
             pluralStringResource(
-                R.plurals.n_song,
+                Res.plurals.n_song,
                 remoteSongCount,
                 remoteSongCount
             )
         } else {
             pluralStringResource(
-                R.plurals.n_song,
+                Res.plurals.n_song,
                 playlist.songCount,
                 playlist.songCount
             )
@@ -940,12 +959,12 @@ fun PlaylistListItem(
             size = ListThumbnailSize,
             placeHolder = {
                 val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                    stringResource(Res.string.liked) -> Res.drawable.favorite_border
+                    stringResource(Res.string.offline) -> Res.drawable.offline
+                    stringResource(Res.string.cached_playlist) -> Res.drawable.cached
+                    // Res.drawable.backup as placeholder
+                    stringResource(Res.string.uploaded_playlist) -> Res.drawable.backup
+                    else -> if (autoPlaylist) Res.drawable.trending_up else Res.drawable.queue_music
                 }
                 Icon(
                     painter = painterResource(painter),
@@ -1013,13 +1032,13 @@ fun PlaylistGridItem(
             val remoteSongCount = playlist.playlist.remoteSongCount
             if (playlist.songCount == 0 && remoteSongCount != null) {
                 pluralStringResource(
-                    R.plurals.n_song,
+                    Res.plurals.n_song,
                     remoteSongCount,
                     remoteSongCount
                 )
             } else {
                 pluralStringResource(
-                    R.plurals.n_song,
+                    Res.plurals.n_song,
                     playlist.songCount,
                     playlist.songCount
                 )
@@ -1041,12 +1060,12 @@ fun PlaylistGridItem(
             size = width,
             placeHolder = {
                 val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                    stringResource(Res.string.liked) -> Res.drawable.favorite_border
+                    stringResource(Res.string.offline) -> Res.drawable.offline
+                    stringResource(Res.string.cached_playlist) -> Res.drawable.cached
+                    // Res.drawable.backup as placeholder
+                    stringResource(Res.string.uploaded_playlist) -> Res.drawable.backup
+                    else -> if (autoPlaylist) Res.drawable.trending_up else Res.drawable.queue_music
                 }
                 Box(
                     contentAlignment = Alignment.Center,
@@ -1084,7 +1103,7 @@ fun MediaMetadataListItem(
             Text(
                 text = buildAnnotatedString {
                     val base = joinByBullet(
-                        mediaMetadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                        mediaMetadata.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                             ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                         },
                         makeTimeString(mediaMetadata.duration * 1000L)
@@ -1156,7 +1175,7 @@ fun YouTubeListItem(
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
     val artistNameAliases = LocalArtistNameAliases.current
-    val artistSeparator = " ${stringResource(R.string.and)} "
+    val artistSeparator = " ${stringResource(Res.string.and)} "
 
     val content: @Composable () -> Unit = {
         ListItem(
@@ -1280,7 +1299,7 @@ fun YouTubeGridItem(
     },
      subtitle = {
          val artistNameAliases = LocalArtistNameAliases.current
-         val artistSeparator = " ${stringResource(R.string.and)} "
+         val artistSeparator = " ${stringResource(Res.string.and)} "
          val subtitle = when (item) {
              is SongItem -> joinByBullet(item.artists.joinToArtistString(artistSeparator) { ArtistNameAliases.resolve(artistNameAliases, it.id, it.name) }, makeTimeString(item.duration?.times(1000L)))
              is AlbumItem -> joinByBullet(item.artists?.joinToArtistString(artistSeparator) { ArtistNameAliases.resolve(artistNameAliases, it.id, it.name) }, item.year?.toString())
@@ -1528,7 +1547,7 @@ fun ItemThumbnail(
                     .background(Color.Black.copy(alpha = 0.5f))
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.done),
+                    painter = painterResource(Res.drawable.done),
                     contentDescription = null
                 )
             }
@@ -1600,7 +1619,7 @@ fun LocalThumbnail(
                     )
                 } else {
                     Icon(
-                        painter = painterResource(R.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         tint = Color.White
                     )
@@ -1625,7 +1644,7 @@ fun LocalThumbnail(
                         .background(Color.Black.copy(alpha = 0.6f))
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         tint = Color.White
                     )
@@ -1650,7 +1669,7 @@ fun LocalThumbnail(
                         .background(Color.Black.copy(alpha = ActiveBoxAlpha))
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         tint = Color.White
                     )
@@ -1690,8 +1709,8 @@ fun PlaylistThumbnail(
                 .build(),
             contentDescription = null,
             contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-            placeholder = painterResource(R.drawable.queue_music),
-            error = painterResource(R.drawable.queue_music),
+            placeholder = painterResource(Res.drawable.queue_music),
+            error = painterResource(Res.drawable.queue_music),
             modifier = Modifier
                 .size(size)
                 .clip(shape)
@@ -1717,8 +1736,8 @@ fun PlaylistThumbnail(
                         .build(),
                     contentDescription = null,
                     contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-                    placeholder = painterResource(R.drawable.queue_music),
-                    error = painterResource(R.drawable.queue_music),
+                    placeholder = painterResource(Res.drawable.queue_music),
+                    error = painterResource(Res.drawable.queue_music),
                     modifier = Modifier
                         .align(alignment)
                         .size(size / 2)
@@ -1747,7 +1766,7 @@ fun BoxScope.OverlayPlayButton(
                 .background(Color.Black.copy(alpha = ActiveBoxAlpha))
         ) {
             Icon(
-                painter = painterResource(R.drawable.play),
+                painter = painterResource(Res.drawable.play),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
@@ -1780,7 +1799,7 @@ fun BoxScope.OverlayEditButton(
                 .clickable(onClick = onClick)
         ) {
             Icon(
-                painter = painterResource(R.drawable.edit),
+                painter = painterResource(Res.drawable.edit),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
@@ -1811,7 +1830,7 @@ fun BoxScope.AlbumPlayButton(
                 .clickable(onClick = onClick)
         ) {
             Icon(
-                painter = painterResource(R.drawable.play),
+                painter = painterResource(Res.drawable.play),
                 contentDescription = null,
                 tint = Color.White
             )
@@ -1863,13 +1882,13 @@ fun SwipeToSongBox(
         if (offset.floatValue != 0f) {
             val (iconRes, bg, tint, align) = if (offset.floatValue > 0)
                 Quadruple(
-                    R.drawable.playlist_play,
+                    Res.drawable.playlist_play,
                     MaterialTheme.colorScheme.secondary,
                     MaterialTheme.colorScheme.onSecondary,
                     Alignment.CenterStart
                 ) else
                 Quadruple(
-                    R.drawable.queue_music,
+                    Res.drawable.queue_music,
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.colorScheme.onPrimary,
                     Alignment.CenterEnd
@@ -1884,7 +1903,7 @@ fun SwipeToSongBox(
                 contentAlignment = align
             ) {
                 Icon(
-                    painter = painterResource(id = iconRes),
+                    painter = painterResource(iconRes),
                     contentDescription = null,
                     modifier = Modifier
                         .padding(horizontal = 24.dp)
@@ -1928,7 +1947,7 @@ object Icon {
     @Composable
     fun Favorite() {
         Icon(
-            painter = painterResource(R.drawable.favorite),
+            painter = painterResource(Res.drawable.favorite),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier
@@ -1940,7 +1959,7 @@ object Icon {
     @Composable
     fun Library() {
         Icon(
-            painter = painterResource(R.drawable.library_add_check),
+            painter = painterResource(Res.drawable.library_add_check),
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)
@@ -1952,7 +1971,7 @@ object Icon {
     fun Download(state: Int?) {
         when (state) {
             STATE_COMPLETED -> Icon(
-                painter = painterResource(R.drawable.offline),
+                painter = painterResource(Res.drawable.offline),
                 contentDescription = null,
                 modifier = Modifier
                     .size(18.dp)
@@ -1971,7 +1990,7 @@ object Icon {
     @Composable
     fun Explicit() {
         Icon(
-            painter = painterResource(R.drawable.explicit),
+            painter = painterResource(Res.drawable.explicit),
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)

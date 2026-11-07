@@ -22,14 +22,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
@@ -42,6 +39,11 @@ import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.viewmodels.NewReleaseViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.new_release_albums
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -103,14 +105,14 @@ fun NewReleaseScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.new_release_albums)) },
+        title = { Text(stringResource(Res.string.new_release_albums)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

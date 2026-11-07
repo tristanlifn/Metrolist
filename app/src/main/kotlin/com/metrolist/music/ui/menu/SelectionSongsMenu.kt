@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.playback.QueueEntry
@@ -48,7 +47,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
@@ -65,6 +63,42 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add_to_library
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_playlist_desc
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_uploaded_songs
+import com.metrolist.music.resources.delete_uploaded_songs_confirm
+import com.metrolist.music.resources.deleted_n_songs
+import com.metrolist.music.resources.deleting
+import com.metrolist.music.resources.dislike_all
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.like_all
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.play_next
+import com.metrolist.music.resources.play_next_desc
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.remove_from_cache
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.upload_progress
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -82,7 +116,7 @@ fun SelectionSongMenu(
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
     val syncUtils = LocalSyncUtils.current
-    val deletedNSongsTemplate = stringResource(R.string.deleted_n_songs)
+    val deletedNSongsTemplate = stringResource(Res.string.deleted_n_songs)
     val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
 
@@ -159,7 +193,7 @@ fun SelectionSongMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    text = stringResource(Res.string.remove_download_playlist_confirm, "selection"),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -170,7 +204,7 @@ fun SelectionSongMenu(
                         showRemoveDownloadDialog = false
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -201,16 +235,16 @@ fun SelectionSongMenu(
             },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
+                    painter = painterResource(Res.drawable.delete),
                     contentDescription = null,
                 )
             },
             title = {
                 Text(
                     if (isDeleting) {
-                        stringResource(R.string.deleting)
+                        stringResource(Res.string.deleting)
                     } else {
-                        stringResource(R.string.delete_uploaded_songs)
+                        stringResource(Res.string.delete_uploaded_songs)
                     },
                 )
             },
@@ -219,7 +253,7 @@ fun SelectionSongMenu(
                     TextButton(
                         onClick = { showDeleteUploadedDialog = false },
                     ) {
-                        Text(text = stringResource(android.R.string.cancel))
+                        Text(text = stringResource(Res.string.cancel))
                     }
 
                     TextButton(
@@ -257,14 +291,14 @@ fun SelectionSongMenu(
                             }
                         },
                     ) {
-                        Text(text = stringResource(R.string.delete))
+                        Text(text = stringResource(Res.string.delete))
                     }
                 }
             },
         ) {
             if (isDeleting) {
                 Text(
-                    text = stringResource(R.string.upload_progress, deleteProgress, totalToDelete),
+                    text = stringResource(Res.string.upload_progress, deleteProgress, totalToDelete),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -274,7 +308,7 @@ fun SelectionSongMenu(
                 )
             } else {
                 Text(
-                    text = stringResource(R.string.delete_uploaded_songs_confirm, songSelection.size),
+                    text = stringResource(Res.string.delete_uploaded_songs_confirm, songSelection.size),
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -301,13 +335,13 @@ fun SelectionSongMenu(
                             NewAction(
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.play),
+                                        painter = painterResource(Res.drawable.play),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 },
-                                text = stringResource(R.string.play),
+                                text = stringResource(Res.string.play),
                                 onClick = {
                                     onDismiss()
                                     playerConnection.playQueue(
@@ -326,13 +360,13 @@ fun SelectionSongMenu(
                             NewAction(
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.shuffle),
+                                        painter = painterResource(Res.drawable.shuffle),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 },
-                                text = stringResource(R.string.shuffle),
+                                text = stringResource(Res.string.shuffle),
                                 onClick = {
                                     onDismiss()
                                     playerConnection.playQueue(
@@ -350,13 +384,13 @@ fun SelectionSongMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.playlist_add),
+                                    painter = painterResource(Res.drawable.playlist_add),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.add_to_playlist),
+                            text = stringResource(Res.string.add_to_playlist),
                             onClick = {
                                 showChoosePlaylistDialog = true
                             },
@@ -372,11 +406,11 @@ fun SelectionSongMenu(
                         if (!isGuest) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.play_next)) },
-                                    description = { Text(text = stringResource(R.string.play_next_desc)) },
+                                    title = { Text(text = stringResource(Res.string.play_next)) },
+                                    description = { Text(text = stringResource(Res.string.play_next_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.playlist_play),
+                                            painter = painterResource(Res.drawable.playlist_play),
                                             contentDescription = null,
                                         )
                                     },
@@ -389,11 +423,11 @@ fun SelectionSongMenu(
                             )
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.shuffle)) },
-                                    description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                                    title = { Text(text = stringResource(Res.string.shuffle)) },
+                                    description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.shuffle),
+                                            painter = painterResource(Res.drawable.shuffle),
                                             contentDescription = null,
                                         )
                                     },
@@ -411,11 +445,11 @@ fun SelectionSongMenu(
                             )
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                    description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                                    title = { Text(text = stringResource(Res.string.add_to_queue)) },
+                                    description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.queue_music),
+                                            painter = painterResource(Res.drawable.queue_music),
                                             contentDescription = null,
                                         )
                                     },
@@ -429,11 +463,11 @@ fun SelectionSongMenu(
                         }
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.add_to_playlist)) },
-                                description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
+                                title = { Text(text = stringResource(Res.string.add_to_playlist)) },
+                                description = { Text(text = stringResource(Res.string.add_to_playlist_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.playlist_add),
+                                        painter = painterResource(Res.drawable.playlist_add),
                                         contentDescription = null,
                                     )
                                 },
@@ -448,7 +482,7 @@ fun SelectionSongMenu(
                                     Text(
                                         text =
                                             stringResource(
-                                                if (allInLibrary) R.string.remove_from_library else R.string.add_to_library,
+                                                if (allInLibrary) Res.string.remove_from_library else Res.string.add_to_library,
                                             ),
                                     )
                                 },
@@ -456,7 +490,7 @@ fun SelectionSongMenu(
                                     Icon(
                                         painter =
                                             painterResource(
-                                                if (allInLibrary) R.drawable.library_add_check else R.drawable.library_add,
+                                                if (allInLibrary) Res.drawable.library_add_check else Res.drawable.library_add,
                                             ),
                                         contentDescription = null,
                                     )
@@ -509,12 +543,12 @@ fun SelectionSongMenu(
                                     Material3MenuItemData(
                                         title = {
                                             Text(
-                                                text = stringResource(R.string.remove_download),
+                                                text = stringResource(Res.string.remove_download),
                                             )
                                         },
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.offline),
+                                                painter = painterResource(Res.drawable.offline),
                                                 contentDescription = null,
                                             )
                                         },
@@ -526,7 +560,7 @@ fun SelectionSongMenu(
 
                                 Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                                     Material3MenuItemData(
-                                        title = { Text(text = stringResource(R.string.downloading)) },
+                                        title = { Text(text = stringResource(Res.string.downloading)) },
                                         icon = {
                                             CircularProgressIndicator(
                                                 modifier = Modifier.size(24.dp),
@@ -541,10 +575,10 @@ fun SelectionSongMenu(
 
                                 else -> {
                                     Material3MenuItemData(
-                                        title = { Text(text = stringResource(R.string.action_download)) },
+                                        title = { Text(text = stringResource(Res.string.action_download)) },
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.download),
+                                                painter = painterResource(Res.drawable.download),
                                                 contentDescription = null,
                                             )
                                         },
@@ -558,10 +592,10 @@ fun SelectionSongMenu(
                         onRemoveFromCache?.let { removeFromCache ->
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.remove_from_cache)) },
+                                    title = { Text(text = stringResource(Res.string.remove_from_cache)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -579,7 +613,7 @@ fun SelectionSongMenu(
                                     Text(
                                         text =
                                             stringResource(
-                                                if (allLiked) R.string.dislike_all else R.string.like_all,
+                                                if (allLiked) Res.string.dislike_all else Res.string.like_all,
                                             ),
                                     )
                                 },
@@ -587,7 +621,7 @@ fun SelectionSongMenu(
                                     Icon(
                                         painter =
                                             painterResource(
-                                                if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                                if (allLiked) Res.drawable.favorite else Res.drawable.favorite_border,
                                             ),
                                         contentDescription = null,
                                     )
@@ -610,10 +644,10 @@ fun SelectionSongMenu(
                         if (songPosition?.isNotEmpty() == true) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.delete)) },
+                                    title = { Text(text = stringResource(Res.string.delete)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -635,10 +669,10 @@ fun SelectionSongMenu(
                         if (isUploadedPlaylist) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.delete_uploaded_songs)) },
+                                    title = { Text(text = stringResource(Res.string.delete_uploaded_songs)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -727,7 +761,7 @@ fun SelectionMediaMetadataMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    text = stringResource(Res.string.remove_download_playlist_confirm, "selection"),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -738,7 +772,7 @@ fun SelectionMediaMetadataMenu(
                         showRemoveDownloadDialog = false
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -776,10 +810,10 @@ fun SelectionMediaMetadataMenu(
                         if (currentItems.isNotEmpty() && !isGuest) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.delete)) },
+                                    title = { Text(text = stringResource(Res.string.delete)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -797,10 +831,10 @@ fun SelectionMediaMetadataMenu(
                         if (!isGuest) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.play)) },
+                                    title = { Text(text = stringResource(Res.string.play)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(Res.drawable.play),
                                             contentDescription = null,
                                         )
                                     },
@@ -818,10 +852,10 @@ fun SelectionMediaMetadataMenu(
                             )
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.shuffle)) },
+                                    title = { Text(text = stringResource(Res.string.shuffle)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.shuffle),
+                                            painter = painterResource(Res.drawable.shuffle),
                                             contentDescription = null,
                                         )
                                     },
@@ -840,10 +874,10 @@ fun SelectionMediaMetadataMenu(
                             if (!isGuest) {
                                 add(
                                     Material3MenuItemData(
-                                        title = { Text(text = stringResource(R.string.add_to_queue)) },
+                                        title = { Text(text = stringResource(Res.string.add_to_queue)) },
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.queue_music),
+                                                painter = painterResource(Res.drawable.queue_music),
                                                 contentDescription = null,
                                             )
                                         },
@@ -858,10 +892,10 @@ fun SelectionMediaMetadataMenu(
                         }
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.add_to_playlist)) },
+                                title = { Text(text = stringResource(Res.string.add_to_playlist)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.playlist_add),
+                                        painter = painterResource(Res.drawable.playlist_add),
                                         contentDescription = null,
                                     )
                                 },
@@ -884,14 +918,14 @@ fun SelectionMediaMetadataMenu(
                             Material3MenuItemData(
                                 title = {
                                     Text(
-                                        text = stringResource(R.string.like_all),
+                                        text = stringResource(Res.string.like_all),
                                     )
                                 },
                                 icon = {
                                     Icon(
                                         painter =
                                             painterResource(
-                                                if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                                if (allLiked) Res.drawable.favorite else Res.drawable.favorite_border,
                                             ),
                                         contentDescription = null,
                                     )
@@ -917,13 +951,13 @@ fun SelectionMediaMetadataMenu(
                                     Material3MenuItemData(
                                         title = {
                                             Text(
-                                                text = stringResource(R.string.remove_download),
+                                                text = stringResource(Res.string.remove_download),
                                                 color = MaterialTheme.colorScheme.surface,
                                             )
                                         },
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.offline),
+                                                painter = painterResource(Res.drawable.offline),
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.surface,
                                             )
@@ -940,7 +974,7 @@ fun SelectionMediaMetadataMenu(
 
                                 Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                                     Material3MenuItemData(
-                                        title = { Text(text = stringResource(R.string.downloading)) },
+                                        title = { Text(text = stringResource(Res.string.downloading)) },
                                         icon = {
                                             CircularProgressIndicator(
                                                 modifier = Modifier.size(24.dp),
@@ -955,10 +989,10 @@ fun SelectionMediaMetadataMenu(
 
                                 else -> {
                                     Material3MenuItemData(
-                                        title = { Text(text = stringResource(R.string.action_download)) },
+                                        title = { Text(text = stringResource(Res.string.action_download)) },
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.download),
+                                                painter = painterResource(Res.drawable.download),
                                                 contentDescription = null,
                                             )
                                         },

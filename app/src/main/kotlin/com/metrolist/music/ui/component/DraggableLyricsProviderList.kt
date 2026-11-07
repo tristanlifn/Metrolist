@@ -30,10 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
-import com.metrolist.music.R
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.drag_handle
+import org.jetbrains.compose.resources.painterResource
 
 data class DraggableLyricsProviderItem(
     val id: String,
@@ -95,7 +96,7 @@ fun DraggableLyricsProviderList(
                             modifier = Modifier.draggableHandle(),
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.drag_handle),
+                                painter = painterResource(Res.drawable.drag_handle),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

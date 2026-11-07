@@ -12,9 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import com.metrolist.music.LocalNavController
-import com.metrolist.music.R
 import com.metrolist.music.constants.AlbumViewTypeKey
 import com.metrolist.music.constants.ChipSortTypeKey
 import com.metrolist.music.constants.LibraryFilter
@@ -22,6 +20,13 @@ import com.metrolist.music.constants.LibraryViewType
 import com.metrolist.music.constants.PlaylistViewTypeKey
 import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.utils.rememberEnumPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.filter_albums
+import com.metrolist.music.resources.filter_artists
+import com.metrolist.music.resources.filter_playlists
+import com.metrolist.music.resources.filter_podcasts
+import com.metrolist.music.resources.filter_songs
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LibraryScreen() {
@@ -34,11 +39,11 @@ fun LibraryScreen() {
         Row {
             ChipsRow(
                 chips = listOf(
-                    LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
-                    LibraryFilter.SONGS to stringResource(R.string.filter_songs),
-                    LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
-                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
-                    LibraryFilter.PODCASTS to stringResource(R.string.filter_podcasts),
+                    LibraryFilter.PLAYLISTS to stringResource(Res.string.filter_playlists),
+                    LibraryFilter.SONGS to stringResource(Res.string.filter_songs),
+                    LibraryFilter.ALBUMS to stringResource(Res.string.filter_albums),
+                    LibraryFilter.ARTISTS to stringResource(Res.string.filter_artists),
+                    LibraryFilter.PODCASTS to stringResource(Res.string.filter_podcasts),
                 ),
                 currentValue = filterType,
                 onValueUpdate = {

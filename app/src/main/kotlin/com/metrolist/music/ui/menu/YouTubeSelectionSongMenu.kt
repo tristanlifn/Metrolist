@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
@@ -40,7 +39,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
@@ -50,6 +48,31 @@ import com.metrolist.music.ui.component.Material3MenuGroup
 import com.metrolist.music.ui.component.Material3MenuItemData
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add_to_library
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.dislike_all
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.like_all
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.queue_all_songs
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.shuffle
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun YouTubeSelectionSongMenu(
@@ -176,7 +199,7 @@ fun YouTubeSelectionSongMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    text = stringResource(Res.string.remove_download_playlist_confirm, "selection"),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -187,7 +210,7 @@ fun YouTubeSelectionSongMenu(
                         showRemoveDownloadDialog = false
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -209,7 +232,7 @@ fun YouTubeSelectionSongMenu(
         )
     }
 
-    val queueAllSongsStr = stringResource(R.string.queue_all_songs)
+    val queueAllSongsStr = stringResource(Res.string.queue_all_songs)
 
     LazyColumn(
         contentPadding =
@@ -225,8 +248,8 @@ fun YouTubeSelectionSongMenu(
                 listOfNotNull(
                     if (!isGuest) {
                         Material3MenuItemData(
-                            icon = { Icon(painterResource(R.drawable.play), null) },
-                            title = { Text(stringResource(R.string.play)) },
+                            icon = { Icon(painterResource(Res.drawable.play), null) },
+                            title = { Text(stringResource(Res.string.play)) },
                             onClick = {
                                 playerConnection.playQueue(
                                     ListQueue(
@@ -243,8 +266,8 @@ fun YouTubeSelectionSongMenu(
                     },
                     if (!isGuest) {
                         Material3MenuItemData(
-                            icon = { Icon(painterResource(R.drawable.shuffle), null) },
-                            title = { Text(stringResource(R.string.shuffle)) },
+                            icon = { Icon(painterResource(Res.drawable.shuffle), null) },
+                            title = { Text(stringResource(Res.string.shuffle)) },
                             onClick = {
                                 playerConnection.playQueue(
                                     ListQueue(
@@ -261,8 +284,8 @@ fun YouTubeSelectionSongMenu(
                     },
                     if (!isGuest) {
                         Material3MenuItemData(
-                            icon = { Icon(painterResource(R.drawable.queue_music), null) },
-                            title = { Text(stringResource(R.string.add_to_queue)) },
+                            icon = { Icon(painterResource(Res.drawable.queue_music), null) },
+                            title = { Text(stringResource(Res.string.add_to_queue)) },
                             onClick = {
                                 playerConnection.addToQueue(songSelection.map { it.toMediaMetadata() })
                                 clearAction()
@@ -273,8 +296,8 @@ fun YouTubeSelectionSongMenu(
                         null
                     },
                     Material3MenuItemData(
-                        icon = { Icon(painterResource(R.drawable.playlist_add), null) },
-                        title = { Text(stringResource(R.string.add_to_playlist)) },
+                        icon = { Icon(painterResource(Res.drawable.playlist_add), null) },
+                        title = { Text(stringResource(Res.string.add_to_playlist)) },
                         onClick = {
                             showChoosePlaylistDialog = true
                         },
@@ -284,7 +307,7 @@ fun YouTubeSelectionSongMenu(
                             Text(
                                 text =
                                     stringResource(
-                                        if (allInLibrary) R.string.remove_from_library else R.string.add_to_library,
+                                        if (allInLibrary) Res.string.remove_from_library else Res.string.add_to_library,
                                     ),
                             )
                         },
@@ -292,7 +315,7 @@ fun YouTubeSelectionSongMenu(
                             Icon(
                                 painter =
                                     painterResource(
-                                        if (allInLibrary) R.drawable.library_add_check else R.drawable.library_add,
+                                        if (allInLibrary) Res.drawable.library_add_check else Res.drawable.library_add,
                                     ),
                                 contentDescription = null,
                             )
@@ -336,12 +359,12 @@ fun YouTubeSelectionSongMenu(
                             Material3MenuItemData(
                                 title = {
                                     Text(
-                                        text = stringResource(R.string.remove_download),
+                                        text = stringResource(Res.string.remove_download),
                                     )
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.offline),
+                                        painter = painterResource(Res.drawable.offline),
                                         contentDescription = null,
                                     )
                                 },
@@ -353,7 +376,7 @@ fun YouTubeSelectionSongMenu(
 
                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
+                                title = { Text(text = stringResource(Res.string.downloading)) },
                                 icon = {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
@@ -368,10 +391,10 @@ fun YouTubeSelectionSongMenu(
 
                         else -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
+                                title = { Text(text = stringResource(Res.string.action_download)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.download),
+                                        painter = painterResource(Res.drawable.download),
                                         contentDescription = null,
                                     )
                                 },
@@ -388,7 +411,7 @@ fun YouTubeSelectionSongMenu(
                             Text(
                                 text =
                                     stringResource(
-                                        if (allLiked) R.string.dislike_all else R.string.like_all,
+                                        if (allLiked) Res.string.dislike_all else Res.string.like_all,
                                     ),
                             )
                         },
@@ -396,7 +419,7 @@ fun YouTubeSelectionSongMenu(
                             Icon(
                                 painter =
                                     painterResource(
-                                        if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                        if (allLiked) Res.drawable.favorite else Res.drawable.favorite_border,
                                     ),
                                 contentDescription = null,
                             )

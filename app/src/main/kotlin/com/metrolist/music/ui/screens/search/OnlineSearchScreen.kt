@@ -46,8 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,7 +60,6 @@ import com.metrolist.innertube.models.PodcastItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.SuggestionItemHeight
 import com.metrolist.music.extensions.toMediaItem
@@ -81,6 +78,15 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_top_left
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.parsed_from_link
+import com.metrolist.music.resources.search
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
@@ -141,7 +147,7 @@ fun OnlineSearchScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.parsed_from_link),
+                        text = stringResource(Res.string.parsed_from_link),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 8.dp),
@@ -232,7 +238,7 @@ fun OnlineSearchScreen(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.more_vert),
+                                painter = painterResource(Res.drawable.more_vert),
                                 contentDescription = null,
                             )
                         }
@@ -505,7 +511,7 @@ fun OnlineSearchScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                         )
                     }
@@ -661,7 +667,7 @@ fun SuggestionItem(
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {
         Icon(
-            painterResource(if (online) R.drawable.search else R.drawable.history),
+            painterResource(if (online) Res.drawable.search else Res.drawable.history),
             contentDescription = null,
             modifier = Modifier.padding(horizontal = 16.dp).alpha(0.5f),
         )
@@ -679,7 +685,7 @@ fun SuggestionItem(
                 modifier = Modifier.alpha(0.5f),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.close),
+                    painter = painterResource(Res.drawable.close),
                     contentDescription = null,
                 )
             }
@@ -690,7 +696,7 @@ fun SuggestionItem(
             modifier = Modifier.alpha(0.5f),
         ) {
             Icon(
-                painter = painterResource(R.drawable.arrow_top_left),
+                painter = painterResource(Res.drawable.arrow_top_left),
                 contentDescription = null,
             )
         }

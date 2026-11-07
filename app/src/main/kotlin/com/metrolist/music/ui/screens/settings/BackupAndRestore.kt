@@ -44,14 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
@@ -70,6 +67,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_backup
+import com.metrolist.music.resources.action_restore
+import com.metrolist.music.resources.app_name
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.backup
+import com.metrolist.music.resources.backup_restore
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.checking_previous_account
+import com.metrolist.music.resources.import_csv
+import com.metrolist.music.resources.import_online
+import com.metrolist.music.resources.no_account_found
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.restore
+import com.metrolist.music.resources.restore_account_warning
+import com.metrolist.music.resources.restore_confirm_message
+import com.metrolist.music.resources.restore_confirm_title
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,13 +191,13 @@ fun BackupAndRestore(
             ),
         )
 
-        val appName = stringResource(R.string.app_name)
+        val appName = stringResource(Res.string.app_name)
         Material3SettingsGroup(
             items =
                 listOf(
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.action_backup)) },
-                        icon = painterResource(R.drawable.backup),
+                        title = { Text(stringResource(Res.string.action_backup)) },
+                        icon = painterResource(Res.drawable.backup),
                         onClick = {
                             val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                             backupLauncher.launch(
@@ -191,22 +208,22 @@ fun BackupAndRestore(
                         },
                     ),
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.action_restore)) },
-                        icon = painterResource(R.drawable.restore),
+                        title = { Text(stringResource(Res.string.action_restore)) },
+                        icon = painterResource(Res.drawable.restore),
                         onClick = {
                             restoreLauncher.launch(arrayOf("application/octet-stream"))
                         },
                     ),
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.import_online)) },
-                        icon = painterResource(R.drawable.playlist_add),
+                        title = { Text(stringResource(Res.string.import_online)) },
+                        icon = painterResource(Res.drawable.playlist_add),
                         onClick = {
                             importM3uLauncherOnline.launch(arrayOf("audio/*"))
                         },
                     ),
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.import_csv)) },
-                        icon = painterResource(R.drawable.playlist_add),
+                        title = { Text(stringResource(Res.string.import_csv)) },
+                        icon = painterResource(Res.drawable.playlist_add),
                         onClick = {
                             importPlaylistFromCsv.launch(
                                 arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"),
@@ -218,14 +235,14 @@ fun BackupAndRestore(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.backup_restore)) },
+        title = { Text(stringResource(Res.string.backup_restore)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }
@@ -312,11 +329,11 @@ fun BackupAndRestore(
             },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.restore),
+                    painter = painterResource(Res.drawable.restore),
                     contentDescription = null,
                 )
             },
-            title = { Text(stringResource(R.string.restore_confirm_title)) },
+            title = { Text(stringResource(Res.string.restore_confirm_title)) },
             buttons = {
                 TextButton(
                     onClick = {
@@ -326,7 +343,7 @@ fun BackupAndRestore(
                         accountCheckFailed = false
                     },
                 ) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -339,13 +356,13 @@ fun BackupAndRestore(
                         accountCheckFailed = false
                     },
                 ) {
-                    Text(stringResource(R.string.restore))
+                    Text(stringResource(Res.string.restore))
                 }
             },
         ) {
             // Supporting text
             Text(
-                text = stringResource(R.string.restore_confirm_message),
+                text = stringResource(Res.string.restore_confirm_message),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -354,7 +371,7 @@ fun BackupAndRestore(
             if (backupPreviewInfo?.accountName != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = stringResource(R.string.restore_account_warning),
+                    text = stringResource(Res.string.restore_account_warning),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleSmall,
                 )
@@ -376,7 +393,7 @@ fun BackupAndRestore(
                     )
                     Spacer(modifier = Modifier.size(16.dp))
                     Text(
-                        text = stringResource(R.string.checking_previous_account),
+                        text = stringResource(Res.string.checking_previous_account),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -397,7 +414,7 @@ fun BackupAndRestore(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = stringResource(R.string.no_account_found),
+                    text = stringResource(Res.string.no_account_found),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -441,7 +458,7 @@ fun BackupAndRestore(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.person),
+                                    painter = painterResource(Res.drawable.person),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                     modifier = Modifier.size(24.dp),

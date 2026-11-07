@@ -53,9 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
@@ -64,7 +61,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_SONG
 import com.metrolist.music.constants.HideExplicitKey
@@ -97,6 +93,33 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.filter_downloaded
+import com.metrolist.music.resources.filter_library
+import com.metrolist.music.resources.filter_liked
+import com.metrolist.music.resources.filter_uploaded
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.queue_all_songs
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.songs
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import com.metrolist.music.resources.upload
+import com.metrolist.music.resources.upload_complete
+import com.metrolist.music.resources.upload_failed
+import com.metrolist.music.resources.upload_file_too_large
+import com.metrolist.music.resources.upload_progress
+import com.metrolist.music.resources.upload_unsupported_format
+import com.metrolist.music.resources.uploading
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -108,11 +131,11 @@ fun LibrarySongsScreen(
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
-    val uploadUnsupportedFormatStr = stringResource(R.string.upload_unsupported_format)
-    val uploadFileTooLargeStr = stringResource(R.string.upload_file_too_large)
-    val uploadFailedStr = stringResource(R.string.upload_failed)
-    val uploadCompleteStr = stringResource(R.string.upload_complete)
-    val queueAllSongsStr = stringResource(R.string.queue_all_songs)
+    val uploadUnsupportedFormatStr = stringResource(Res.string.upload_unsupported_format)
+    val uploadFileTooLargeStr = stringResource(Res.string.upload_file_too_large)
+    val uploadFailedStr = stringResource(Res.string.upload_failed)
+    val uploadCompleteStr = stringResource(Res.string.upload_complete)
+    val queueAllSongsStr = stringResource(Res.string.queue_all_songs)
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
@@ -285,11 +308,11 @@ fun LibrarySongsScreen(
             },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.upload),
+                    painter = painterResource(Res.drawable.upload),
                     contentDescription = null,
                 )
             },
-            title = { Text(stringResource(R.string.uploading)) },
+            title = { Text(stringResource(Res.string.uploading)) },
             buttons = {
                 TextButton(
                     onClick = {
@@ -300,12 +323,12 @@ fun LibrarySongsScreen(
                         showUploadDialog = false
                     },
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         ) {
             Text(
-                text = stringResource(R.string.upload_progress, currentUploadIndex, totalUploads),
+                text = stringResource(Res.string.upload_progress, currentUploadIndex, totalUploads),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -336,14 +359,14 @@ fun LibrarySongsScreen(
                 Row {
                     Spacer(Modifier.width(12.dp))
                     FilterChip(
-                        label = { Text(stringResource(R.string.songs)) },
+                        label = { Text(stringResource(Res.string.songs)) },
                         selected = true,
                         colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
                         onClick = onDeselect,
                         shape = RoundedCornerShape(16.dp),
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(R.drawable.close),
+                                painter = painterResource(Res.drawable.close),
                                 contentDescription = "",
                             )
                         },
@@ -351,10 +374,10 @@ fun LibrarySongsScreen(
                     ChipsRow(
                         chips =
                             listOf(
-                                SongFilter.LIKED to stringResource(R.string.filter_liked),
-                                SongFilter.LIBRARY to stringResource(R.string.filter_library),
-                                SongFilter.UPLOADED to stringResource(R.string.filter_uploaded),
-                                SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                                SongFilter.LIKED to stringResource(Res.string.filter_liked),
+                                SongFilter.LIBRARY to stringResource(Res.string.filter_library),
+                                SongFilter.UPLOADED to stringResource(Res.string.filter_uploaded),
+                                SongFilter.DOWNLOADED to stringResource(Res.string.filter_downloaded),
                             ),
                         currentValue = filter,
                         onValueUpdate = {
@@ -387,10 +410,10 @@ fun LibrarySongsScreen(
                         onSortDescendingChange = onSortDescendingChange,
                         sortTypeText = { sortType ->
                             when (sortType) {
-                                SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                SongSortType.NAME -> R.string.sort_by_name
-                                SongSortType.ARTIST -> R.string.sort_by_artist
-                                SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                SongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                SongSortType.NAME -> Res.string.sort_by_name
+                                SongSortType.ARTIST -> Res.string.sort_by_artist
+                                SongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                             }
                         },
                     )
@@ -400,7 +423,7 @@ fun LibrarySongsScreen(
                     Text(
                         text =
                             pluralStringResource(
-                                R.plurals.n_song,
+                                Res.plurals.n_song,
                                 filteredSongs.size,
                                 filteredSongs.size,
                             ),
@@ -413,8 +436,8 @@ fun LibrarySongsScreen(
                         modifier = Modifier.padding(start = 8.dp, end = 8.dp).size(40.dp),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = stringResource(R.string.search),
+                            painter = painterResource(Res.drawable.search),
+                            contentDescription = stringResource(Res.string.search),
                         )
                     }
                 }
@@ -453,7 +476,7 @@ fun LibrarySongsScreen(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.more_vert),
+                                painter = painterResource(Res.drawable.more_vert),
                                 contentDescription = null,
                             )
                         }
@@ -482,7 +505,7 @@ fun LibrarySongsScreen(
         HideOnScrollFAB(
             visible = if (filter == SongFilter.UPLOADED) true else filteredSongs.isNotEmpty(),
             lazyListState = lazyListState,
-            icon = if (filter == SongFilter.UPLOADED) R.drawable.upload else R.drawable.shuffle,
+            icon = if (filter == SongFilter.UPLOADED) Res.drawable.upload else Res.drawable.shuffle,
             onClick = {
                 if (filter == SongFilter.UPLOADED) {
                     filePickerLauncher.launch(

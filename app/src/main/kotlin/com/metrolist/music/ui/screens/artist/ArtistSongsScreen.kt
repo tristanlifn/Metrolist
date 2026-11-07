@@ -31,16 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.ArtistSongSortDescendingKey
 import com.metrolist.music.constants.ArtistSongSortType
 import com.metrolist.music.constants.ArtistSongSortTypeKey
@@ -58,6 +54,18 @@ import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.ArtistSongsViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.queue_all_songs
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +74,7 @@ fun ArtistSongsScreen(
     viewModel: ArtistSongsViewModel = koinViewModel(),
 ) {
     val menuState = LocalMenuState.current
-    val queueAllSongsStr = stringResource(R.string.queue_all_songs)
+    val queueAllSongsStr = stringResource(Res.string.queue_all_songs)
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
@@ -109,9 +117,9 @@ fun ArtistSongsScreen(
                         onSortDescendingChange = onSortDescendingChange,
                         sortTypeText = { sortType ->
                             when (sortType) {
-                                ArtistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                ArtistSongSortType.NAME -> R.string.sort_by_name
-                                ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                ArtistSongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                ArtistSongSortType.NAME -> Res.string.sort_by_name
+                                ArtistSongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                             }
                         },
                     )
@@ -119,7 +127,7 @@ fun ArtistSongsScreen(
                     Spacer(Modifier.weight(1f))
 
                     Text(
-                        text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                        text = pluralStringResource(Res.plurals.n_song, songs.size, songs.size),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.secondary,
                     )
@@ -147,7 +155,7 @@ fun ArtistSongsScreen(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.more_vert),
+                                painter = painterResource(Res.drawable.more_vert),
                                 contentDescription = null,
                             )
                         }
@@ -191,7 +199,7 @@ fun ArtistSongsScreen(
                     onLongClick = navController::backToMain,
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }
@@ -200,7 +208,7 @@ fun ArtistSongsScreen(
 
         HideOnScrollFAB(
             lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
+            icon = Res.drawable.shuffle,
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(

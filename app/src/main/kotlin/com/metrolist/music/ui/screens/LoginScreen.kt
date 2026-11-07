@@ -53,8 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -84,6 +82,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.account
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.choose_youtube_channel
+import com.metrolist.music.resources.choose_youtube_channel_description
+import com.metrolist.music.resources.continue_action
+import com.metrolist.music.resources.login
+import com.metrolist.music.resources.login_failed
+import com.metrolist.music.resources.login_failed_with_error
+import com.metrolist.music.resources.retry
+import com.metrolist.music.resources.switch_youtube_channel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 private enum class LoginStage {
     Authenticating,
@@ -369,7 +380,7 @@ fun LoginScreen(
             title = {
                 Text(
                     stringResource(
-                        if (isSwitchingChannel) R.string.switch_youtube_channel else R.string.login,
+                        if (isSwitchingChannel) Res.string.switch_youtube_channel else Res.string.login,
                     ),
                 )
             },
@@ -379,7 +390,7 @@ fun LoginScreen(
                     onLongClick = navController::backToMain,
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }
@@ -390,7 +401,7 @@ fun LoginScreen(
     if (loginStage == LoginStage.SelectingAccount) {
         AlertDialog(
             onDismissRequest = {},
-            title = { Text(stringResource(R.string.choose_youtube_channel)) },
+            title = { Text(stringResource(Res.string.choose_youtube_channel)) },
             text = {
                 Column(
                     modifier =
@@ -399,7 +410,7 @@ fun LoginScreen(
                             .heightIn(max = 400.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.choose_youtube_channel_description),
+                        text = stringResource(Res.string.choose_youtube_channel_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -450,7 +461,7 @@ fun LoginScreen(
                         }
                     },
                 ) {
-                    Text(stringResource(R.string.continue_action))
+                    Text(stringResource(Res.string.continue_action))
                 }
             },
         )
@@ -459,7 +470,7 @@ fun LoginScreen(
     errorMessage?.let { error ->
         AlertDialog(
             onDismissRequest = { errorMessage = null },
-            title = { Text(stringResource(R.string.login_failed)) },
+            title = { Text(stringResource(Res.string.login_failed)) },
             text = { Text(error) },
             confirmButton = {
                 Button(
@@ -468,7 +479,7 @@ fun LoginScreen(
                         webViewRef?.reload()
                     },
                 ) {
-                    Text(stringResource(R.string.retry))
+                    Text(stringResource(Res.string.retry))
                 }
             },
         )
@@ -520,7 +531,7 @@ private fun YouTubeAccountPickerItem(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.account),
+                    painter = painterResource(Res.drawable.account),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
                 )

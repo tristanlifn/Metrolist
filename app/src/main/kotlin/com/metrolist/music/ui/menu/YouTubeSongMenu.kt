@@ -45,8 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,7 +61,6 @@ import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.constants.ListThumbnailSize
 import com.metrolist.music.constants.ThumbnailCornerRadius
@@ -91,6 +88,52 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.add_to_library
+import com.metrolist.music.resources.add_to_library_desc
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.artist
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.details
+import com.metrolist.music.resources.details_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.download_desc
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.pin_to_speed_dial
+import com.metrolist.music.resources.play_next
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_episode_from_saved
+import com.metrolist.music.resources.remove_from_history
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.save_episode_for_later
+import com.metrolist.music.resources.save_episode_for_later_desc
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.start_radio
+import com.metrolist.music.resources.start_radio_desc
+import com.metrolist.music.resources.suggest_to_host
+import com.metrolist.music.resources.unpin_from_speed_dial
+import com.metrolist.music.resources.view_album
+import com.metrolist.music.resources.view_artist
+import com.metrolist.music.resources.view_podcast
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -265,7 +308,7 @@ fun YouTubeSongMenu(
                 },
             ) {
                 Icon(
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(if (isFavorite) Res.drawable.favorite else Res.drawable.favorite_border),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else LocalContentColor.current,
                     contentDescription = null,
                 )
@@ -298,13 +341,13 @@ fun YouTubeSongMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.playlist_play),
+                                    painter = painterResource(Res.drawable.playlist_play),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            text = stringResource(R.string.play_next),
+                            text = stringResource(Res.string.play_next),
                             onClick = {
                                 playerConnection.playNext(song.copy(thumbnail = song.thumbnail.resize(544,544)).toMediaMetadata())
                                 onDismiss()
@@ -314,13 +357,13 @@ fun YouTubeSongMenu(
                     NewAction(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.playlist_add),
+                                painter = painterResource(Res.drawable.playlist_add),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        text = stringResource(R.string.add_to_playlist),
+                        text = stringResource(Res.string.add_to_playlist),
                         onClick = {
                             showChoosePlaylistDialog = true
                         }
@@ -328,13 +371,13 @@ fun YouTubeSongMenu(
                     NewAction(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        text = stringResource(R.string.share),
+                        text = stringResource(Res.string.share),
                         onClick = {
                             val intent = Intent().apply {
                                 action = Intent.ACTION_SEND
@@ -356,10 +399,10 @@ fun YouTubeSongMenu(
                 items = listOfNotNull(
                     if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.suggest_to_host)) },
+                            title = { Text(text = stringResource(Res.string.suggest_to_host)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.queue_music),
+                                    painter = painterResource(Res.drawable.queue_music),
                                     contentDescription = null,
                                 )
                             },
@@ -380,11 +423,11 @@ fun YouTubeSongMenu(
                     } else null,
                     if (!isGuest) {
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.start_radio)) },
-                            description = { Text(text = stringResource(R.string.start_radio_desc)) },
+                            title = { Text(text = stringResource(Res.string.start_radio)) },
+                            description = { Text(text = stringResource(Res.string.start_radio_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.radio),
+                                    painter = painterResource(Res.drawable.radio),
                                     contentDescription = null,
                                 )
                             },
@@ -396,11 +439,11 @@ fun YouTubeSongMenu(
                     } else null,
                     if (!isGuest) {
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.add_to_queue)) },
-                            description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                            title = { Text(text = stringResource(Res.string.add_to_queue)) },
+                            description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.queue_music),
+                                    painter = painterResource(Res.drawable.queue_music),
                                     contentDescription = null,
                                 )
                             },
@@ -425,10 +468,10 @@ fun YouTubeSongMenu(
                             // Episode is saved - show remove option
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.remove_episode_from_saved)) },
+                                    title = { Text(text = stringResource(Res.string.remove_episode_from_saved)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.remove),
+                                            painter = painterResource(Res.drawable.remove),
                                             contentDescription = null,
                                         )
                                     },
@@ -447,11 +490,11 @@ fun YouTubeSongMenu(
                             // Episode not saved - show save option
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.save_episode_for_later)) },
-                                    description = { Text(text = stringResource(R.string.save_episode_for_later_desc)) },
+                                    title = { Text(text = stringResource(Res.string.save_episode_for_later)) },
+                                    description = { Text(text = stringResource(Res.string.save_episode_for_later_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.playlist_add),
+                                            painter = painterResource(Res.drawable.playlist_add),
                                             contentDescription = null,
                                         )
                                     },
@@ -475,10 +518,10 @@ fun YouTubeSongMenu(
                     if (song.historyRemoveToken != null) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.remove_from_history)) },
+                                title = { Text(text = stringResource(Res.string.remove_from_history)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.delete),
+                                        painter = painterResource(Res.drawable.delete),
                                         contentDescription = null,
                                     )
                                 },
@@ -504,12 +547,12 @@ fun YouTubeSongMenu(
                         Material3MenuItemData(
                             title = { 
                                 Text(
-                                    text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial)
+                                    text = if (isPinned) stringResource(Res.string.unpin_from_speed_dial) else stringResource(Res.string.pin_to_speed_dial)
                                 ) 
                             },
                             icon = {
                                 Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                    painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
                                     contentDescription = null,
                                 )
                             },
@@ -528,12 +571,12 @@ fun YouTubeSongMenu(
                     add(
                         Material3MenuItemData(
                             title = {
-                                Text(text = if (librarySong?.song?.inLibrary != null) stringResource(R.string.remove_from_library) else stringResource(R.string.add_to_library))
+                                Text(text = if (librarySong?.song?.inLibrary != null) stringResource(Res.string.remove_from_library) else stringResource(Res.string.add_to_library))
                             },
-                            description = { Text(text = stringResource(R.string.add_to_library_desc)) },
+                            description = { Text(text = stringResource(Res.string.add_to_library_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(if (librarySong?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add),
+                                    painter = painterResource(if (librarySong?.song?.inLibrary != null) Res.drawable.library_add_check else Res.drawable.library_add),
                                     contentDescription = null,
                                 )
                             },
@@ -577,12 +620,12 @@ fun YouTubeSongMenu(
                             Material3MenuItemData(
                                 title = {
                                     Text(
-                                        text = stringResource(R.string.remove_download)
+                                        text = stringResource(Res.string.remove_download)
                                     )
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.offline),
+                                        painter = painterResource(Res.drawable.offline),
                                         contentDescription = null
                                     )
                                 },
@@ -598,7 +641,7 @@ fun YouTubeSongMenu(
                         }
                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
+                                title = { Text(text = stringResource(Res.string.downloading)) },
                                 icon = {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
@@ -617,11 +660,11 @@ fun YouTubeSongMenu(
                         }
                         else -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
+                                title = { Text(text = stringResource(Res.string.action_download)) },
+                                description = { Text(text = stringResource(Res.string.download_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.download),
+                                        painter = painterResource(Res.drawable.download),
                                         contentDescription = null,
                                     )
                                 },
@@ -647,7 +690,7 @@ fun YouTubeSongMenu(
                     if (artists.isNotEmpty() && !isPodcast) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.view_artist)) },
+                                title = { Text(text = stringResource(Res.string.view_artist)) },
                                 description = {
                                     Text(
                                         text = song.artists.joinToString {
@@ -657,7 +700,7 @@ fun YouTubeSongMenu(
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.artist),
+                                        painter = painterResource(Res.drawable.artist),
                                         contentDescription = null,
                                     )
                                 },
@@ -675,11 +718,11 @@ fun YouTubeSongMenu(
                     song.album?.let { album ->
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(if (isPodcast) R.string.view_podcast else R.string.view_album)) },
+                                title = { Text(text = stringResource(if (isPodcast) Res.string.view_podcast else Res.string.view_album)) },
                                 description = { Text(text = album.name) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(if (isPodcast) R.drawable.mic else R.drawable.album),
+                                        painter = painterResource(if (isPodcast) Res.drawable.mic else Res.drawable.album),
                                         contentDescription = null,
                                     )
                                 },
@@ -696,11 +739,11 @@ fun YouTubeSongMenu(
                     }
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.details)) },
-                            description = { Text(text = stringResource(R.string.details_desc)) },
+                            title = { Text(text = stringResource(Res.string.details)) },
+                            description = { Text(text = stringResource(Res.string.details_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.info),
+                                    painter = painterResource(Res.drawable.info),
                                     contentDescription = null,
                                 )
                             },

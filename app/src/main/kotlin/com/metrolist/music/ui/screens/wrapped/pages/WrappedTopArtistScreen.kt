@@ -31,14 +31,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Artist
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.wrapped_no_data
+import com.metrolist.music.resources.wrapped_top_artist_image_content_description
+import com.metrolist.music.resources.wrapped_top_artist_listening_time
+import com.metrolist.music.resources.wrapped_top_artist_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
@@ -61,7 +65,7 @@ fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
             enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
         ) {
             Text(
-                text = stringResource(id = R.string.wrapped_top_artist_title),
+                text = stringResource(Res.string.wrapped_top_artist_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 textAlign = TextAlign.Center
@@ -78,7 +82,7 @@ fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(topArtist?.artist?.thumbnailUrl)
                     .build(),
-                contentDescription = stringResource(id = R.string.wrapped_top_artist_image_content_description),
+                contentDescription = stringResource(Res.string.wrapped_top_artist_image_content_description),
                 modifier = Modifier
                     .size(200.dp)
                     .clip(CircleShape),
@@ -93,7 +97,7 @@ fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
             enter = fadeIn(animationSpec = tween(1000, delayMillis = 600)) + slideInVertically(animationSpec = tween(1000, delayMillis = 600))
         ) {
             Text(
-                text = topArtist?.artist?.name ?: stringResource(id = R.string.wrapped_no_data),
+                text = topArtist?.artist?.name ?: stringResource(Res.string.wrapped_no_data),
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -106,7 +110,7 @@ fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
             enter = fadeIn(animationSpec = tween(1000, delayMillis = 800)) + slideInVertically(animationSpec = tween(1000, delayMillis = 800))
         ) {
             Text(
-                text = stringResource(id = R.string.wrapped_top_artist_listening_time, topArtist?.timeListened?.div(60000) ?: 0),
+                text = stringResource(Res.string.wrapped_top_artist_listening_time, topArtist?.timeListened?.div(60000) ?: 0),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center

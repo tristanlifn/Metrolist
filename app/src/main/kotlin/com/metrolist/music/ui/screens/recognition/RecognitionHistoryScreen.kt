@@ -43,8 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,7 +51,6 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.RecognitionHistory
 import com.metrolist.music.ui.component.DefaultDialog
@@ -64,6 +61,20 @@ import com.metrolist.music.utils.SearchRoutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.clear
+import com.metrolist.music.resources.clear_all
+import com.metrolist.music.resources.clear_recognition_history
+import com.metrolist.music.resources.clear_recognition_history_confirm
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_from_history
+import com.metrolist.music.resources.delete_playlist_confirm
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.recognition_history
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,14 +92,14 @@ fun RecognitionHistoryScreen(navController: NavController) {
             onDismiss = { showClearDialog = false },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
+                    painter = painterResource(Res.drawable.delete),
                     contentDescription = null,
                 )
             },
-            title = { Text(stringResource(R.string.clear_recognition_history)) },
+            title = { Text(stringResource(Res.string.clear_recognition_history)) },
             buttons = {
                 TextButton(onClick = { showClearDialog = false }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -100,12 +111,12 @@ fun RecognitionHistoryScreen(navController: NavController) {
                         showClearDialog = false
                     },
                 ) {
-                    Text(stringResource(R.string.clear))
+                    Text(stringResource(Res.string.clear))
                 }
             },
         ) {
             Text(
-                text = stringResource(R.string.clear_recognition_history_confirm),
+                text = stringResource(Res.string.clear_recognition_history_confirm),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -116,14 +127,14 @@ fun RecognitionHistoryScreen(navController: NavController) {
             onDismiss = { itemToDelete = null },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
+                    painter = painterResource(Res.drawable.delete),
                     contentDescription = null,
                 )
             },
-            title = { Text(stringResource(R.string.delete)) },
+            title = { Text(stringResource(Res.string.delete)) },
             buttons = {
                 TextButton(onClick = { itemToDelete = null }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -135,12 +146,12 @@ fun RecognitionHistoryScreen(navController: NavController) {
                         itemToDelete = null
                     },
                 ) {
-                    Text(stringResource(R.string.delete))
+                    Text(stringResource(Res.string.delete))
                 }
             },
         ) {
             Text(
-                text = stringResource(R.string.delete_playlist_confirm, item.title),
+                text = stringResource(Res.string.delete_playlist_confirm, item.title),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -149,14 +160,14 @@ fun RecognitionHistoryScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.recognition_history)) },
+                title = { Text(stringResource(Res.string.recognition_history)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.navigateUp() },
                         onLongClick = { navController.backToMain() },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
+                            painter = painterResource(Res.drawable.arrow_back),
                             contentDescription = null,
                         )
                     }
@@ -165,8 +176,8 @@ fun RecognitionHistoryScreen(navController: NavController) {
                     if (historyItems.isNotEmpty()) {
                         IconButton(onClick = { showClearDialog = true }) {
                             Icon(
-                                painter = painterResource(R.drawable.clear_all),
-                                contentDescription = stringResource(R.string.clear_recognition_history),
+                                painter = painterResource(Res.drawable.clear_all),
+                                contentDescription = stringResource(Res.string.clear_recognition_history),
                             )
                         }
                     }
@@ -186,7 +197,7 @@ fun RecognitionHistoryScreen(navController: NavController) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.history),
+                        painter = painterResource(Res.drawable.history),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
@@ -299,8 +310,8 @@ private fun RecognitionHistoryItem(
             // Delete action
             IconButton(onClick = onDelete) {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
-                    contentDescription = stringResource(R.string.delete_from_history),
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = stringResource(Res.string.delete_from_history),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

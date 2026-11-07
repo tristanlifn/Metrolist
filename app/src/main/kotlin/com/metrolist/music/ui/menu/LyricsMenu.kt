@@ -54,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -89,6 +88,37 @@ import com.metrolist.music.constants.OpenRouterDefaultModel
 import com.metrolist.music.constants.OpenRouterModelKey
 import com.metrolist.music.constants.DeeplFormalityKey
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ai_lyrics_translation
+import com.metrolist.music.resources.cached
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.content_copy
+import com.metrolist.music.resources.copy
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.expand_less
+import com.metrolist.music.resources.expand_more
+import com.metrolist.music.resources.fast_forward
+import com.metrolist.music.resources.language_korean_latin
+import com.metrolist.music.resources.lyrics
+import com.metrolist.music.resources.lyrics_not_found
+import com.metrolist.music.resources.lyrics_offset
+import com.metrolist.music.resources.refetch
+import com.metrolist.music.resources.respect_agent_positioning
+import com.metrolist.music.resources.respect_agent_positioning_desc
+import com.metrolist.music.resources.romanize_current_track
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.search_lyrics
+import com.metrolist.music.resources.search_online
+import com.metrolist.music.resources.show_interval_indicator
+import com.metrolist.music.resources.show_interval_indicator_desc
+import com.metrolist.music.resources.song_artists
+import com.metrolist.music.resources.song_title
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.translate
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,7 +157,7 @@ fun LyricsMenu(
     if (showEditDialog) {
         TextFieldDialog(
             onDismiss = { showEditDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
+            icon = { Icon(painter = painterResource(Res.drawable.edit), contentDescription = null) },
             title = { Text(text = mediaMetadataProvider().title) },
             initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
             singleLine = false,
@@ -181,16 +211,16 @@ fun LyricsMenu(
             onDismiss = { showSearchDialog = false },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.search),
+                    painter = painterResource(Res.drawable.search),
                     contentDescription = null
                 )
             },
-            title = { Text(stringResource(R.string.search_lyrics)) },
+            title = { Text(stringResource(Res.string.search_lyrics)) },
             buttons = {
                 TextButton(
                     onClick = { showSearchDialog = false },
                 ) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -212,7 +242,7 @@ fun LyricsMenu(
                         }
                     },
                 ) {
-                    Text(stringResource(R.string.search_online))
+                    Text(stringResource(Res.string.search_online))
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -244,7 +274,7 @@ fun LyricsMenu(
                 value = titleField,
                 onValueChange = onTitleFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_title)) },
+                label = { Text(stringResource(Res.string.song_title)) },
             )
 
             Spacer(Modifier.height(12.dp))
@@ -253,7 +283,7 @@ fun LyricsMenu(
                 value = artistField,
                 onValueChange = onArtistFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_artists)) },
+                label = { Text(stringResource(Res.string.song_artists)) },
             )
         }
     }
@@ -312,7 +342,7 @@ fun LyricsMenu(
                             )
                             if (result.lyrics.startsWith("[")) {
                                 Icon(
-                                    painter = painterResource(R.drawable.sync),
+                                    painter = painterResource(Res.drawable.sync),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.secondary,
                                     modifier =
@@ -330,7 +360,7 @@ fun LyricsMenu(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(if (index == expandedItemIndex) R.drawable.expand_less else R.drawable.expand_more),
+                            painter = painterResource(if (index == expandedItemIndex) Res.drawable.expand_less else Res.drawable.expand_more),
                             contentDescription = null,
                         )
                     }
@@ -351,7 +381,7 @@ fun LyricsMenu(
             if (!isLoading && results.isEmpty()) {
                 item {
                     Text(
-                        text = stringResource(R.string.lyrics_not_found),
+                        text = stringResource(Res.string.lyrics_not_found),
                         textAlign = TextAlign.Center,
                         modifier =
                         Modifier
@@ -398,13 +428,13 @@ fun LyricsMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.edit),
+                                    painter = painterResource(Res.drawable.edit),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.edit),
+                            text = stringResource(Res.string.edit),
                             onClick = {
                                 showEditDialog = true
                             },
@@ -412,13 +442,13 @@ fun LyricsMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.cached),
+                                    painter = painterResource(Res.drawable.cached),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.refetch),
+                            text = stringResource(Res.string.refetch),
                             onClick = {
                                 onDismiss()
                                 viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
@@ -427,13 +457,13 @@ fun LyricsMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.search),
+                                    painter = painterResource(Res.drawable.search),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.search),
+                            text = stringResource(Res.string.search),
                             onClick = {
                                 showSearchDialog = true
                             },
@@ -441,13 +471,13 @@ fun LyricsMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.content_copy),
+                                    painter = painterResource(Res.drawable.content_copy),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.copy),
+                            text = stringResource(Res.string.copy),
                             onClick = {
                                 lyricsProvider()?.lyrics?.let { lyrics ->
                                     val plainLyrics =
@@ -478,10 +508,10 @@ fun LyricsMenu(
                     if (hasApiKey) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(stringResource(R.string.ai_lyrics_translation)) },
+                                title = { Text(stringResource(Res.string.ai_lyrics_translation)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.translate),
+                                        painter = painterResource(Res.drawable.translate),
                                         contentDescription = null,
                                     )
                                 },
@@ -521,8 +551,7 @@ fun LyricsMenu(
                                         },
                                         thumbContent = {
                                             Icon(
-                                                painter = painterResource(
-                                                    id = if (hasTranslations) R.drawable.check else R.drawable.close
+                                                painter = painterResource(if (hasTranslations) Res.drawable.check else Res.drawable.close
                                                 ),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -541,11 +570,11 @@ fun LyricsMenu(
                     
                     add(
                         Material3MenuItemData(
-                            title = { Text(stringResource(R.string.respect_agent_positioning)) },
-                            description = { Text(stringResource(R.string.respect_agent_positioning_desc)) },
+                            title = { Text(stringResource(Res.string.respect_agent_positioning)) },
+                            description = { Text(stringResource(Res.string.respect_agent_positioning_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.lyrics),
+                                    painter = painterResource(Res.drawable.lyrics),
                                     contentDescription = null,
                                 )
                             },
@@ -560,8 +589,7 @@ fun LyricsMenu(
                                     },
                                     thumbContent = {
                                         Icon(
-                                            painter = painterResource(
-                                                id = if (respectAgentPositioning) R.drawable.check else R.drawable.close
+                                            painter = painterResource(if (respectAgentPositioning) Res.drawable.check else Res.drawable.close
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -579,11 +607,11 @@ fun LyricsMenu(
                     
                     add(
                         Material3MenuItemData(
-                            title = { Text(stringResource(R.string.show_interval_indicator)) },
-                            description = { Text(stringResource(R.string.show_interval_indicator_desc)) },
+                            title = { Text(stringResource(Res.string.show_interval_indicator)) },
+                            description = { Text(stringResource(Res.string.show_interval_indicator_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.lyrics),
+                                    painter = painterResource(Res.drawable.lyrics),
                                     contentDescription = null,
                                 )
                             },
@@ -598,8 +626,7 @@ fun LyricsMenu(
                                     },
                                     thumbContent = {
                                         Icon(
-                                            painter = painterResource(
-                                                id = if (showIntervalIndicator) R.drawable.check else R.drawable.close
+                                            painter = painterResource(if (showIntervalIndicator) Res.drawable.check else Res.drawable.close
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -617,10 +644,10 @@ fun LyricsMenu(
                     
                     add(
                         Material3MenuItemData(
-                            title = { Text(stringResource(R.string.lyrics_offset)) },
+                            title = { Text(stringResource(Res.string.lyrics_offset)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.fast_forward),
+                                    painter = painterResource(Res.drawable.fast_forward),
                                     contentDescription = null,
                                 )
                             },
@@ -640,10 +667,10 @@ fun LyricsMenu(
                     
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.romanize_current_track)) },
+                            title = { Text(text = stringResource(Res.string.romanize_current_track)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.language_korean_latin),
+                                    painter = painterResource(Res.drawable.language_korean_latin),
                                     contentDescription = null,
                                 )
                             },
@@ -668,8 +695,7 @@ fun LyricsMenu(
                                     },
                                     thumbContent = {
                                         Icon(
-                                            painter = painterResource(
-                                                id = if (isChecked) R.drawable.check else R.drawable.close
+                                            painter = painterResource(if (isChecked) Res.drawable.check else Res.drawable.close
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize)

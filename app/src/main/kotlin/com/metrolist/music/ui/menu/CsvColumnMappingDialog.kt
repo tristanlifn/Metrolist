@@ -37,15 +37,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.metrolist.music.R
 import com.metrolist.music.viewmodels.ConvertedSongLog
 import com.metrolist.music.viewmodels.CsvImportState
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.artist_name_column
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.column_label
+import com.metrolist.music.resources.continue_action
+import com.metrolist.music.resources.first_row_is_header
+import com.metrolist.music.resources.importing_csv
+import com.metrolist.music.resources.map_csv_columns
+import com.metrolist.music.resources.none
+import com.metrolist.music.resources.percentage_format
+import com.metrolist.music.resources.recently_converted
+import com.metrolist.music.resources.song_title_column
+import com.metrolist.music.resources.youtube_url_column
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CsvColumnMappingDialog(
@@ -76,7 +88,7 @@ fun CsvColumnMappingDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.map_csv_columns),
+                text = stringResource(Res.string.map_csv_columns),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -153,7 +165,7 @@ fun CsvColumnMappingDialog(
                     onCheckedChange = { hasHeader = it },
                 )
                 Text(
-                    text = stringResource(R.string.first_row_is_header),
+                    text = stringResource(Res.string.first_row_is_header),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -161,21 +173,21 @@ fun CsvColumnMappingDialog(
 
             // Column selectors
             ColumnSelector(
-                label = stringResource(R.string.artist_name_column),
+                label = stringResource(Res.string.artist_name_column),
                 selectedIndex = artistColumnIndex,
                 maxColumns = csvState.previewRows.firstOrNull()?.size ?: 0,
                 onSelected = { artistColumnIndex = it },
             )
 
             ColumnSelector(
-                label = stringResource(R.string.song_title_column),
+                label = stringResource(Res.string.song_title_column),
                 selectedIndex = titleColumnIndex,
                 maxColumns = csvState.previewRows.firstOrNull()?.size ?: 0,
                 onSelected = { titleColumnIndex = it },
             )
 
             ColumnSelector(
-                label = stringResource(R.string.youtube_url_column),
+                label = stringResource(Res.string.youtube_url_column),
                 selectedIndex = urlColumnIndex,
                 maxColumns = csvState.previewRows.firstOrNull()?.size ?: 0,
                 allowNone = true,
@@ -191,7 +203,7 @@ fun CsvColumnMappingDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
                 OutlinedButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 Button(
                     onClick = {
@@ -206,7 +218,7 @@ fun CsvColumnMappingDialog(
                         )
                     },
                 ) {
-                    Text(stringResource(R.string.continue_action))
+                    Text(stringResource(Res.string.continue_action))
                 }
             }
         }
@@ -244,14 +256,14 @@ private fun ColumnSelector(
                         onClick = { onSelected(-1) },
                         modifier = Modifier.height(36.dp),
                     ) {
-                        Text(stringResource(R.string.none), style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.none), style = MaterialTheme.typography.labelSmall)
                     }
                 } else {
                     OutlinedButton(
                         onClick = { onSelected(-1) },
                         modifier = Modifier.height(36.dp),
                     ) {
-                        Text(stringResource(R.string.none), style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.none), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -263,7 +275,7 @@ private fun ColumnSelector(
                         modifier = Modifier.height(36.dp),
                     ) {
                         Text(
-                            stringResource(R.string.column_label, index + 1),
+                            stringResource(Res.string.column_label, index + 1),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -273,7 +285,7 @@ private fun ColumnSelector(
                         modifier = Modifier.height(36.dp),
                     ) {
                         Text(
-                            stringResource(R.string.column_label, index + 1),
+                            stringResource(Res.string.column_label, index + 1),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -306,7 +318,7 @@ fun CsvImportProgressDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.importing_csv),
+                text = stringResource(Res.string.importing_csv),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -321,7 +333,7 @@ fun CsvImportProgressDialog(
             )
 
             Text(
-                text = stringResource(R.string.percentage_format, progress),
+                text = stringResource(Res.string.percentage_format, progress),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -337,7 +349,7 @@ fun CsvImportProgressDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.recently_converted),
+                        text = stringResource(Res.string.recently_converted),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

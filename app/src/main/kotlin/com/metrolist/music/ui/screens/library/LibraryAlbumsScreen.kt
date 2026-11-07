@@ -42,16 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.AlbumFilter
 import com.metrolist.music.constants.AlbumFilterKey
 import com.metrolist.music.constants.AlbumSortDescendingKey
@@ -81,6 +77,30 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LibraryAlbumsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.albums
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.filter_library
+import com.metrolist.music.resources.filter_liked
+import com.metrolist.music.resources.filter_uploaded
+import com.metrolist.music.resources.grid_view
+import com.metrolist.music.resources.library_album_empty
+import com.metrolist.music.resources.list
+import com.metrolist.music.resources.n_album
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_length
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import com.metrolist.music.resources.sort_by_song_count
+import com.metrolist.music.resources.sort_by_year
+import com.metrolist.music.resources.switch_to_grid_view
+import com.metrolist.music.resources.switch_to_list_view
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -114,21 +134,21 @@ fun LibraryAlbumsScreen(
         Row {
             Spacer(Modifier.width(12.dp))
             FilterChip(
-                label = { Text(stringResource(R.string.albums)) },
+                label = { Text(stringResource(Res.string.albums)) },
                 selected = true,
                 colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
                 onClick = onDeselect,
                 shape = RoundedCornerShape(16.dp),
                 leadingIcon = {
-                    Icon(painter = painterResource(R.drawable.close), contentDescription = "")
+                    Icon(painter = painterResource(Res.drawable.close), contentDescription = "")
                 },
             )
             ChipsRow(
                 chips =
                     listOf(
-                        AlbumFilter.LIKED to stringResource(R.string.filter_liked),
-                        AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
-                        AlbumFilter.UPLOADED to stringResource(R.string.filter_uploaded),
+                        AlbumFilter.LIKED to stringResource(Res.string.filter_liked),
+                        AlbumFilter.LIBRARY to stringResource(Res.string.filter_library),
+                        AlbumFilter.UPLOADED to stringResource(Res.string.filter_uploaded),
                     ),
                 currentValue = filter,
                 onValueUpdate = {
@@ -195,13 +215,13 @@ fun LibraryAlbumsScreen(
                 onSortDescendingChange = onSortDescendingChange,
                 sortTypeText = { sortType ->
                     when (sortType) {
-                        AlbumSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        AlbumSortType.NAME -> R.string.sort_by_name
-                        AlbumSortType.ARTIST -> R.string.sort_by_artist
-                        AlbumSortType.YEAR -> R.string.sort_by_year
-                        AlbumSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        AlbumSortType.LENGTH -> R.string.sort_by_length
-                        AlbumSortType.PLAY_TIME -> R.string.sort_by_play_time
+                        AlbumSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                        AlbumSortType.NAME -> Res.string.sort_by_name
+                        AlbumSortType.ARTIST -> Res.string.sort_by_artist
+                        AlbumSortType.YEAR -> Res.string.sort_by_year
+                        AlbumSortType.SONG_COUNT -> Res.string.sort_by_song_count
+                        AlbumSortType.LENGTH -> Res.string.sort_by_length
+                        AlbumSortType.PLAY_TIME -> Res.string.sort_by_play_time
                     }
                 },
             )
@@ -209,7 +229,7 @@ fun LibraryAlbumsScreen(
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = pluralStringResource(R.plurals.n_album, filteredAlbums.size, filteredAlbums.size),
+                text = pluralStringResource(Res.plurals.n_album, filteredAlbums.size, filteredAlbums.size),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
             )
@@ -219,8 +239,8 @@ fun LibraryAlbumsScreen(
                 modifier = Modifier.padding(start = 8.dp).size(40.dp),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.search),
-                    contentDescription = stringResource(R.string.search),
+                    painter = painterResource(Res.drawable.search),
+                    contentDescription = stringResource(Res.string.search),
                 )
             }
 
@@ -234,14 +254,14 @@ fun LibraryAlbumsScreen(
                     painter =
                     painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+                            LibraryViewType.LIST -> Res.drawable.list
+                            LibraryViewType.GRID -> Res.drawable.grid_view
                         },
                     ),
                     contentDescription = stringResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.string.switch_to_grid_view
-                            LibraryViewType.GRID -> R.string.switch_to_list_view
+                            LibraryViewType.LIST -> Res.string.switch_to_grid_view
+                            LibraryViewType.GRID -> Res.string.switch_to_list_view
                         },
                     ),
                 )
@@ -279,8 +299,8 @@ fun LibraryAlbumsScreen(
                                     LibrarySearchEmptyPlaceholder(modifier = Modifier.animateItem())
                                 } else {
                                     EmptyPlaceholder(
-                                        icon = R.drawable.album,
-                                        text = stringResource(R.string.library_album_empty),
+                                        icon = Res.drawable.album,
+                                        text = stringResource(Res.string.library_album_empty),
                                         modifier = Modifier.animateItem(),
                                     )
                                 }
@@ -337,8 +357,8 @@ fun LibraryAlbumsScreen(
                                     LibrarySearchEmptyPlaceholder(modifier = Modifier.animateItem())
                                 } else {
                                     EmptyPlaceholder(
-                                        icon = R.drawable.album,
-                                        text = stringResource(R.string.library_album_empty),
+                                        icon = Res.drawable.album,
+                                        text = stringResource(Res.string.library_album_empty),
                                         modifier = Modifier.animateItem(),
                                     )
                                 }

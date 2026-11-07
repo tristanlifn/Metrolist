@@ -79,8 +79,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -109,7 +107,6 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PlaylistEditLockKey
 import com.metrolist.music.constants.playlistSongSortDescendingKey
@@ -153,6 +150,38 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.delete_playlist_confirm
+import com.metrolist.music.resources.drag_handle
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.edit_playlist
+import com.metrolist.music.resources.edit_playlist_cover
+import com.metrolist.music.resources.edit_playlist_cover_note
+import com.metrolist.music.resources.edit_playlist_cover_note_wait
+import com.metrolist.music.resources.lock
+import com.metrolist.music.resources.lock_open
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.n_selected
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_is_empty
+import com.metrolist.music.resources.playlist_synced
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_custom
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -294,11 +323,11 @@ fun LocalPlaylistScreen(
             TextFieldDialog(
                 icon = {
                     Icon(
-                        painter = painterResource(R.drawable.edit),
+                        painter = painterResource(Res.drawable.edit),
                         contentDescription = null,
                     )
                 },
-                title = { Text(text = stringResource(R.string.edit_playlist)) },
+                title = { Text(text = stringResource(Res.string.edit_playlist)) },
                 onDismiss = { showEditDialog = false },
                 initialTextFieldValue =
                     TextFieldValue(
@@ -333,7 +362,7 @@ fun LocalPlaylistScreen(
                 Text(
                     text =
                         stringResource(
-                            R.string.remove_download_playlist_confirm,
+                            Res.string.remove_download_playlist_confirm,
                             playlist?.playlist!!.name,
                         ),
                     style = MaterialTheme.typography.bodyLarge,
@@ -344,7 +373,7 @@ fun LocalPlaylistScreen(
                 TextButton(
                     onClick = { showRemoveDownloadDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -381,7 +410,7 @@ fun LocalPlaylistScreen(
                 Text(
                     text =
                         stringResource(
-                            R.string.delete_playlist_confirm,
+                            Res.string.delete_playlist_confirm,
                             playlist?.playlist!!.name,
                         ),
                     style = MaterialTheme.typography.bodyLarge,
@@ -394,7 +423,7 @@ fun LocalPlaylistScreen(
                         showDeletePlaylistDialog = false
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -489,8 +518,8 @@ fun LocalPlaylistScreen(
                 if (playlist.songCount == 0 && playlist.playlist.remoteSongCount == 0) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            icon = Res.drawable.music_note,
+                            text = stringResource(Res.string.playlist_is_empty),
                             modifier = Modifier.animateItem(),
                         )
                     }
@@ -526,11 +555,11 @@ fun LocalPlaylistScreen(
                                 onSortDescendingChange = onSortDescendingChange,
                                 sortTypeText = { sortType ->
                                     when (sortType) {
-                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
-                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
-                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        PlaylistSongSortType.CUSTOM -> Res.string.sort_by_custom
+                                        PlaylistSongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                        PlaylistSongSortType.NAME -> Res.string.sort_by_name
+                                        PlaylistSongSortType.ARTIST -> Res.string.sort_by_artist
+                                        PlaylistSongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
@@ -541,7 +570,7 @@ fun LocalPlaylistScreen(
                                     modifier = Modifier.padding(horizontal = 6.dp),
                                 ) {
                                     Icon(
-                                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                                        painter = painterResource(if (locked) Res.drawable.lock else Res.drawable.lock_open),
                                         contentDescription = null,
                                     )
                                 }
@@ -641,7 +670,7 @@ fun LocalPlaylistScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -652,7 +681,7 @@ fun LocalPlaylistScreen(
                                             modifier = Modifier.draggableHandle(),
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
+                                                painter = painterResource(Res.drawable.drag_handle),
                                                 contentDescription = null,
                                             )
                                         }
@@ -740,14 +769,14 @@ fun LocalPlaylistScreen(
         TopAppBar(
             title = {
                 if (inSelectMode) {
-                    Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                    Text(pluralStringResource(Res.plurals.n_selected, selection.size, selection.size))
                 } else if (isSearching) {
                     TextField(
                         value = query,
                         onValueChange = { query = it },
                         placeholder = {
                             Text(
-                                text = stringResource(R.string.search),
+                                text = stringResource(Res.string.search),
                                 style = MaterialTheme.typography.titleLarge,
                             )
                         },
@@ -775,7 +804,7 @@ fun LocalPlaylistScreen(
                 if (inSelectMode) {
                     IconButton(onClick = onExitSelectionMode) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(Res.drawable.close),
                             contentDescription = null,
                         )
                     }
@@ -796,7 +825,7 @@ fun LocalPlaylistScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
+                            painter = painterResource(Res.drawable.arrow_back),
                             contentDescription = null,
                         )
                     }
@@ -835,7 +864,7 @@ fun LocalPlaylistScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                         )
                     }
@@ -845,7 +874,7 @@ fun LocalPlaylistScreen(
                         onClick = { isSearching = true },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(Res.drawable.search),
                             contentDescription = null,
                         )
                     }
@@ -882,8 +911,8 @@ fun LocalPlaylistHeader(
     val menuState = LocalMenuState.current
     val syncUtils = LocalSyncUtils.current
     val scope = rememberCoroutineScope()
-    val editPlaylistCoverStr = stringResource(R.string.edit_playlist_cover)
-    val playlistSyncedStr = stringResource(R.string.playlist_synced)
+    val editPlaylistCoverStr = stringResource(Res.string.edit_playlist_cover)
+    val playlistSyncedStr = stringResource(Res.string.playlist_synced)
 
     val playlistLength =
         remember(songs) {
@@ -1029,7 +1058,7 @@ fun LocalPlaylistHeader(
     ) {
         if (showEditNoteDialog) {
             ActionPromptDialog(
-                title = stringResource(R.string.edit_playlist_cover),
+                title = stringResource(Res.string.edit_playlist_cover),
                 onDismiss = { showEditNoteDialog = false },
                 onConfirm = {
                     showEditNoteDialog = false
@@ -1041,13 +1070,13 @@ fun LocalPlaylistHeader(
             ) {
                 if (playlist.playlist.browseId != null) {
                     Text(
-                        text = stringResource(R.string.edit_playlist_cover_note),
+                        text = stringResource(Res.string.edit_playlist_cover_note),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(8.dp))
                 }
                 Text(
-                    text = stringResource(R.string.edit_playlist_cover_note_wait),
+                    text = stringResource(Res.string.edit_playlist_cover_note_wait),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
@@ -1075,7 +1104,7 @@ fun LocalPlaylistHeader(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                                 modifier = Modifier.size(80.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1254,7 +1283,7 @@ fun LocalPlaylistHeader(
         // Metadata - Song Count • Duration
         val songCount =
             playlist.playlist.remoteSongCount?.takeIf { playlist.songCount == 0 } ?: playlist.songCount
-        val nSongs = pluralStringResource(R.plurals.n_song, songCount, songCount)
+        val nSongs = pluralStringResource(Res.plurals.n_song, songCount, songCount)
         val durationText = if (playlistLength > 0) makeTimeString(playlistLength * 1000L) else null
         val metadataString = buildString {
             append(nSongs)
@@ -1345,8 +1374,8 @@ fun LocalPlaylistHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
+                        painter = painterResource(Res.drawable.shuffle),
+                        contentDescription = stringResource(Res.string.shuffle),
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -1371,8 +1400,8 @@ fun LocalPlaylistHeader(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
+                        painter = painterResource(Res.drawable.play),
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp),
                     )
@@ -1443,7 +1472,7 @@ fun LocalPlaylistHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                     )

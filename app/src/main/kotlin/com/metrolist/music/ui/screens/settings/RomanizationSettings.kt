@@ -25,13 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.LyricsRomanizeAsMainKey
 import com.metrolist.music.constants.LyricsRomanizeCyrillicByLineKey
 import com.metrolist.music.constants.LyricsRomanizeList
@@ -40,6 +37,20 @@ import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.content_language
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.line_by_line_option_title
+import com.metrolist.music.resources.lyrics_romanize_as_main
+import com.metrolist.music.resources.lyrics_romanize_title
+import com.metrolist.music.resources.options
+import com.metrolist.music.resources.queue_music
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 val defaultList = mutableListOf(
     "Japanese" to true,
@@ -104,18 +115,17 @@ fun RomanizationSettings(
             .padding(horizontal = 16.dp)
     ) {
         Material3SettingsGroup(
-            title = stringResource(R.string.options),
+            title = stringResource(Res.string.options),
             items = listOf(
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.lyrics_romanize_as_main)) },
+                    title = { Text(stringResource(Res.string.lyrics_romanize_as_main)) },
                     trailingContent = {
                         Switch(
                             checked = lyricsRomanizeAsMain,
                             onCheckedChange = onLyricsRomanizeAsMainChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (lyricsRomanizeAsMain) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (lyricsRomanizeAsMain) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -123,18 +133,17 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    icon = painterResource(R.drawable.queue_music)
+                    icon = painterResource(Res.drawable.queue_music)
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.line_by_line_option_title)) },
+                    title = { Text(stringResource(Res.string.line_by_line_option_title)) },
                     trailingContent = {
                         Switch(
                             checked = lyricsRomanizeCyrillicByLine,
                             onCheckedChange = onLyricsRomanizeCyrillicByLineChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (lyricsRomanizeCyrillicByLine) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (lyricsRomanizeCyrillicByLine) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -142,7 +151,7 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    icon = painterResource(R.drawable.info)
+                    icon = painterResource(Res.drawable.info)
                 )
             )
         )
@@ -163,7 +172,7 @@ fun RomanizationSettings(
                     }
                 )
             },
-            icon = painterResource(R.drawable.info)
+            icon = painterResource(Res.drawable.info)
         )
 
         states.forEachIndexed { index, (language, checked) ->
@@ -178,25 +187,25 @@ fun RomanizationSettings(
                         }
                     )
                 },
-                icon = painterResource(R.drawable.language)
+                icon = painterResource(Res.drawable.language)
             )
         }
 
         Material3SettingsGroup(
-            title = stringResource(R.string.content_language),
+            title = stringResource(Res.string.content_language),
             items = checkboxesList
         )
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.lyrics_romanize_title)) },
+        title = { Text(stringResource(Res.string.lyrics_romanize_title)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

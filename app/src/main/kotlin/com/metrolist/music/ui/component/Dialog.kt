@@ -48,7 +48,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,9 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.metrolist.music.LocalNavController
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.reset
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DefaultDialog(
@@ -215,7 +219,7 @@ fun ActionPromptDialog(
                     TextButton(
                         onClick = { onReset() },
                     ) {
-                        Text(stringResource(R.string.reset))
+                        Text(stringResource(Res.string.reset))
                     }
                 }
             }
@@ -224,7 +228,7 @@ fun ActionPromptDialog(
                 TextButton(
                     onClick = { onCancel() },
                 ) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             }
 
@@ -275,7 +279,7 @@ fun InfoLabel(text: String) =
         modifier = Modifier.padding(horizontal = 8.dp),
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.info),
+            painter = painterResource(Res.drawable.info),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(4.dp),
@@ -326,7 +330,7 @@ fun TextFieldDialog(
         title = title,
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(android.R.string.cancel))
+                Text(text = stringResource(Res.string.cancel))
             }
 
             val isValid =

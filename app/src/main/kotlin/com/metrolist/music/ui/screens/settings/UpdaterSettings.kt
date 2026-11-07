@@ -32,13 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.CheckForUpdatesKey
 import com.metrolist.music.constants.UpdateNotificationsEnabledKey
 import com.metrolist.music.ui.component.IconButton
@@ -50,6 +47,28 @@ import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.check_for_updates
+import com.metrolist.music.resources.check_for_updates_button
+import com.metrolist.music.resources.check_for_updates_title
+import com.metrolist.music.resources.checking_for_updates
+import com.metrolist.music.resources.current_version
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.failed_to_check_updates
+import com.metrolist.music.resources.hide_changelog
+import com.metrolist.music.resources.latest_version_format
+import com.metrolist.music.resources.notification
+import com.metrolist.music.resources.refresh
+import com.metrolist.music.resources.update
+import com.metrolist.music.resources.update_available_title
+import com.metrolist.music.resources.update_notifications
+import com.metrolist.music.resources.update_settings
+import com.metrolist.music.resources.updater
+import com.metrolist.music.resources.version_format
+import com.metrolist.music.resources.view_changelog
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +85,7 @@ fun UpdaterScreen(
     var showChangelog by remember { mutableStateOf(false) }
     var changelogContent by remember { mutableStateOf<String?>(null) }
     var checkError by remember { mutableStateOf<String?>(null) }
-    val failedToCheckUpdatesTemplate = stringResource(R.string.failed_to_check_updates)
+    val failedToCheckUpdatesTemplate = stringResource(Res.string.failed_to_check_updates)
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -114,12 +133,12 @@ fun UpdaterScreen(
         Spacer(Modifier.height(4.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.current_version),
+            title = stringResource(Res.string.current_version),
             items =
                 listOf(
                     Material3SettingsItem(
                         title = {
-                            Text(stringResource(R.string.version_format, BuildConfig.VERSION_NAME))
+                            Text(stringResource(Res.string.version_format, BuildConfig.VERSION_NAME))
                         },
                         description = {
                             val arch = BuildConfig.ARCHITECTURE
@@ -133,13 +152,13 @@ fun UpdaterScreen(
         Spacer(Modifier.height(16.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.update_settings),
+            title = stringResource(Res.string.update_settings),
             items =
                 buildList {
                     add(
                         Material3SettingsItem(
-                            title = { Text(stringResource(R.string.check_for_updates)) },
-                            icon = painterResource(R.drawable.update),
+                            title = { Text(stringResource(Res.string.check_for_updates)) },
+                            icon = painterResource(Res.drawable.update),
                             trailingContent = {
                                 Switch(
                                     checked = checkForUpdates,
@@ -153,8 +172,8 @@ fun UpdaterScreen(
                     if (checkForUpdates) {
                         add(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.update_notifications)) },
-                                icon = painterResource(R.drawable.notification),
+                                title = { Text(stringResource(Res.string.update_notifications)) },
+                                icon = painterResource(Res.drawable.notification),
                                 trailingContent = {
                                     Switch(
                                         checked = updateNotifications,
@@ -171,18 +190,18 @@ fun UpdaterScreen(
         Spacer(Modifier.height(16.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.check_for_updates_title),
+            title = stringResource(Res.string.check_for_updates_title),
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.refresh),
+                        icon = painterResource(Res.drawable.refresh),
                         title = {
                             if (isChecking) {
-                                Text(stringResource(R.string.checking_for_updates))
+                                Text(stringResource(Res.string.checking_for_updates))
                             } else if (latestVersion != null) {
-                                Text(stringResource(R.string.latest_version_format, latestVersion!!))
+                                Text(stringResource(Res.string.latest_version_format, latestVersion!!))
                             } else {
-                                Text(stringResource(R.string.check_for_updates_button))
+                                Text(stringResource(Res.string.check_for_updates_button))
                             }
                         },
                         trailingContent = {
@@ -193,8 +212,8 @@ fun UpdaterScreen(
                                 )
                             } else if (updateAvailable) {
                                 Icon(
-                                    painter = painterResource(R.drawable.download),
-                                    contentDescription = stringResource(R.string.update_available_title),
+                                    painter = painterResource(Res.drawable.download),
+                                    contentDescription = stringResource(Res.string.update_available_title),
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
@@ -223,7 +242,7 @@ fun UpdaterScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
             ) {
-                Text(if (showChangelog) stringResource(R.string.hide_changelog) else stringResource(R.string.view_changelog))
+                Text(if (showChangelog) stringResource(Res.string.hide_changelog) else stringResource(Res.string.view_changelog))
             }
 
             if (showChangelog && changelogContent != null) {
@@ -243,14 +262,14 @@ fun UpdaterScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.updater)) },
+        title = { Text(stringResource(Res.string.updater)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_back),
+                    painter = painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

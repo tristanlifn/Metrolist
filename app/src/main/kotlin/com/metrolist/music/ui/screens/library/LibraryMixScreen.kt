@@ -51,8 +51,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
@@ -60,7 +58,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_PLAYLIST
 import com.metrolist.music.constants.GridItemSize
@@ -111,6 +108,26 @@ import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.time.LocalDateTime
 import java.util.UUID
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.cached_playlist
+import com.metrolist.music.resources.create_playlist
+import com.metrolist.music.resources.grid_view
+import com.metrolist.music.resources.liked
+import com.metrolist.music.resources.list
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.my_top
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.queue_searched_songs
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_last_updated
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.switch_to_grid_view
+import com.metrolist.music.resources.switch_to_list_view
+import com.metrolist.music.resources.uploaded_playlist
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -124,7 +141,7 @@ fun LibraryMixScreen(
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val queueSearchedSongsStr = stringResource(R.string.queue_searched_songs)
+    val queueSearchedSongsStr = stringResource(Res.string.queue_searched_songs)
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
@@ -168,7 +185,7 @@ fun LibraryMixScreen(
             playlist =
                 PlaylistEntity(
                     id = UUID.randomUUID().toString(),
-                    name = stringResource(R.string.liked),
+                    name = stringResource(Res.string.liked),
                 ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -179,7 +196,7 @@ fun LibraryMixScreen(
             playlist =
                 PlaylistEntity(
                     id = UUID.randomUUID().toString(),
-                    name = stringResource(R.string.offline),
+                    name = stringResource(Res.string.offline),
                 ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -190,7 +207,7 @@ fun LibraryMixScreen(
             playlist =
                 PlaylistEntity(
                     id = UUID.randomUUID().toString(),
-                    name = stringResource(R.string.my_top) + " $topSize",
+                    name = stringResource(Res.string.my_top) + " $topSize",
                 ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -201,7 +218,7 @@ fun LibraryMixScreen(
             playlist =
                 PlaylistEntity(
                     id = UUID.randomUUID().toString(),
-                    name = stringResource(R.string.cached_playlist),
+                    name = stringResource(Res.string.cached_playlist),
                 ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -212,7 +229,7 @@ fun LibraryMixScreen(
             playlist =
                 PlaylistEntity(
                     id = UUID.randomUUID().toString(),
-                    name = stringResource(R.string.uploaded_playlist),
+                    name = stringResource(Res.string.uploaded_playlist),
                 ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -393,9 +410,9 @@ fun LibraryMixScreen(
                 onSortDescendingChange = onSortDescendingChange,
                 sortTypeText = { sortType ->
                     when (sortType) {
-                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                        MixSortType.NAME -> R.string.sort_by_name
+                        MixSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                        MixSortType.LAST_UPDATED -> Res.string.sort_by_last_updated
+                        MixSortType.NAME -> Res.string.sort_by_name
                     }
                 },
             )
@@ -407,8 +424,8 @@ fun LibraryMixScreen(
                 modifier = Modifier.padding(start = 8.dp).size(40.dp),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.search),
-                    contentDescription = stringResource(R.string.search),
+                    painter = painterResource(Res.drawable.search),
+                    contentDescription = stringResource(Res.string.search),
                 )
             }
 
@@ -422,14 +439,14 @@ fun LibraryMixScreen(
                     painter =
                     painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+                            LibraryViewType.LIST -> Res.drawable.list
+                            LibraryViewType.GRID -> Res.drawable.grid_view
                         },
                     ),
                     contentDescription = stringResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.string.switch_to_grid_view
-                            LibraryViewType.GRID -> R.string.switch_to_list_view
+                            LibraryViewType.LIST -> Res.string.switch_to_grid_view
+                            LibraryViewType.GRID -> Res.string.switch_to_list_view
                         },
                     ),
                 )
@@ -584,7 +601,7 @@ fun LibraryMixScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                             )
                                         }
@@ -634,7 +651,7 @@ fun LibraryMixScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                             )
                                         }
@@ -687,7 +704,7 @@ fun LibraryMixScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                             )
                                         }
@@ -730,7 +747,7 @@ fun LibraryMixScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                             )
                                         }
@@ -1065,8 +1082,8 @@ fun LibraryMixScreen(
                 .padding(16.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.add),
-                contentDescription = stringResource(R.string.create_playlist),
+                painter = painterResource(Res.drawable.add),
+                contentDescription = stringResource(Res.string.create_playlist),
             )
         }
 

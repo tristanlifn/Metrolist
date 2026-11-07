@@ -55,8 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
@@ -64,7 +62,6 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -80,6 +77,14 @@ import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.SnapLayoutInfoProvider
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.viewmodels.ChartsViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.charts
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.top_music_videos
+import com.metrolist.music.resources.trending
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -108,14 +113,14 @@ fun ChartsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.charts)) },
+                title = { Text(stringResource(Res.string.charts)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.navigateUp() },
                         onLongClick = { navController.backToMain() },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
+                            painter = painterResource(Res.drawable.arrow_back),
                             contentDescription = null,
                         )
                     }
@@ -222,8 +227,8 @@ fun ChartsScreen(
                             NavigationTitle(
                                 title =
                                     when (section.title) {
-                                        "Trending" -> stringResource(R.string.trending)
-                                        else -> section.title.ifEmpty { stringResource(R.string.charts) }
+                                        "Trending" -> stringResource(Res.string.trending)
+                                        else -> section.title.ifEmpty { stringResource(Res.string.charts) }
                                     },
                                 modifier = Modifier.animateItem(),
                             )
@@ -279,7 +284,7 @@ fun ChartsScreen(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.more_vert),
+                                                        painter = painterResource(Res.drawable.more_vert),
                                                         contentDescription = null,
                                                     )
                                                 }
@@ -320,7 +325,7 @@ fun ChartsScreen(
                     chartsPage?.sections?.find { it.title == "Top music videos" }?.let { topVideosSection ->
                         item(key = "top_videos_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.top_music_videos),
+                                title = stringResource(Res.string.top_music_videos),
                                 modifier = Modifier.animateItem(),
                             )
                         }

@@ -76,8 +76,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,6 +101,69 @@ import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.launch
 import androidx.compose.material3.IconButton as MaterialIconButton
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.approve
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.arrow_forward
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.connect
+import com.metrolist.music.resources.connected_users
+import com.metrolist.music.resources.content_copy
+import com.metrolist.music.resources.copy_code
+import com.metrolist.music.resources.copy_link
+import com.metrolist.music.resources.create_room
+import com.metrolist.music.resources.crown
+import com.metrolist.music.resources.disconnect
+import com.metrolist.music.resources.enter_room_code
+import com.metrolist.music.resources.enter_username
+import com.metrolist.music.resources.error
+import com.metrolist.music.resources.group
+import com.metrolist.music.resources.group_outlined
+import com.metrolist.music.resources.host_label
+import com.metrolist.music.resources.invalid_room_code
+import com.metrolist.music.resources.join_request_denied
+import com.metrolist.music.resources.join_room
+import com.metrolist.music.resources.joining_room
+import com.metrolist.music.resources.kick_user
+import com.metrolist.music.resources.kick_user_desc
+import com.metrolist.music.resources.leave_room
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.listen_together
+import com.metrolist.music.resources.listen_together_background_disconnect_note
+import com.metrolist.music.resources.listen_together_connected
+import com.metrolist.music.resources.listen_together_connecting
+import com.metrolist.music.resources.listen_together_description
+import com.metrolist.music.resources.listen_together_disconnected
+import com.metrolist.music.resources.listen_together_error
+import com.metrolist.music.resources.listen_together_join_requests
+import com.metrolist.music.resources.listen_together_not_configured
+import com.metrolist.music.resources.listen_together_reconnecting
+import com.metrolist.music.resources.listen_together_settings_desc
+import com.metrolist.music.resources.listen_together_you_are_guest
+import com.metrolist.music.resources.listen_together_you_are_host
+import com.metrolist.music.resources.login
+import com.metrolist.music.resources.logout
+import com.metrolist.music.resources.manage_user
+import com.metrolist.music.resources.pending_suggestions
+import com.metrolist.music.resources.permanently_kick_user
+import com.metrolist.music.resources.permanently_kick_user_desc
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.reject
+import com.metrolist.music.resources.room_code
+import com.metrolist.music.resources.settings
+import com.metrolist.music.resources.together
+import com.metrolist.music.resources.transfer_ownership
+import com.metrolist.music.resources.transfer_ownership_desc
+import com.metrolist.music.resources.user_blocked_by_host
+import com.metrolist.music.resources.username
+import com.metrolist.music.resources.waiting_for_approval
+import com.metrolist.music.resources.you_label
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -113,7 +174,7 @@ fun ListenTogetherScreen(
     val context = LocalContext.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val windowInsets = LocalPlayerAwareWindowInsets.current
-    val joiningRoomTemplate = stringResource(R.string.joining_room)
+    val joiningRoomTemplate = stringResource(Res.string.joining_room)
 
     if (listenTogetherManager == null) {
         NotConfiguredContent()
@@ -140,9 +201,9 @@ fun ListenTogetherScreen(
     var selectedUserForMenu by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedUsername by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val waitingForApprovalText = stringResource(R.string.waiting_for_approval)
-    val invalidRoomCodeText = stringResource(R.string.invalid_room_code)
-    val joinRequestDeniedText = stringResource(R.string.join_request_denied)
+    val waitingForApprovalText = stringResource(Res.string.waiting_for_approval)
+    val invalidRoomCodeText = stringResource(Res.string.invalid_room_code)
+    val joinRequestDeniedText = stringResource(Res.string.join_request_denied)
 
     LaunchedEffect(savedUsername) {
         if (usernameInput.isBlank() && savedUsername.isNotBlank()) {
@@ -200,7 +261,7 @@ fun ListenTogetherScreen(
                 selectedUserForMenu?.let { userId ->
                     selectedUsername?.let { username ->
                         listenTogetherManager.blockUser(username)
-                        listenTogetherManager.kickUser(userId, R.string.user_blocked_by_host.toString())
+                        listenTogetherManager.kickUser(userId, Res.string.user_blocked_by_host.toString())
                     }
                 }
                 selectedUserForMenu = null
@@ -268,7 +329,7 @@ fun ListenTogetherScreen(
         if (connectionState == ConnectionState.CONNECTED && !isInRoom) {
             item {
                 Text(
-                    text = stringResource(R.string.listen_together_background_disconnect_note),
+                    text = stringResource(Res.string.listen_together_background_disconnect_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -339,13 +400,13 @@ fun ListenTogetherScreen(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.logout),
+                            painter = painterResource(Res.drawable.logout),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.leave_room),
+                            stringResource(Res.string.leave_room),
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
@@ -418,14 +479,14 @@ fun ListenTogetherScreen(
 
     if (shouldShowTopBar) {
         TopAppBar(
-            title = { Text(stringResource(R.string.together)) },
+            title = { Text(stringResource(Res.string.together)) },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
                     onLongClick = navController::backToMain,
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }
@@ -445,21 +506,21 @@ private fun NotConfiguredContent() {
             modifier = Modifier.padding(24.dp),
         ) {
             Icon(
-                painter = painterResource(R.drawable.group),
+                painter = painterResource(Res.drawable.group),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(64.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.listen_together),
+                text = stringResource(Res.string.listen_together),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.listen_together_not_configured),
+                text = stringResource(Res.string.listen_together_not_configured),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -485,7 +546,7 @@ private fun HeaderSection(isInRoom: Boolean = false) {
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                painter = painterResource(R.drawable.group_outlined),
+                painter = painterResource(Res.drawable.group_outlined),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(48.dp),
@@ -493,14 +554,14 @@ private fun HeaderSection(isInRoom: Boolean = false) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.listen_together),
+            text = stringResource(Res.string.listen_together),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.listen_together_description),
+            text = stringResource(Res.string.listen_together_description),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -566,11 +627,11 @@ private fun ConnectionStatusCard(
                 Text(
                     text =
                         when (connectionState) {
-                            ConnectionState.CONNECTED -> stringResource(R.string.listen_together_connected)
-                            ConnectionState.CONNECTING -> stringResource(R.string.listen_together_connecting)
-                            ConnectionState.RECONNECTING -> stringResource(R.string.listen_together_reconnecting)
-                            ConnectionState.ERROR -> stringResource(R.string.listen_together_error)
-                            ConnectionState.DISCONNECTED -> stringResource(R.string.listen_together_disconnected)
+                            ConnectionState.CONNECTED -> stringResource(Res.string.listen_together_connected)
+                            ConnectionState.CONNECTING -> stringResource(Res.string.listen_together_connecting)
+                            ConnectionState.RECONNECTING -> stringResource(Res.string.listen_together_reconnecting)
+                            ConnectionState.ERROR -> stringResource(Res.string.listen_together_error)
+                            ConnectionState.DISCONNECTED -> stringResource(Res.string.listen_together_disconnected)
                         },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
@@ -612,12 +673,12 @@ private fun ConnectionStatusCard(
                             ),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.link),
+                            painter = painterResource(Res.drawable.link),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.connect), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(Res.string.connect), fontWeight = FontWeight.SemiBold)
                     }
                 } else {
                     Button(
@@ -629,7 +690,7 @@ private fun ConnectionStatusCard(
                                 containerColor = MaterialTheme.colorScheme.primary,
                             ),
                     ) {
-                        Text(stringResource(R.string.disconnect), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(Res.string.disconnect), fontWeight = FontWeight.SemiBold)
                     }
                     FilledTonalButton(
                         onClick = onReconnect,
@@ -666,7 +727,7 @@ private fun RoomStatusCard(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = stringResource(R.string.room_code),
+                text = stringResource(Res.string.room_code),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -684,9 +745,9 @@ private fun RoomStatusCard(
             Text(
                 text =
                     if (isHost) {
-                        stringResource(R.string.listen_together_you_are_host)
+                        stringResource(Res.string.listen_together_you_are_host)
                     } else {
-                        stringResource(R.string.listen_together_you_are_guest)
+                        stringResource(Res.string.listen_together_you_are_guest)
                     },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -714,12 +775,12 @@ private fun RoomStatusCard(
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.link),
-                            contentDescription = stringResource(R.string.copy_link),
+                            painter = painterResource(Res.drawable.link),
+                            contentDescription = stringResource(Res.string.copy_link),
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.copy_link))
+                        Text(stringResource(Res.string.copy_link))
                     }
 
                     FilledTonalButton(
@@ -732,12 +793,12 @@ private fun RoomStatusCard(
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.content_copy),
-                            contentDescription = stringResource(R.string.copy_code),
+                            painter = painterResource(Res.drawable.content_copy),
+                            contentDescription = stringResource(Res.string.copy_code),
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.copy_code))
+                        Text(stringResource(Res.string.copy_code))
                     }
                 }
             }
@@ -764,7 +825,7 @@ private fun ConnectedUsersSection(
             modifier = Modifier.padding(16.dp),
         ) {
             Text(
-                text = "${stringResource(R.string.connected_users)} (${users.size})",
+                text = "${stringResource(Res.string.connected_users)} (${users.size})",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -853,7 +914,7 @@ private fun UserAvatar(
                         Icon(
                             painter =
                                 painterResource(
-                                    if (user.isHost) R.drawable.crown else R.drawable.person,
+                                    if (user.isHost) Res.drawable.crown else Res.drawable.person,
                                 ),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary,
@@ -878,13 +939,13 @@ private fun UserAvatar(
 
         if (user.isHost) {
             Text(
-                text = stringResource(R.string.host_label),
+                text = stringResource(Res.string.host_label),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
             )
         } else if (isCurrentUser) {
             Text(
-                text = stringResource(R.string.you_label),
+                text = stringResource(Res.string.you_label),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
             )
@@ -910,7 +971,7 @@ private fun PendingJoinRequestsSection(
             modifier = Modifier.padding(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.listen_together_join_requests),
+                text = stringResource(Res.string.listen_together_join_requests),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -951,16 +1012,16 @@ private fun PendingJoinRequestsSection(
                     )
                     MaterialIconButton(onClick = { onApprove(request.userId) }) {
                         Icon(
-                            painter = painterResource(R.drawable.check),
-                            contentDescription = stringResource(R.string.approve),
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = stringResource(Res.string.approve),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp),
                         )
                     }
                     MaterialIconButton(onClick = { onReject(request.userId) }) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = stringResource(R.string.reject),
+                            painter = painterResource(Res.drawable.close),
+                            contentDescription = stringResource(Res.string.reject),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(24.dp),
                         )
@@ -989,7 +1050,7 @@ private fun PendingSuggestionsSection(
             modifier = Modifier.padding(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.pending_suggestions),
+                text = stringResource(Res.string.pending_suggestions),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -1005,7 +1066,7 @@ private fun PendingSuggestionsSection(
                             .padding(vertical = 8.dp),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.queue_music),
+                        painter = painterResource(Res.drawable.queue_music),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp),
@@ -1029,16 +1090,16 @@ private fun PendingSuggestionsSection(
                     }
                     MaterialIconButton(onClick = { onApprove(suggestion.suggestionId) }) {
                         Icon(
-                            painter = painterResource(R.drawable.check),
-                            contentDescription = stringResource(R.string.approve),
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = stringResource(Res.string.approve),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp),
                         )
                     }
                     MaterialIconButton(onClick = { onReject(suggestion.suggestionId) }) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = stringResource(R.string.reject),
+                            painter = painterResource(Res.drawable.close),
+                            contentDescription = stringResource(Res.string.reject),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(24.dp),
                         )
@@ -1084,11 +1145,11 @@ private fun JoinCreateRoomSection(
             OutlinedTextField(
                 value = usernameInput,
                 onValueChange = onUsernameChange,
-                label = { Text(stringResource(R.string.username)) },
-                placeholder = { Text(stringResource(R.string.enter_username)) },
+                label = { Text(stringResource(Res.string.username)) },
+                placeholder = { Text(stringResource(Res.string.enter_username)) },
                 leadingIcon = {
                     Icon(
-                        painterResource(R.drawable.person),
+                        painterResource(Res.drawable.person),
                         null,
                         tint = MaterialTheme.colorScheme.primary,
                     )
@@ -1096,7 +1157,7 @@ private fun JoinCreateRoomSection(
                 trailingIcon = {
                     if (usernameInput.isNotBlank()) {
                         MaterialIconButton(onClick = { onUsernameChange("") }) {
-                            Icon(painterResource(R.drawable.close), null)
+                            Icon(painterResource(Res.drawable.close), null)
                         }
                     }
                 },
@@ -1119,11 +1180,11 @@ private fun JoinCreateRoomSection(
             OutlinedTextField(
                 value = roomCodeInput,
                 onValueChange = { if (it.length <= 8) onRoomCodeChange(it.uppercase()) },
-                label = { Text(stringResource(R.string.room_code)) },
-                placeholder = { Text(stringResource(R.string.enter_room_code)) },
+                label = { Text(stringResource(Res.string.room_code)) },
+                placeholder = { Text(stringResource(Res.string.enter_room_code)) },
                 leadingIcon = {
                     Icon(
-                        painterResource(R.drawable.group),
+                        painterResource(Res.drawable.group),
                         null,
                         tint = MaterialTheme.colorScheme.primary,
                     )
@@ -1131,7 +1192,7 @@ private fun JoinCreateRoomSection(
                 trailingIcon = {
                     if (roomCodeInput.isNotBlank()) {
                         MaterialIconButton(onClick = { onRoomCodeChange("") }) {
-                            Icon(painterResource(R.drawable.close), null)
+                            Icon(painterResource(Res.drawable.close), null)
                         }
                     }
                 },
@@ -1207,7 +1268,7 @@ private fun JoinCreateRoomSection(
                                 .padding(16.dp),
                     ) {
                         Icon(
-                            painterResource(R.drawable.error),
+                            painterResource(Res.drawable.error),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.onErrorContainer,
@@ -1241,12 +1302,12 @@ private fun JoinCreateRoomSection(
                         ),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.add),
+                        painter = painterResource(Res.drawable.add),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.create_room), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(Res.string.create_room), fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -1263,12 +1324,12 @@ private fun JoinCreateRoomSection(
                         ),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.login),
+                        painter = painterResource(Res.drawable.login),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.join_room), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(Res.string.join_room), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -1293,7 +1354,7 @@ private fun SettingsLinkCard(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                painter = painterResource(R.drawable.settings),
+                painter = painterResource(Res.drawable.settings),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp),
@@ -1301,18 +1362,18 @@ private fun SettingsLinkCard(onClick: () -> Unit) {
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.settings),
+                    text = stringResource(Res.string.settings),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    text = stringResource(R.string.listen_together_settings_desc),
+                    text = stringResource(Res.string.listen_together_settings_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Icon(
-                painter = painterResource(R.drawable.arrow_forward),
+                painter = painterResource(Res.drawable.arrow_forward),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
@@ -1333,7 +1394,7 @@ private fun UserActionDialog(
         onDismiss = onDismiss,
         icon = {
             Icon(
-                painter = painterResource(R.drawable.group),
+                painter = painterResource(Res.drawable.group),
                 contentDescription = null,
                 modifier = Modifier.size(28.dp),
             )
@@ -1341,7 +1402,7 @@ private fun UserActionDialog(
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = stringResource(R.string.manage_user),
+                    text = stringResource(Res.string.manage_user),
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
@@ -1353,7 +1414,7 @@ private fun UserActionDialog(
         },
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(Res.string.cancel))
             }
         },
     ) {
@@ -1374,7 +1435,7 @@ private fun UserActionDialog(
                     modifier = Modifier.padding(16.dp),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(Res.drawable.close),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(24.dp),
@@ -1382,13 +1443,13 @@ private fun UserActionDialog(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.kick_user),
+                            text = stringResource(Res.string.kick_user),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.error,
                         )
                         Text(
-                            text = stringResource(R.string.kick_user_desc),
+                            text = stringResource(Res.string.kick_user_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1410,7 +1471,7 @@ private fun UserActionDialog(
                     modifier = Modifier.padding(16.dp),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(Res.drawable.close),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(24.dp),
@@ -1418,12 +1479,12 @@ private fun UserActionDialog(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.permanently_kick_user),
+                            text = stringResource(Res.string.permanently_kick_user),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = stringResource(R.string.permanently_kick_user_desc),
+                            text = stringResource(Res.string.permanently_kick_user_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1445,7 +1506,7 @@ private fun UserActionDialog(
                     modifier = Modifier.padding(16.dp),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.crown),
+                        painter = painterResource(Res.drawable.crown),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp),
@@ -1453,13 +1514,13 @@ private fun UserActionDialog(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.transfer_ownership),
+                            text = stringResource(Res.string.transfer_ownership),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary,
                         )
                         Text(
-                            text = stringResource(R.string.transfer_ownership_desc),
+                            text = stringResource(Res.string.transfer_ownership_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

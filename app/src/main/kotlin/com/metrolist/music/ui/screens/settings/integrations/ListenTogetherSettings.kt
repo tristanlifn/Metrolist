@@ -67,7 +67,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -96,13 +95,61 @@ import com.metrolist.music.ui.component.IntegrationCardItem
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.flow.collectLatest
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.bug_report
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.clear
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.cloud
+import com.metrolist.music.resources.copy
+import com.metrolist.music.resources.create
+import com.metrolist.music.resources.done
+import com.metrolist.music.resources.group_add
+import com.metrolist.music.resources.join
+import com.metrolist.music.resources.key
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.listen_together
+import com.metrolist.music.resources.listen_together_auto_approval_joins
+import com.metrolist.music.resources.listen_together_auto_approval_joins_desc
+import com.metrolist.music.resources.listen_together_auto_approval_suggestions
+import com.metrolist.music.resources.listen_together_auto_approval_suggestions_desc
+import com.metrolist.music.resources.listen_together_blocked_users
+import com.metrolist.music.resources.listen_together_blocked_users_count
+import com.metrolist.music.resources.listen_together_cannot_edit_username_in_room
+import com.metrolist.music.resources.listen_together_choose_server
+import com.metrolist.music.resources.listen_together_create_room
+import com.metrolist.music.resources.listen_together_create_room_desc
+import com.metrolist.music.resources.listen_together_custom_server
+import com.metrolist.music.resources.listen_together_join_room
+import com.metrolist.music.resources.listen_together_logs
+import com.metrolist.music.resources.listen_together_no_blocked_users
+import com.metrolist.music.resources.listen_together_no_logs
+import com.metrolist.music.resources.listen_together_room_code
+import com.metrolist.music.resources.listen_together_server_url
+import com.metrolist.music.resources.listen_together_sync_volume
+import com.metrolist.music.resources.listen_together_sync_volume_desc
+import com.metrolist.music.resources.listen_together_use_custom_server
+import com.metrolist.music.resources.listen_together_username
+import com.metrolist.music.resources.listen_together_view_logs
+import com.metrolist.music.resources.listen_together_view_logs_desc
+import com.metrolist.music.resources.not_set
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.reset
+import com.metrolist.music.resources.settings
+import com.metrolist.music.resources.unblock
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListenTogetherSettings(navController: NavController) {
     val manager = LocalListenTogetherManager.current ?: return
     val context = LocalContext.current
-    val cannotEditUsernameInRoomStr = stringResource(R.string.listen_together_cannot_edit_username_in_room)
+    val cannotEditUsernameInRoomStr = stringResource(Res.string.listen_together_cannot_edit_username_in_room)
     val coroutineScope = rememberCoroutineScope()
 
     val connectionState by manager.connectionState.collectAsStateWithLifecycle()
@@ -186,14 +233,14 @@ fun ListenTogetherSettings(navController: NavController) {
 
         DefaultDialog(
             onDismiss = { showUsernameDialog = false },
-            icon = { Icon(painterResource(R.drawable.person), contentDescription = null) },
-            title = { Text(stringResource(R.string.listen_together_username)) },
+            icon = { Icon(painterResource(Res.drawable.person), contentDescription = null) },
+            title = { Text(stringResource(Res.string.listen_together_username)) },
             buttons = {
                 TextButton(onClick = {
                     username = ""
                     showUsernameDialog = false
                 }) {
-                    Text(stringResource(R.string.reset))
+                    Text(stringResource(Res.string.reset))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = {
@@ -207,14 +254,14 @@ fun ListenTogetherSettings(navController: NavController) {
             OutlinedTextField(
                 value = tempUsername,
                 onValueChange = { tempUsername = it },
-                label = { Text(stringResource(R.string.listen_together_username)) },
+                label = { Text(stringResource(Res.string.listen_together_username)) },
                 leadingIcon = {
-                    Icon(painterResource(R.drawable.person), contentDescription = null)
+                    Icon(painterResource(Res.drawable.person), contentDescription = null)
                 },
                 trailingIcon = {
                     if (tempUsername.isNotBlank()) {
                         IconButton(onClick = { tempUsername = "" }, onLongClick = {}) {
-                            Icon(painterResource(R.drawable.close), contentDescription = null)
+                            Icon(painterResource(Res.drawable.close), contentDescription = null)
                         }
                     }
                 },
@@ -229,11 +276,11 @@ fun ListenTogetherSettings(navController: NavController) {
 
         DefaultDialog(
             onDismiss = { showCreateRoomDialog = false },
-            icon = { Icon(painterResource(R.drawable.add), contentDescription = null) },
-            title = { Text(stringResource(R.string.listen_together_create_room)) },
+            icon = { Icon(painterResource(Res.drawable.add), contentDescription = null) },
+            title = { Text(stringResource(Res.string.listen_together_create_room)) },
             buttons = {
                 TextButton(onClick = { showCreateRoomDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -249,7 +296,7 @@ fun ListenTogetherSettings(navController: NavController) {
                     },
                     enabled = createUsername.trim().isNotBlank(),
                 ) {
-                    Text(stringResource(R.string.create))
+                    Text(stringResource(Res.string.create))
                 }
             },
         ) {
@@ -257,16 +304,16 @@ fun ListenTogetherSettings(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.listen_together_create_room_desc),
+                    text = stringResource(Res.string.listen_together_create_room_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedTextField(
                     value = createUsername,
                     onValueChange = { createUsername = it },
-                    label = { Text(stringResource(R.string.listen_together_username)) },
+                    label = { Text(stringResource(Res.string.listen_together_username)) },
                     leadingIcon = {
-                        Icon(painterResource(R.drawable.person), contentDescription = null)
+                        Icon(painterResource(Res.drawable.person), contentDescription = null)
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -280,11 +327,11 @@ fun ListenTogetherSettings(navController: NavController) {
 
         DefaultDialog(
             onDismiss = { showJoinRoomDialog = false },
-            icon = { Icon(painterResource(R.drawable.group_add), contentDescription = null) },
-            title = { Text(stringResource(R.string.listen_together_join_room)) },
+            icon = { Icon(painterResource(Res.drawable.group_add), contentDescription = null) },
+            title = { Text(stringResource(Res.string.listen_together_join_room)) },
             buttons = {
                 TextButton(onClick = { showJoinRoomDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -301,7 +348,7 @@ fun ListenTogetherSettings(navController: NavController) {
                     },
                     enabled = joinUsername.trim().isNotBlank() && roomCodeInput.length == 8,
                 ) {
-                    Text(stringResource(R.string.join))
+                    Text(stringResource(Res.string.join))
                 }
             },
         ) {
@@ -311,9 +358,9 @@ fun ListenTogetherSettings(navController: NavController) {
                 OutlinedTextField(
                     value = joinUsername,
                     onValueChange = { joinUsername = it },
-                    label = { Text(stringResource(R.string.listen_together_username)) },
+                    label = { Text(stringResource(Res.string.listen_together_username)) },
                     leadingIcon = {
-                        Icon(painterResource(R.drawable.person), contentDescription = null)
+                        Icon(painterResource(Res.drawable.person), contentDescription = null)
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -321,9 +368,9 @@ fun ListenTogetherSettings(navController: NavController) {
                 OutlinedTextField(
                     value = roomCodeInput,
                     onValueChange = { roomCodeInput = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(8) },
-                    label = { Text(stringResource(R.string.listen_together_room_code)) },
+                    label = { Text(stringResource(Res.string.listen_together_room_code)) },
                     leadingIcon = {
-                        Icon(painterResource(R.drawable.key), contentDescription = null)
+                        Icon(painterResource(Res.drawable.key), contentDescription = null)
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -364,18 +411,18 @@ fun ListenTogetherSettings(navController: NavController) {
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             IntegrationCard(
-                title = stringResource(R.string.settings),
+                title = stringResource(Res.string.settings),
                 items =
                     listOf(
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.person),
-                            title = { Text(stringResource(R.string.listen_together_blocked_users)) },
+                            icon = painterResource(Res.drawable.person),
+                            title = { Text(stringResource(Res.string.listen_together_blocked_users)) },
                             description = {
                                 Text(
                                     if (blockedUsernames.isNotEmpty()) {
-                                        stringResource(R.string.listen_together_blocked_users_count, blockedUsernames.size)
+                                        stringResource(Res.string.listen_together_blocked_users_count, blockedUsernames.size)
                                     } else {
-                                        stringResource(R.string.listen_together_no_blocked_users)
+                                        stringResource(Res.string.listen_together_no_blocked_users)
                                     },
                                 )
                             },
@@ -387,8 +434,8 @@ fun ListenTogetherSettings(navController: NavController) {
                                 },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.cloud),
-                            title = { Text(stringResource(R.string.listen_together_server_url)) },
+                            icon = painterResource(Res.drawable.cloud),
+                            title = { Text(stringResource(Res.string.listen_together_server_url)) },
                             description = {
                                 Text(
                                     selectedServer?.let { server ->
@@ -401,10 +448,10 @@ fun ListenTogetherSettings(navController: NavController) {
                             onClick = { showServerUrlDialog = true },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.person),
-                            title = { Text(stringResource(R.string.listen_together_username)) },
+                            icon = painterResource(Res.drawable.person),
+                            title = { Text(stringResource(Res.string.listen_together_username)) },
                             description = {
-                                Text(username.ifEmpty { stringResource(R.string.not_set) })
+                                Text(username.ifEmpty { stringResource(Res.string.not_set) })
                             },
                             onClick =
                                 if (roomState == null) {
@@ -421,10 +468,10 @@ fun ListenTogetherSettings(navController: NavController) {
                                 },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.done),
-                            title = { Text(stringResource(R.string.listen_together_auto_approval_joins)) },
+                            icon = painterResource(Res.drawable.done),
+                            title = { Text(stringResource(Res.string.listen_together_auto_approval_joins)) },
                             description = {
-                                Text(stringResource(R.string.listen_together_auto_approval_joins_desc))
+                                Text(stringResource(Res.string.listen_together_auto_approval_joins_desc))
                             },
                             trailingContent = {
                                 Switch(
@@ -435,8 +482,7 @@ fun ListenTogetherSettings(navController: NavController) {
                                     thumbContent = {
                                         Icon(
                                             painter =
-                                                painterResource(
-                                                    id = if (autoApprovalJoins) R.drawable.check else R.drawable.close,
+                                                painterResource(if (autoApprovalJoins) Res.drawable.check else Res.drawable.close,
                                                 ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -448,10 +494,10 @@ fun ListenTogetherSettings(navController: NavController) {
                             onClick = { if (roomState == null || role != RoomRole.GUEST) autoApprovalJoins = !autoApprovalJoins },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.done),
-                            title = { Text(stringResource(R.string.listen_together_auto_approval_suggestions)) },
+                            icon = painterResource(Res.drawable.done),
+                            title = { Text(stringResource(Res.string.listen_together_auto_approval_suggestions)) },
                             description = {
-                                Text(stringResource(R.string.listen_together_auto_approval_suggestions_desc))
+                                Text(stringResource(Res.string.listen_together_auto_approval_suggestions_desc))
                             },
                             trailingContent = {
                                 Switch(
@@ -462,8 +508,7 @@ fun ListenTogetherSettings(navController: NavController) {
                                     thumbContent = {
                                         Icon(
                                             painter =
-                                                painterResource(
-                                                    id = if (autoApproveSuggestions) R.drawable.check else R.drawable.close,
+                                                painterResource(if (autoApproveSuggestions) Res.drawable.check else Res.drawable.close,
                                                 ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -475,10 +520,10 @@ fun ListenTogetherSettings(navController: NavController) {
                             onClick = { if (roomState == null || role != RoomRole.GUEST) autoApproveSuggestions = !autoApproveSuggestions },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.volume_up),
-                            title = { Text(stringResource(R.string.listen_together_sync_volume)) },
+                            icon = painterResource(Res.drawable.volume_up),
+                            title = { Text(stringResource(Res.string.listen_together_sync_volume)) },
                             description = {
-                                Text(stringResource(R.string.listen_together_sync_volume_desc))
+                                Text(stringResource(Res.string.listen_together_sync_volume_desc))
                             },
                             trailingContent = {
                                 Switch(
@@ -487,8 +532,7 @@ fun ListenTogetherSettings(navController: NavController) {
                                     thumbContent = {
                                         Icon(
                                             painter =
-                                                painterResource(
-                                                    id = if (syncHostVolume) R.drawable.check else R.drawable.close,
+                                                painterResource(if (syncHostVolume) Res.drawable.check else Res.drawable.close,
                                                 ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -499,10 +543,10 @@ fun ListenTogetherSettings(navController: NavController) {
                             onClick = { syncHostVolume = !syncHostVolume },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.bug_report),
-                            title = { Text(stringResource(R.string.listen_together_view_logs)) },
+                            icon = painterResource(Res.drawable.bug_report),
+                            title = { Text(stringResource(Res.string.listen_together_view_logs)) },
                             description = {
-                                Text(stringResource(R.string.listen_together_view_logs_desc))
+                                Text(stringResource(Res.string.listen_together_view_logs_desc))
                             },
                             onClick = { showLogsDialog = true },
                         ),
@@ -514,14 +558,14 @@ fun ListenTogetherSettings(navController: NavController) {
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.listen_together)) },
+        title = { Text(stringResource(Res.string.listen_together)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }
@@ -547,8 +591,8 @@ fun LogsDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.bug_report), contentDescription = null) },
-        title = { Text(stringResource(R.string.listen_together_logs)) },
+        icon = { Icon(painterResource(Res.drawable.bug_report), contentDescription = null) },
+        title = { Text(stringResource(Res.string.listen_together_logs)) },
         buttons = {
             TextButton(
                 onClick = {
@@ -570,10 +614,10 @@ fun LogsDialog(
                 },
                 enabled = logs.isNotEmpty(),
             ) {
-                Text(stringResource(R.string.copy))
+                Text(stringResource(Res.string.copy))
             }
             TextButton(onClick = onClear) {
-                Text(stringResource(R.string.clear))
+                Text(stringResource(Res.string.clear))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = onDismiss) {
@@ -593,7 +637,7 @@ fun LogsDialog(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.listen_together_no_logs),
+                        text = stringResource(Res.string.listen_together_no_logs),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -624,11 +668,11 @@ private fun ServerChooserDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.cloud), contentDescription = null) },
-        title = { Text(stringResource(R.string.listen_together_choose_server)) },
+        icon = { Icon(painterResource(Res.drawable.cloud), contentDescription = null) },
+        title = { Text(stringResource(Res.string.listen_together_choose_server)) },
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(Res.string.cancel))
             }
         },
     ) {
@@ -685,7 +729,7 @@ private fun ServerChooserDialog(
                         }
                         if (isSelected) {
                             Icon(
-                                painter = painterResource(R.drawable.done),
+                                painter = painterResource(Res.drawable.done),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -697,16 +741,16 @@ private fun ServerChooserDialog(
             HorizontalDivider()
 
             Text(
-                text = stringResource(R.string.listen_together_custom_server),
+                text = stringResource(Res.string.listen_together_custom_server),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             OutlinedTextField(
                 value = customUrl,
                 onValueChange = { customUrl = it },
-                label = { Text(stringResource(R.string.listen_together_server_url)) },
+                label = { Text(stringResource(Res.string.listen_together_server_url)) },
                 leadingIcon = {
-                    Icon(painterResource(R.drawable.link), contentDescription = null)
+                    Icon(painterResource(Res.drawable.link), contentDescription = null)
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -717,7 +761,7 @@ private fun ServerChooserDialog(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text(stringResource(R.string.listen_together_use_custom_server))
+                Text(stringResource(Res.string.listen_together_use_custom_server))
             }
         }
     }
@@ -797,8 +841,8 @@ fun BlockedUsersDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.person), contentDescription = null) },
-        title = { Text(stringResource(R.string.listen_together_blocked_users)) },
+        icon = { Icon(painterResource(Res.drawable.person), contentDescription = null) },
+        title = { Text(stringResource(Res.string.listen_together_blocked_users)) },
         buttons = {
             Button(onClick = onDismiss) {
                 Text(stringResource(android.R.string.ok))
@@ -817,7 +861,7 @@ fun BlockedUsersDialog(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.listen_together_no_blocked_users),
+                        text = stringResource(Res.string.listen_together_no_blocked_users),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -843,7 +887,7 @@ fun BlockedUsersDialog(
                                 modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.person),
+                                    painter = painterResource(Res.drawable.person),
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -857,7 +901,7 @@ fun BlockedUsersDialog(
                             TextButton(
                                 onClick = { onUnblock(username) },
                             ) {
-                                Text(stringResource(R.string.unblock))
+                                Text(stringResource(Res.string.unblock))
                             }
                         }
                     }

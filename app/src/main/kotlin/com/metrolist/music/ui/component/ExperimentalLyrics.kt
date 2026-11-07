@@ -74,7 +74,6 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import android.text.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -131,6 +130,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.generating_image
+import com.metrolist.music.resources.lyrics_from_provider
+import com.metrolist.music.resources.lyrics_not_found
+import com.metrolist.music.resources.please_wait
+import org.jetbrains.compose.resources.stringResource
 
 private const val LYRICS_ANCHOR_RATIO = 0.35f
 private val LYRICS_ITEM_FALLBACK_HEIGHT_DP = 68.dp
@@ -646,7 +651,7 @@ fun ExperimentalLyrics(
 
         if (lyrics == LYRICS_NOT_FOUND) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = stringResource(R.string.lyrics_not_found), fontSize = 20.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.alpha(0.5f))
+                Text(text = stringResource(Res.string.lyrics_not_found), fontSize = 20.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.alpha(0.5f))
             }
         } else if (lyrics == null && (translationStatus is LyricsTranslationHelper.TranslationStatus.Idle || translationStatus is LyricsTranslationHelper.TranslationStatus.Error)) {
              Column(modifier = Modifier.padding(top = 100.dp)) {
@@ -715,7 +720,7 @@ fun ExperimentalLyrics(
                         label = "lyricsProviderOffset"
                     )
                     Text(
-                        text = stringResource(R.string.lyrics_from_provider, lyricsEntity.provider),
+                        text = stringResource(Res.string.lyrics_from_provider, lyricsEntity.provider),
                         fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.fillMaxWidth().offset { IntOffset(0, (animatedProviderBase + userManualOffset).roundToInt()) }.padding(horizontal = 24.dp, vertical = 4.dp)
                     )
@@ -831,7 +836,7 @@ fun ExperimentalLyrics(
     if (showProgressDialog) {
         BasicAlertDialog(onDismissRequest = {}) {
             Card(shape = MaterialTheme.shapes.medium, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Box(Modifier.padding(32.dp)) { Text(stringResource(R.string.generating_image) + "\n" + stringResource(R.string.please_wait)) }
+                Box(Modifier.padding(32.dp)) { Text(stringResource(Res.string.generating_image) + "\n" + stringResource(Res.string.please_wait)) }
             }
         }
     }

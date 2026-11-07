@@ -5,9 +5,11 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.Artist
@@ -41,12 +43,10 @@ import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.models.SimilarRecommendation
-import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
-import com.metrolist.music.ui.screens.wrapped.WrappedManager
-import com.metrolist.music.utils.NetworkConnectivityObserver
+import com.metrolist.music.utils.NetworkConnectivity
+import com.metrolist.music.utils.WrappedPreloader
 import com.metrolist.music.utils.SyncUtils
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.safeDataStoreEdit
+import com.metrolist.music.utils.safeEdit
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +59,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -86,18 +85,17 @@ internal fun buildSpeedDialItems(
         .take(27)
 
 class HomeViewModel(
-    val context: Context,
+    private val dataStore: DataStore<Preferences>,
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
-    val wrappedManager: WrappedManager,
-    private val wrappedAudioService: WrappedAudioService,
-    private val networkConnectivity: NetworkConnectivityObserver,
+    private val wrappedPreloader: WrappedPreloader,
+    private val networkConnectivity: NetworkConnectivity,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
     val isRandomizing = MutableStateFlow(false)
 
-    private val quickPicksEnum = context.dataStore.data.map {
+    private val quickPicksEnum = dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
     }.distinctUntilChanged()
 
@@ -248,7 +246,7 @@ class HomeViewModel(
     val accountName = MutableStateFlow("Guest")
     val accountImageUrl = MutableStateFlow<String?>(null)
 
-	val showWrappedCard: StateFlow<Boolean> = context.dataStore.data.map { prefs ->
+	val showWrappedCard: StateFlow<Boolean> = dataStore.data.map { prefs ->
         val showWrappedPref = prefs[ShowWrappedCardKey] ?: false
         val seen = prefs[WrappedSeenKey] ?: false
         val isBeforeDate = LocalDate.now().isBefore(LocalDate.of(2026, 2, 1))
@@ -256,19 +254,19 @@ class HomeViewModel(
         isBeforeDate && (!seen || showWrappedPref)
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-    val wrappedSeen: StateFlow<Boolean> = context.dataStore.data.map { prefs ->
+    val wrappedSeen: StateFlow<Boolean> = dataStore.data.map { prefs ->
         prefs[WrappedSeenKey] ?: false
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     fun markWrappedAsSeen() {
         viewModelScope.launch(Dispatchers.IO) {
-            context.safeDataStoreEdit {
+            dataStore.safeEdit {
                 it[WrappedSeenKey] = true
             }
         }
     }
     private suspend fun getDailyDiscover() {
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
         val likedSongs = database.likedSongsByCreateDateAsc().first()
         if (likedSongs.isEmpty()) return
 
@@ -316,7 +314,7 @@ class HomeViewModel(
     }
 
     private suspend fun getQuickPicks() {
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
         when (quickPicksEnum.first()) {
             QuickPicks.QUICK_PICKS -> {
                 val relatedSongs = database.quickPicks().first().filterVideoSongs(hideVideoSongs)
@@ -436,9 +434,9 @@ class HomeViewModel(
 
     private suspend fun load() {
         isLoading.value = true
-        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideExplicit = dataStore.get(HideExplicitKey, false)
+        val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+        val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
         val fromTimeStamp = LocalDateTime.now().minusWeeks(2)
 
         // Phase 1: Load essential sections in parallel — local DB (fast) + YouTube home page.
@@ -574,9 +572,9 @@ class HomeViewModel(
     private val _isLoadingMore = MutableStateFlow(false)
     fun loadMoreYouTubeItems(continuation: String?) {
         if (continuation == null || _isLoadingMore.value) return
-        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideExplicit = dataStore.get(HideExplicitKey, false)
+        val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+        val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
 
         viewModelScope.launch(Dispatchers.IO) {
             _isLoadingMore.value = true
@@ -613,9 +611,9 @@ class HomeViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+            val hideExplicit = dataStore.get(HideExplicitKey, false)
+            val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+            val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
             val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
 
             homePage.value = nextSections.copy(
@@ -659,7 +657,7 @@ class HomeViewModel(
     }
 
     private suspend fun loadAccountPlaylists() {
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
         YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
             accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>()
                 .filterOutNulls()
@@ -685,9 +683,9 @@ class HomeViewModel(
             // If a chip is selected, reload the chip's content instead of the default home
             val currentChip = selectedChip.value
             if (currentChip != null) {
-                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                val hideExplicit = dataStore.get(HideExplicitKey, false)
+                val hideVideoSongs = dataStore.get(HideVideoSongsKey, false)
+                val hideYoutubeShorts = dataStore.get(HideYoutubeShortsKey, false)
                 val nextSections = YouTube.home(params = currentChip.endpoint?.params).getOrNull()
                 if (nextSections != null) {
                     homePage.value = nextSections.copy(
@@ -710,7 +708,7 @@ class HomeViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        wrappedManager.dispose()
+        wrappedPreloader.dispose()
     }
 
     init {
@@ -734,15 +732,9 @@ class HomeViewModel(
         // Prepare wrapped data in background
         viewModelScope.launch(Dispatchers.IO) {
             showWrappedCard.collect { shouldShow ->
-                if (shouldShow && !wrappedManager.state.value.isDataReady) {
+                if (shouldShow) {
                     try {
-                        wrappedManager.prepare()
-                        val state = wrappedManager.state.first { it.isDataReady }
-                        val trackMap = state.trackMap
-                        if (trackMap.isNotEmpty()) {
-                            val firstTrackId = trackMap.entries.first().value
-                            wrappedAudioService.prepareTrack(firstTrackId)
-                        }
+                        wrappedPreloader.preload()
                     } catch (e: Exception) {
                         reportException(e)
                     }
@@ -752,7 +744,7 @@ class HomeViewModel(
 
         // Listen for cookie changes and reload account data
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.data
+            dataStore.data
                 .map { it[InnerTubeCookieKey] to it[AccountNameKey] }
                 .distinctUntilChanged()
                 .collect { (cookie, savedAccountName) ->
@@ -770,7 +762,7 @@ class HomeViewModel(
 
         // Listen for HideYoutubeShorts preference changes and reload account playlists instantly
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.data
+            dataStore.data
                 .map { it[HideYoutubeShortsKey] ?: false }
                 .distinctUntilChanged()
                 .collect {
@@ -787,7 +779,7 @@ class HomeViewModel(
         if (isHomeDataLoaded) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val cookie = context.dataStore.data
+                val cookie = dataStore.data
                     .map { it[InnerTubeCookieKey] }
                     .distinctUntilChanged()
                     .first()
@@ -800,7 +792,7 @@ class HomeViewModel(
                 load()
             } catch (e: Exception) {
                 isHomeDataLoaded = false
-                Timber.e(e, "Failed to load home data")
+                Logger.e(e) { "Failed to load home data" }
             }
         }
     }

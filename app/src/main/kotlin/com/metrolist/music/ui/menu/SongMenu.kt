@@ -52,8 +52,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -102,6 +100,71 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.add_to_library
+import com.metrolist.music.resources.add_to_library_desc
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.already_in_playlist
+import com.metrolist.music.resources.artist
+import com.metrolist.music.resources.artist_name
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_uploaded_song
+import com.metrolist.music.resources.delete_uploaded_song_confirm
+import com.metrolist.music.resources.delete_uploaded_song_failed
+import com.metrolist.music.resources.delete_uploaded_song_success
+import com.metrolist.music.resources.details
+import com.metrolist.music.resources.details_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.download_desc
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.edit_song
+import com.metrolist.music.resources.episodes_for_later
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.pin_to_speed_dial
+import com.metrolist.music.resources.play_next
+import com.metrolist.music.resources.play_next_desc
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.refetch
+import com.metrolist.music.resources.refetch_desc
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_episode_from_saved
+import com.metrolist.music.resources.remove_from_cache
+import com.metrolist.music.resources.remove_from_history
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.remove_from_playlist
+import com.metrolist.music.resources.save_episode_for_later
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.song_title
+import com.metrolist.music.resources.start_radio
+import com.metrolist.music.resources.start_radio_desc
+import com.metrolist.music.resources.subscribe_to_podcast
+import com.metrolist.music.resources.subscribed
+import com.metrolist.music.resources.suggest_to_host
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.unpin_from_speed_dial
+import com.metrolist.music.resources.view_album
+import com.metrolist.music.resources.view_artist
+import com.metrolist.music.resources.view_podcast
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SongMenu(
@@ -173,17 +236,17 @@ fun SongMenu(
         TextFieldDialog(
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.edit),
+                    painter = painterResource(Res.drawable.edit),
                     contentDescription = null,
                 )
             },
             title = {
-                Text(text = stringResource(R.string.edit_song))
+                Text(text = stringResource(Res.string.edit_song))
             },
             textFields =
                 listOf(
-                    stringResource(R.string.song_title) to titleField,
-                    stringResource(R.string.artist_name) to artistField,
+                    stringResource(Res.string.song_title) to titleField,
+                    stringResource(Res.string.artist_name) to artistField,
                 ),
             onTextFieldsChange = { index, newValue ->
                 if (index == 0) {
@@ -254,10 +317,10 @@ fun SongMenu(
         ) {
             item {
                 ListItem(
-                    content = { Text(text = stringResource(R.string.already_in_playlist)) },
+                    content = { Text(text = stringResource(Res.string.already_in_playlist)) },
                     leadingContent = {
                         Image(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(Res.drawable.close),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier.size(ListThumbnailSize),
@@ -287,18 +350,18 @@ fun SongMenu(
             onDismiss = { if (!isDeleting) showDeleteUploadedDialog = false },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.delete),
+                    painter = painterResource(Res.drawable.delete),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
                 )
             },
-            title = { Text(stringResource(R.string.delete_uploaded_song)) },
+            title = { Text(stringResource(Res.string.delete_uploaded_song)) },
             buttons = {
                 TextButton(
                     onClick = { showDeleteUploadedDialog = false },
                     enabled = !isDeleting,
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -355,7 +418,7 @@ fun SongMenu(
                         )
                     } else {
                         Text(
-                            text = stringResource(R.string.delete),
+                            text = stringResource(Res.string.delete),
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
@@ -363,7 +426,7 @@ fun SongMenu(
             },
         ) {
             Text(
-                text = stringResource(R.string.delete_uploaded_song_confirm),
+                text = stringResource(Res.string.delete_uploaded_song_confirm),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -477,7 +540,7 @@ fun SongMenu(
                 },
             ) {
                 Icon(
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(if (isFavorite) Res.drawable.favorite else Res.drawable.favorite_border),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else LocalContentColor.current,
                     contentDescription = null,
                 )
@@ -511,13 +574,13 @@ fun SongMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.edit),
+                                    painter = painterResource(Res.drawable.edit),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.edit),
+                            text = stringResource(Res.string.edit),
                             onClick = {
                                 titleField = TextFieldValue(song.song.title)
                                 artistField =
@@ -530,25 +593,25 @@ fun SongMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.playlist_add),
+                                    painter = painterResource(Res.drawable.playlist_add),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.add_to_playlist),
+                            text = stringResource(Res.string.add_to_playlist),
                             onClick = { showChoosePlaylistDialog = true },
                         ),
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.share),
+                                    painter = painterResource(Res.drawable.share),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             },
-                            text = stringResource(R.string.share),
+                            text = stringResource(Res.string.share),
                             onClick = {
                                 onDismiss()
                                 val intent =
@@ -571,10 +634,10 @@ fun SongMenu(
                     listOfNotNull(
                         if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.suggest_to_host)) },
+                                title = { Text(text = stringResource(Res.string.suggest_to_host)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.queue_music),
+                                        painter = painterResource(Res.drawable.queue_music),
                                         contentDescription = null,
                                     )
                                 },
@@ -598,11 +661,11 @@ fun SongMenu(
                         },
                         if (!isGuest) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.start_radio)) },
-                                description = { Text(text = stringResource(R.string.start_radio_desc)) },
+                                title = { Text(text = stringResource(Res.string.start_radio)) },
+                                description = { Text(text = stringResource(Res.string.start_radio_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.radio),
+                                        painter = painterResource(Res.drawable.radio),
                                         contentDescription = null,
                                     )
                                 },
@@ -616,11 +679,11 @@ fun SongMenu(
                         },
                         if (!isGuest) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
+                                title = { Text(text = stringResource(Res.string.play_next)) },
+                                description = { Text(text = stringResource(Res.string.play_next_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.playlist_play),
+                                        painter = painterResource(Res.drawable.playlist_play),
                                         contentDescription = null,
                                     )
                                 },
@@ -634,11 +697,11 @@ fun SongMenu(
                         },
                         if (!isGuest) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                                title = { Text(text = stringResource(Res.string.add_to_queue)) },
+                                description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.queue_music),
+                                        painter = painterResource(Res.drawable.queue_music),
                                         contentDescription = null,
                                     )
                                 },
@@ -664,12 +727,12 @@ fun SongMenu(
                             Material3MenuItemData(
                                 title = {
                                     Text(
-                                        text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial),
+                                        text = if (isPinned) stringResource(Res.string.unpin_from_speed_dial) else stringResource(Res.string.pin_to_speed_dial),
                                     )
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                        painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
                                         contentDescription = null,
                                     )
                                 },
@@ -708,22 +771,22 @@ fun SongMenu(
                                             text =
                                                 stringResource(
                                                     if (isEpisodeSaved) {
-                                                        R.string.remove_episode_from_saved
+                                                        Res.string.remove_episode_from_saved
                                                     } else {
-                                                        R.string.save_episode_for_later
+                                                        Res.string.save_episode_for_later
                                                     },
                                                 ),
                                         )
                                     },
-                                    description = { Text(text = stringResource(R.string.episodes_for_later)) },
+                                    description = { Text(text = stringResource(Res.string.episodes_for_later)) },
                                     icon = {
                                         Icon(
                                             painter =
                                                 painterResource(
                                                     if (isEpisodeSaved) {
-                                                        R.drawable.library_add_check
+                                                        Res.drawable.library_add_check
                                                     } else {
-                                                        R.drawable.library_add
+                                                        Res.drawable.library_add
                                                     },
                                                 ),
                                             contentDescription = null,
@@ -759,22 +822,22 @@ fun SongMenu(
                                             text =
                                                 stringResource(
                                                     if (song.song.inLibrary == null) {
-                                                        R.string.add_to_library
+                                                        Res.string.add_to_library
                                                     } else {
-                                                        R.string.remove_from_library
+                                                        Res.string.remove_from_library
                                                     },
                                                 ),
                                         )
                                     },
-                                    description = { Text(text = stringResource(R.string.add_to_library_desc)) },
+                                    description = { Text(text = stringResource(Res.string.add_to_library_desc)) },
                                     icon = {
                                         Icon(
                                             painter =
                                                 painterResource(
                                                     if (song.song.inLibrary == null) {
-                                                        R.drawable.library_add
+                                                        Res.drawable.library_add
                                                     } else {
-                                                        R.drawable.library_add_check
+                                                        Res.drawable.library_add_check
                                                     },
                                                 ),
                                             contentDescription = null,
@@ -802,10 +865,10 @@ fun SongMenu(
                         if (event != null) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.remove_from_history)) },
+                                    title = { Text(text = stringResource(Res.string.remove_from_history)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -821,10 +884,10 @@ fun SongMenu(
                         if (playlistSong != null) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.remove_from_playlist)) },
+                                    title = { Text(text = stringResource(Res.string.remove_from_playlist)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -857,10 +920,10 @@ fun SongMenu(
                         if (isFromCache) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.remove_from_cache)) },
+                                    title = { Text(text = stringResource(Res.string.remove_from_cache)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -875,10 +938,10 @@ fun SongMenu(
                         if (song.song.isUploaded) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.delete_uploaded_song)) },
+                                    title = { Text(text = stringResource(Res.string.delete_uploaded_song)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.delete),
+                                            painter = painterResource(Res.drawable.delete),
                                             contentDescription = null,
                                         )
                                     },
@@ -903,12 +966,12 @@ fun SongMenu(
                                 Material3MenuItemData(
                                     title = {
                                         Text(
-                                            text = stringResource(R.string.remove_download),
+                                            text = stringResource(Res.string.remove_download),
                                         )
                                     },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.offline),
+                                            painter = painterResource(Res.drawable.offline),
                                             contentDescription = null,
                                         )
                                     },
@@ -925,7 +988,7 @@ fun SongMenu(
 
                             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.downloading)) },
+                                    title = { Text(text = stringResource(Res.string.downloading)) },
                                     icon = {
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(24.dp),
@@ -945,11 +1008,11 @@ fun SongMenu(
 
                             else -> {
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.action_download)) },
-                                    description = { Text(text = stringResource(R.string.download_desc)) },
+                                    title = { Text(text = stringResource(Res.string.action_download)) },
+                                    description = { Text(text = stringResource(Res.string.download_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.download),
+                                            painter = painterResource(Res.drawable.download),
                                             contentDescription = null,
                                         )
                                     },
@@ -973,11 +1036,11 @@ fun SongMenu(
                         if (!song.song.isEpisode) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.view_artist)) },
+                                    title = { Text(text = stringResource(Res.string.view_artist)) },
                                     description = { Text(text = song.orderedArtists.joinToString { it.name }) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.artist),
+                                            painter = painterResource(Res.drawable.artist),
                                             contentDescription = null,
                                         )
                                     },
@@ -997,7 +1060,7 @@ fun SongMenu(
                             val isPodcast = song.song.isEpisode
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(if (isPodcast) R.string.view_podcast else R.string.view_album)) },
+                                    title = { Text(text = stringResource(if (isPodcast) Res.string.view_podcast else Res.string.view_album)) },
                                     description = {
                                         song.song.albumName?.let {
                                             Text(text = it)
@@ -1005,7 +1068,7 @@ fun SongMenu(
                                     },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(if (isPodcast) R.drawable.mic else R.drawable.album),
+                                            painter = painterResource(if (isPodcast) Res.drawable.mic else Res.drawable.album),
                                             contentDescription = null,
                                         )
                                     },
@@ -1029,9 +1092,9 @@ fun SongMenu(
                                             text =
                                                 stringResource(
                                                     if (isPodcastSubscribed) {
-                                                        R.string.subscribed
+                                                        Res.string.subscribed
                                                     } else {
-                                                        R.string.subscribe_to_podcast
+                                                        Res.string.subscribe_to_podcast
                                                     },
                                                 ),
                                         )
@@ -1046,9 +1109,9 @@ fun SongMenu(
                                             painter =
                                                 painterResource(
                                                     if (isPodcastSubscribed) {
-                                                        R.drawable.library_add_check
+                                                        Res.drawable.library_add_check
                                                     } else {
-                                                        R.drawable.library_add
+                                                        Res.drawable.library_add
                                                     },
                                                 ),
                                             contentDescription = null,
@@ -1096,11 +1159,11 @@ fun SongMenu(
                         }
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.refetch)) },
-                                description = { Text(text = stringResource(R.string.refetch_desc)) },
+                                title = { Text(text = stringResource(Res.string.refetch)) },
+                                description = { Text(text = stringResource(Res.string.refetch_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.sync),
+                                        painter = painterResource(Res.drawable.sync),
                                         contentDescription = null,
                                         modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                                     )
@@ -1122,11 +1185,11 @@ fun SongMenu(
                         )
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.details)) },
-                                description = { Text(text = stringResource(R.string.details_desc)) },
+                                title = { Text(text = stringResource(Res.string.details)) },
+                                description = { Text(text = stringResource(Res.string.details_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.info),
+                                        painter = painterResource(Res.drawable.info),
                                         contentDescription = null,
                                     )
                                 },

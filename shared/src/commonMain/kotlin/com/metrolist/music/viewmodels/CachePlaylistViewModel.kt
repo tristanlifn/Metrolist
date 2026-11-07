@@ -5,18 +5,17 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.datasource.cache.Cache
-import androidx.media3.datasource.cache.ContentMetadata
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
-import com.metrolist.music.utils.dataStore
+import com.metrolist.music.playback.SongCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,9 +28,9 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
 class CachePlaylistViewModel(
-        private val context: Context,
+        private val dataStore: DataStore<Preferences>,
         private val database: MusicDatabase,
-        private val playerCache: Cache,
+        private val songCache: SongCache,
     ) : ViewModel() {
         private data class Inputs(
             val flagged: List<Song>,
@@ -43,14 +42,12 @@ class CachePlaylistViewModel(
         val cachedSongs: StateFlow<List<Song>> =
             combine(
                 database.cachePlaylistSongs(),
-                context.dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
-                context.dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged(),
+                dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
+                dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged(),
                 ::Inputs,
             ).mapLatest { (flagged, hideExplicit, hideVideoSongs) ->
                 val partition =
-                    partitionCachedSongs(flagged, ::cachedContentLength) { songId, contentLength ->
-                        playerCache.isCached(songId, 0, contentLength)
-                    }
+                    partitionCachedSongs(flagged, songCache::contentLength, songCache::isCached)
 
                 // Clearing the flag removes these songs from cachePlaylistSongs(), so this
                 // re-emits once and then settles rather than looping.
@@ -72,7 +69,7 @@ class CachePlaylistViewModel(
         fun removeSongFromCache(songId: String) = removeSongsFromCache(listOf(songId))
 
         fun removeSongsFromCache(songIds: Collection<String>) {
-            songIds.forEach(playerCache::removeResource)
+            songIds.forEach(songCache::remove)
 
             // Dropping the bytes does not touch the database, so clear the flags explicitly.
             database.query {
@@ -81,12 +78,6 @@ class CachePlaylistViewModel(
                 }
             }
         }
-
-        private fun cachedContentLength(song: Song): Long? =
-            song.format?.contentLength
-                ?: ContentMetadata
-                    .getContentLength(playerCache.getContentMetadata(song.id))
-                    .takeIf { it > 0L }
     }
 
 /**

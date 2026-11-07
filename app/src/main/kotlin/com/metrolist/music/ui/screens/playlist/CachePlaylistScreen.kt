@@ -58,9 +58,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -76,7 +73,6 @@ import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
@@ -99,6 +95,25 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.CachePlaylistViewModel
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cached_playlist
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_is_empty
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -200,8 +215,8 @@ fun CachePlaylistScreen(
             if (filteredSongs.isEmpty() && !isSearching) {
                 item(key = "empty_placeholder") {
                     EmptyPlaceholder(
-                        icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty),
+                        icon = Res.drawable.music_note,
+                        text = stringResource(Res.string.playlist_is_empty),
                         modifier = Modifier.animateItem()
                     )
                 }
@@ -210,8 +225,8 @@ fun CachePlaylistScreen(
             if (filteredSongs.isEmpty() && isSearching) {
                 item(key = "no_results") {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        icon = Res.drawable.search,
+                        text = stringResource(Res.string.no_results_found),
                         modifier = Modifier.animateItem()
                     )
                 }
@@ -242,10 +257,10 @@ fun CachePlaylistScreen(
                                 onSortDescendingChange = onSortDescendingChange,
                                 sortTypeText = { sortType ->
                                     when (sortType) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        SongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                        SongSortType.NAME -> Res.string.sort_by_name
+                                        SongSortType.ARTIST -> Res.string.sort_by_artist
+                                        SongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
@@ -285,7 +300,7 @@ fun CachePlaylistScreen(
                                     }
                                 }) {
                                     Icon(
-                                        painter = painterResource(R.drawable.more_vert),
+                                        painter = painterResource(Res.drawable.more_vert),
                                         contentDescription = null
                                     )
                                 }
@@ -358,7 +373,7 @@ fun CachePlaylistScreen(
                 when {
                     inSelectMode -> {
                         Text(
-                            text = pluralStringResource(R.plurals.n_song, selection.size, selection.size),
+                            text = pluralStringResource(Res.plurals.n_song, selection.size, selection.size),
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
@@ -368,7 +383,7 @@ fun CachePlaylistScreen(
                             onValueChange = { query = it },
                             placeholder = {
                                 Text(
-                                    text = stringResource(R.string.search),
+                                    text = stringResource(Res.string.search),
                                     style = MaterialTheme.typography.titleLarge
                                 )
                             },
@@ -389,7 +404,7 @@ fun CachePlaylistScreen(
                     }
                     else -> {
                         Text(
-                            stringResource(R.string.cached_playlist),
+                            stringResource(Res.string.cached_playlist),
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
@@ -417,7 +432,7 @@ fun CachePlaylistScreen(
                 }) {
                     Icon(
                         painter = painterResource(
-                            if (inSelectMode) R.drawable.close else R.drawable.arrow_back
+                            if (inSelectMode) Res.drawable.close else Res.drawable.arrow_back
                         ),
                         contentDescription = null
                     )
@@ -453,14 +468,14 @@ fun CachePlaylistScreen(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null
                         )
                     }
                 } else if (!isSearching) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(Res.drawable.search),
                             contentDescription = null
                         )
                     }
@@ -511,7 +526,7 @@ private fun CachePlaylistHeader(
 
         // Playlist Name
         Text(
-            text = stringResource(R.string.cached_playlist),
+            text = stringResource(Res.string.cached_playlist),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -524,7 +539,7 @@ private fun CachePlaylistHeader(
 
         // Metadata - Song Count
         Text(
-            text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+            text = pluralStringResource(Res.plurals.n_song, songs.size, songs.size),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
@@ -558,8 +573,8 @@ private fun CachePlaylistHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
+                        painter = painterResource(Res.drawable.shuffle),
+                        contentDescription = stringResource(Res.string.shuffle),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -584,8 +599,8 @@ private fun CachePlaylistHeader(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
+                        painter = painterResource(Res.drawable.play),
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp)
                     )
@@ -620,7 +635,7 @@ private fun CachePlaylistHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp)
                     )

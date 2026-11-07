@@ -42,8 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.SingletonImageLoader
@@ -52,7 +50,6 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.MaxImageCacheSizeKey
 import com.metrolist.music.constants.MaxSongCacheSizeKey
@@ -72,6 +69,35 @@ import kotlinx.coroutines.launch
 import okio.ByteString.Companion.encodeUtf8
 import java.io.File
 import kotlin.math.roundToInt
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cache_size_warning_confirm
+import com.metrolist.music.resources.cache_size_warning_message
+import com.metrolist.music.resources.cache_size_warning_title
+import com.metrolist.music.resources.cached
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.clear_all
+import com.metrolist.music.resources.clear_all_downloads
+import com.metrolist.music.resources.clear_downloads_dialog
+import com.metrolist.music.resources.clear_image_cache
+import com.metrolist.music.resources.clear_image_cache_dialog
+import com.metrolist.music.resources.clear_song_cache
+import com.metrolist.music.resources.clear_song_cache_dialog
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.disable
+import com.metrolist.music.resources.downloaded_songs
+import com.metrolist.music.resources.enable_song_cache
+import com.metrolist.music.resources.enable_song_cache_desc
+import com.metrolist.music.resources.image_cache
+import com.metrolist.music.resources.manage_search
+import com.metrolist.music.resources.max_image_cache_size
+import com.metrolist.music.resources.max_song_cache_size
+import com.metrolist.music.resources.song_cache
+import com.metrolist.music.resources.storage
+import com.metrolist.music.resources.unlimited
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class, DelicateCoilApi::class)
 @Composable
@@ -85,8 +111,8 @@ fun StorageSettings(
     val downloadCache = koinInject<Cache>(DownloadCache)
 
     val coroutineScope = rememberCoroutineScope()
-    val songCacheString = stringResource(R.string.song_cache).lowercase()
-    val imageCacheString = stringResource(R.string.image_cache).lowercase()
+    val songCacheString = stringResource(Res.string.song_cache).lowercase()
+    val imageCacheString = stringResource(Res.string.image_cache).lowercase()
     val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(
         key = MaxImageCacheSizeKey,
         defaultValue = 512
@@ -175,7 +201,7 @@ fun StorageSettings(
 
     if (clearDownloads) {
         ActionPromptDialog(
-            title = stringResource(R.string.clear_all_downloads),
+            title = stringResource(Res.string.clear_all_downloads),
             onDismiss = { clearDownloads = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
@@ -187,13 +213,13 @@ fun StorageSettings(
             },
             onCancel = { clearDownloads = false },
             content = {
-                Text(text = stringResource(R.string.clear_downloads_dialog))
+                Text(text = stringResource(Res.string.clear_downloads_dialog))
             },
         )
     }
     if (clearCacheDialog) {
         ActionPromptDialog(
-            title = stringResource(R.string.clear_song_cache),
+            title = stringResource(Res.string.clear_song_cache),
             onDismiss = { clearCacheDialog = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
@@ -205,13 +231,13 @@ fun StorageSettings(
             },
             onCancel = { clearCacheDialog = false },
             content = {
-                Text(text = stringResource(R.string.clear_song_cache_dialog))
+                Text(text = stringResource(Res.string.clear_song_cache_dialog))
             },
         )
     }
     if (clearImageCacheDialog) {
         ActionPromptDialog(
-            title = stringResource(R.string.clear_image_cache),
+            title = stringResource(Res.string.clear_image_cache),
             onDismiss = { clearImageCacheDialog = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
@@ -243,7 +269,7 @@ fun StorageSettings(
             },
             onCancel = { clearImageCacheDialog = false },
             content = {
-                Text(text = stringResource(R.string.clear_image_cache_dialog))
+                Text(text = stringResource(Res.string.clear_image_cache_dialog))
             },
         )
     }
@@ -252,11 +278,11 @@ fun StorageSettings(
     if (showCacheWarningDialog) {
         AlertDialog(
             onDismissRequest = { showCacheWarningDialog = false },
-            title = { Text(stringResource(R.string.cache_size_warning_title)) },
+            title = { Text(stringResource(Res.string.cache_size_warning_title)) },
             text = {
                 Text(
                     stringResource(
-                        R.string.cache_size_warning_message,
+                        Res.string.cache_size_warning_message,
                         Formatter.formatShortFileSize(context, cacheUsage),
                         cacheType,
                     ),
@@ -270,14 +296,14 @@ fun StorageSettings(
                     },
                 ) {
                     Text(
-                        stringResource(R.string.cache_size_warning_confirm),
+                        stringResource(Res.string.cache_size_warning_confirm),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCacheWarningDialog = false }) {
-                    Text(stringResource(id = android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -300,19 +326,19 @@ fun StorageSettings(
             ),
         )
         Material3SettingsGroup(
-            title = stringResource(R.string.storage),
+            title = stringResource(Res.string.storage),
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.storage),
-                        title = { Text(stringResource(R.string.downloaded_songs)) },
+                        icon = painterResource(Res.drawable.storage),
+                        title = { Text(stringResource(Res.string.downloaded_songs)) },
                         description = {
                             Text(text = Formatter.formatShortFileSize(context, downloadCacheSize))
                         },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.clear_all),
-                        title = { Text(stringResource(R.string.clear_all_downloads)) },
+                        icon = painterResource(Res.drawable.clear_all),
+                        title = { Text(stringResource(Res.string.clear_all_downloads)) },
                         onClick = {
                             clearDownloads = true
                         },
@@ -321,20 +347,19 @@ fun StorageSettings(
         )
 
         Material3SettingsGroup(
-            title = stringResource(R.string.song_cache),
+            title = stringResource(Res.string.song_cache),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.cached),
-                    title = { Text(stringResource(R.string.enable_song_cache)) },
-                    description = { Text(stringResource(R.string.enable_song_cache_desc)) },
+                    icon = painterResource(Res.drawable.cached),
+                    title = { Text(stringResource(Res.string.enable_song_cache)) },
+                    description = { Text(stringResource(Res.string.enable_song_cache_desc)) },
                     trailingContent = {
                         Switch(
                             checked = enableSongCache,
                             onCheckedChange = onEnableSongCacheChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (enableSongCache) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (enableSongCache) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -345,8 +370,8 @@ fun StorageSettings(
                     onClick = { onEnableSongCacheChange(!enableSongCache) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.cached),
-                    title = { Text(stringResource(R.string.max_song_cache_size)) },
+                    icon = painterResource(Res.drawable.cached),
+                    title = { Text(stringResource(Res.string.max_song_cache_size)) },
                     enabled = enableSongCache,
                     description = {
                         val songCacheValues =
@@ -354,8 +379,8 @@ fun StorageSettings(
                         Column {
                             Text(
                                 text = when (maxSongCacheSize) {
-                                    0 -> stringResource(R.string.disable)
-                                    -1 -> stringResource(R.string.unlimited)
+                                    0 -> stringResource(Res.string.disable)
+                                    -1 -> stringResource(Res.string.unlimited)
                                     else -> Formatter.formatShortFileSize(context, maxSongCacheSize * 1024 * 1024L)
                                 }
                             )
@@ -405,8 +430,8 @@ fun StorageSettings(
                         },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.clear_all),
-                        title = { Text(stringResource(R.string.clear_song_cache)) },
+                        icon = painterResource(Res.drawable.clear_all),
+                        title = { Text(stringResource(Res.string.clear_song_cache)) },
                         onClick = {
                             clearCacheDialog = true
                         },
@@ -415,12 +440,12 @@ fun StorageSettings(
         )
 
         Material3SettingsGroup(
-            title = stringResource(R.string.image_cache),
+            title = stringResource(Res.string.image_cache),
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.manage_search),
-                        title = { Text(stringResource(R.string.max_image_cache_size)) },
+                        icon = painterResource(Res.drawable.manage_search),
+                        title = { Text(stringResource(Res.string.max_image_cache_size)) },
                         description = {
                             val imageCacheValues =
                                 remember { listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192) }
@@ -428,7 +453,7 @@ fun StorageSettings(
                                 Text(
                                     text =
                                         when (maxImageCacheSize) {
-                                            0 -> stringResource(R.string.disable)
+                                            0 -> stringResource(Res.string.disable)
                                             else -> Formatter.formatShortFileSize(context, maxImageCacheSize * 1024 * 1024L)
                                         },
                                 )
@@ -468,8 +493,8 @@ fun StorageSettings(
                         },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.clear_all),
-                        title = { Text(stringResource(R.string.clear_image_cache)) },
+                        icon = painterResource(Res.drawable.clear_all),
+                        title = { Text(stringResource(Res.string.clear_image_cache)) },
                         onClick = {
                             clearImageCacheDialog = true
                         },
@@ -479,14 +504,14 @@ fun StorageSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.storage)) },
+        title = { Text(stringResource(Res.string.storage)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

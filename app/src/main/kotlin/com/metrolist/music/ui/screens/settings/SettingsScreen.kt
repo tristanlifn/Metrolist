@@ -24,14 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
@@ -39,6 +36,42 @@ import com.metrolist.music.ui.component.ReleaseNotesCard
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.Updater
 import androidx.compose.runtime.remember
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.about
+import com.metrolist.music.resources.ai_lyrics_translation
+import com.metrolist.music.resources.android_auto
+import com.metrolist.music.resources.appearance
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.backup_restore
+import com.metrolist.music.resources.changelog
+import com.metrolist.music.resources.content
+import com.metrolist.music.resources.default_links
+import com.metrolist.music.resources.ic_android_auto
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.new_version_available
+import com.metrolist.music.resources.newspaper
+import com.metrolist.music.resources.open_app_settings_error
+import com.metrolist.music.resources.palette
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.player_and_audio
+import com.metrolist.music.resources.privacy
+import com.metrolist.music.resources.restore
+import com.metrolist.music.resources.security
+import com.metrolist.music.resources.settings
+import com.metrolist.music.resources.settings_section_player_content
+import com.metrolist.music.resources.settings_section_privacy
+import com.metrolist.music.resources.settings_section_storage
+import com.metrolist.music.resources.settings_section_system
+import com.metrolist.music.resources.settings_section_ui
+import com.metrolist.music.resources.storage
+import com.metrolist.music.resources.translate
+import com.metrolist.music.resources.update
+import com.metrolist.music.resources.updater
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import com.metrolist.music.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,11 +109,11 @@ fun SettingsScreen(
 
         // User Interface Section
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_ui),
+            title = stringResource(Res.string.settings_section_ui),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.palette),
-                    title = { Text(stringResource(R.string.appearance)) },
+                    icon = painterResource(Res.drawable.palette),
+                    title = { Text(stringResource(Res.string.appearance)) },
                     onClick = { navController.navigate("settings/appearance") }
                 )
             )
@@ -90,21 +123,21 @@ fun SettingsScreen(
 
         // Player & Content Section (moved up and combined with content)
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_player_content),
+            title = stringResource(Res.string.settings_section_player_content),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.play),
-                    title = { Text(stringResource(R.string.player_and_audio)) },
+                    icon = painterResource(Res.drawable.play),
+                    title = { Text(stringResource(Res.string.player_and_audio)) },
                     onClick = { navController.navigate("settings/player") }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.language),
-                    title = { Text(stringResource(R.string.content)) },
+                    icon = painterResource(Res.drawable.language),
+                    title = { Text(stringResource(Res.string.content)) },
                     onClick = { navController.navigate("settings/content") }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.translate),
-                    title = { Text(stringResource(R.string.ai_lyrics_translation)) },
+                    icon = painterResource(Res.drawable.translate),
+                    title = { Text(stringResource(Res.string.ai_lyrics_translation)) },
                     onClick = { navController.navigate("settings/ai") }
                 )
             )
@@ -118,8 +151,8 @@ fun SettingsScreen(
                 title = "Android Auto",
                 items = listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.ic_android_auto),
-                        title = { Text(stringResource(R.string.android_auto)) },
+                        icon = painterResource(Res.drawable.ic_android_auto),
+                        title = { Text(stringResource(Res.string.android_auto)) },
                         onClick = { navController.navigate("settings/android_auto") }
                     )
                 )
@@ -130,11 +163,11 @@ fun SettingsScreen(
         
         // Privacy & Security Section
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_privacy),
+            title = stringResource(Res.string.settings_section_privacy),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.security),
-                    title = { Text(stringResource(R.string.privacy)) },
+                    icon = painterResource(Res.drawable.security),
+                    title = { Text(stringResource(Res.string.privacy)) },
                     onClick = { navController.navigate("settings/privacy") }
                 )
             )
@@ -144,16 +177,16 @@ fun SettingsScreen(
 
         // Storage & Data Section
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_storage),
+            title = stringResource(Res.string.settings_section_storage),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.storage),
-                    title = { Text(stringResource(R.string.storage)) },
+                    icon = painterResource(Res.drawable.storage),
+                    title = { Text(stringResource(Res.string.storage)) },
                     onClick = { navController.navigate("settings/storage") }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.restore),
-                    title = { Text(stringResource(R.string.backup_restore)) },
+                    icon = painterResource(Res.drawable.restore),
+                    title = { Text(stringResource(Res.string.backup_restore)) },
                     onClick = { navController.navigate("settings/backup_restore") }
                 )
             )
@@ -163,13 +196,13 @@ fun SettingsScreen(
 
         // System & About Section
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_system),
+            title = stringResource(Res.string.settings_section_system),
             items = buildList {
                 if (isAndroid12OrLater) {
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.link),
-                            title = { Text(stringResource(R.string.default_links)) },
+                            icon = painterResource(Res.drawable.link),
+                            title = { Text(stringResource(Res.string.default_links)) },
                             onClick = {
                                 try {
                                     val intent = Intent(
@@ -212,8 +245,8 @@ fun SettingsScreen(
                 if (BuildConfig.UPDATER_AVAILABLE) {
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.update),
-                            title = { Text(stringResource(R.string.updater)) },
+                            icon = painterResource(Res.drawable.update),
+                            title = { Text(stringResource(Res.string.updater)) },
                             onClick = { navController.navigate("settings/updater") }
                         )
                     )
@@ -221,15 +254,15 @@ fun SettingsScreen(
                 val showChangelog = com.metrolist.music.LocalChangelogState.current
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.newspaper),
-                        title = { Text(stringResource(R.string.changelog)) },
+                        icon = painterResource(Res.drawable.newspaper),
+                        title = { Text(stringResource(Res.string.changelog)) },
                         onClick = { showChangelog.value = true }
                     )
                 )
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.info),
-                        title = { Text(stringResource(R.string.about)) },
+                        icon = painterResource(Res.drawable.info),
+                        title = { Text(stringResource(Res.string.about)) },
                         onClick = { navController.navigate("settings/about") }
                     )
                 )
@@ -240,10 +273,10 @@ fun SettingsScreen(
                     if (downloadUrl != null) {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.update),
+                                icon = painterResource(Res.drawable.update),
                                 title = { 
                                     Text(
-                                        text = stringResource(R.string.new_version_available),
+                                        text = stringResource(Res.string.new_version_available),
                                     )
                                 },
                                 description = {
@@ -270,14 +303,14 @@ fun SettingsScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
+        title = { Text(stringResource(Res.string.settings)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null
                 )
             }

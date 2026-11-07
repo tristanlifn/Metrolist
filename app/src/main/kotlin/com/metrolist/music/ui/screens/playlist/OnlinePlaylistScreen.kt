@@ -62,9 +62,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -86,7 +83,6 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistEntity
@@ -108,6 +104,22 @@ import com.metrolist.music.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.error_unknown
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_episode
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_is_empty
+import com.metrolist.music.resources.retry
+import com.metrolist.music.resources.search
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -219,13 +231,13 @@ fun OnlinePlaylistScreen(
                             verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = error ?: stringResource(R.string.error_unknown),
+                                text = error ?: stringResource(Res.string.error_unknown),
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center,
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             androidx.compose.material3.TextButton(onClick = { viewModel.retry() }) {
-                                Text(stringResource(R.string.retry))
+                                Text(stringResource(Res.string.retry))
                             }
                         }
                     }
@@ -239,7 +251,7 @@ fun OnlinePlaylistScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                text = stringResource(R.string.playlist_is_empty),
+                                text = stringResource(Res.string.playlist_is_empty),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
@@ -335,7 +347,7 @@ fun OnlinePlaylistScreen(
                                             YouTubeSongMenu(songItem, menuState::dismiss)
                                         }
                                     }) {
-                                        Icon(painterResource(R.drawable.more_vert), null)
+                                        Icon(painterResource(Res.drawable.more_vert), null)
                                     }
                                 }
                             },
@@ -365,9 +377,9 @@ fun OnlinePlaylistScreen(
                     Text(
                         text =
                             if (isPodcastPlaylist) {
-                                pluralStringResource(R.plurals.n_episode, selection.size, selection.size)
+                                pluralStringResource(Res.plurals.n_episode, selection.size, selection.size)
                             } else {
-                                pluralStringResource(R.plurals.n_song, selection.size, selection.size)
+                                pluralStringResource(Res.plurals.n_song, selection.size, selection.size)
                             },
                         style = MaterialTheme.typography.titleLarge,
                     )
@@ -377,7 +389,7 @@ fun OnlinePlaylistScreen(
                         onValueChange = { query = it },
                         placeholder = {
                             Text(
-                                text = stringResource(R.string.search),
+                                text = stringResource(Res.string.search),
                                 style = MaterialTheme.typography.titleLarge,
                             )
                         },
@@ -422,7 +434,7 @@ fun OnlinePlaylistScreen(
                     Icon(
                         painter =
                             painterResource(
-                                if (inSelectMode) R.drawable.close else R.drawable.arrow_back,
+                                if (inSelectMode) Res.drawable.close else Res.drawable.arrow_back,
                             ),
                         contentDescription = null,
                     )
@@ -457,7 +469,7 @@ fun OnlinePlaylistScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                         )
                     }
@@ -466,7 +478,7 @@ fun OnlinePlaylistScreen(
                         onClick = { isSearching = true },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(Res.drawable.search),
                             contentDescription = null,
                         )
                     }
@@ -578,7 +590,7 @@ private fun OnlinePlaylistHeader(
         // Metadata row - song count, duration
         val totalDuration = songs.sumOf { it.duration ?: 0 }
         val nSongs = pluralStringResource(
-            if (isPodcastPlaylist) R.plurals.n_episode else R.plurals.n_song,
+            if (isPodcastPlaylist) Res.plurals.n_episode else Res.plurals.n_song,
             songs.size,
             songs.size,
         )
@@ -669,7 +681,7 @@ private fun OnlinePlaylistHeader(
                     Icon(
                         painter =
                             painterResource(
-                                if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border,
+                                if (dbPlaylist?.playlist?.bookmarkedAt != null) Res.drawable.favorite else Res.drawable.favorite_border,
                             ),
                         contentDescription = null,
                         tint =
@@ -706,8 +718,8 @@ private fun OnlinePlaylistHeader(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
+                        painter = painterResource(Res.drawable.play),
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp),
                     )
@@ -735,7 +747,7 @@ private fun OnlinePlaylistHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                     )

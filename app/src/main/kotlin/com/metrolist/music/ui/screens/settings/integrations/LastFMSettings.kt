@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,7 +52,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.metrolist.lastfm.LastFM
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.EnableLastFMScrobblingKey
 import com.metrolist.music.constants.LastFMSessionKey
 import com.metrolist.music.constants.LastFMUseNowPlaying
@@ -73,6 +71,38 @@ import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.media3_icon_thumb_up_unfilled
+import com.metrolist.music.resources.account
+import com.metrolist.music.resources.action_login
+import com.metrolist.music.resources.action_logout
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.enable_scrobbling
+import com.metrolist.music.resources.last_fm_send_likes
+import com.metrolist.music.resources.last_fm_send_likes_description
+import com.metrolist.music.resources.lastfm_integration
+import com.metrolist.music.resources.lastfm_now_playing
+import com.metrolist.music.resources.logging_in
+import com.metrolist.music.resources.login
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.not_logged_in
+import com.metrolist.music.resources.options
+import com.metrolist.music.resources.password
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.reset
+import com.metrolist.music.resources.scrobble_delay_minutes
+import com.metrolist.music.resources.scrobble_delay_percent
+import com.metrolist.music.resources.scrobble_min_track_duration
+import com.metrolist.music.resources.scrobbling_configuration
+import com.metrolist.music.resources.sensitivity_percentage
+import com.metrolist.music.resources.timer
+import com.metrolist.music.resources.username
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,7 +165,7 @@ fun LastFMSettings(
                     loginError = null
                 }
             },
-            title = { Text(stringResource(R.string.login)) },
+            title = { Text(stringResource(Res.string.login)) },
             text = {
                 Column(
                     modifier = Modifier
@@ -148,7 +178,7 @@ fun LastFMSettings(
                             tempUsername = it
                             loginError = null
                         },
-                        label = { Text(stringResource(R.string.username)) },
+                        label = { Text(stringResource(Res.string.username)) },
                         singleLine = true,
                         enabled = !isLoggingIn,
                     )
@@ -158,7 +188,7 @@ fun LastFMSettings(
                             tempPassword = it
                             loginError = null
                         },
-                        label = { Text(stringResource(R.string.password)) },
+                        label = { Text(stringResource(Res.string.password)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -187,7 +217,7 @@ fun LastFMSettings(
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
-                                text = stringResource(R.string.logging_in),
+                                text = stringResource(Res.string.logging_in),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -252,7 +282,7 @@ fun LastFMSettings(
                     },
                     enabled = !isLoggingIn
                 ) {
-                    Text(stringResource(R.string.login))
+                    Text(stringResource(Res.string.login))
                 }
             },
             dismissButton = {
@@ -265,7 +295,7 @@ fun LastFMSettings(
                     },
                     enabled = !isLoggingIn
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             }
         )
@@ -291,12 +321,12 @@ fun LastFMSettings(
 
         // Options section (card-based)
         Material3SettingsGroup(
-            title = stringResource(R.string.account),
+            title = stringResource(Res.string.account),
             items = listOf(
                 Material3SettingsItem(
                     title = {
                         Text(
-                            text = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
+                            text = if (isLoggedIn) lastfmUsername else stringResource(Res.string.not_logged_in),
                             modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
                         )
                     },
@@ -306,15 +336,15 @@ fun LastFMSettings(
                                 lastfmSession = ""
                                 lastfmUsername = ""
                             }) {
-                                Text(stringResource(R.string.action_logout))
+                                Text(stringResource(Res.string.action_logout))
                             }
                         } else {
                             OutlinedButton(onClick = { showLoginDialog = true }) {
-                                Text(stringResource(R.string.action_login))
+                                Text(stringResource(Res.string.action_login))
                             }
                         }
                     },
-                    icon = painterResource(R.drawable.music_note)
+                    icon = painterResource(Res.drawable.music_note)
                 ),
             )
         )
@@ -322,10 +352,10 @@ fun LastFMSettings(
         Spacer(Modifier.height(8.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.options),
+            title = stringResource(Res.string.options),
             items = listOf(
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.enable_scrobbling)) },
+                    title = { Text(stringResource(Res.string.enable_scrobbling)) },
                     trailingContent = {
                         Switch(
                             checked = lastfmScrobbling,
@@ -333,8 +363,7 @@ fun LastFMSettings(
                             enabled = isLoggedIn,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (lastfmScrobbling) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (lastfmScrobbling) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -343,10 +372,10 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn,
-                    icon = painterResource(R.drawable.queue_music)
+                    icon = painterResource(Res.drawable.queue_music)
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.lastfm_now_playing)) },
+                    title = { Text(stringResource(Res.string.lastfm_now_playing)) },
                     trailingContent = {
                         Switch(
                             checked = useNowPlaying,
@@ -354,8 +383,7 @@ fun LastFMSettings(
                             enabled = isLoggedIn && lastfmScrobbling,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (useNowPlaying) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (useNowPlaying) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -364,11 +392,11 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn && lastfmScrobbling,
-                    icon = painterResource(R.drawable.play)
+                    icon = painterResource(Res.drawable.play)
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.last_fm_send_likes)) },
-                    description = { stringResource(R.string.last_fm_send_likes_description) },
+                    title = { Text(stringResource(Res.string.last_fm_send_likes)) },
+                    description = { stringResource(Res.string.last_fm_send_likes_description) },
                     trailingContent = {
                         Switch(
                             checked = useSendLikes,
@@ -376,8 +404,7 @@ fun LastFMSettings(
                             enabled = isLoggedIn,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (useSendLikes) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (useSendLikes) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -386,7 +413,7 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn,
-                    icon = painterResource(R.drawable.media3_icon_thumb_up_unfilled)
+                    icon = painterResource(Res.drawable.media3_icon_thumb_up_unfilled)
                 )
             )
         )
@@ -407,7 +434,7 @@ fun LastFMSettings(
                             tempMinTrackDuration = LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION
                         }
                     ) {
-                        Text(stringResource(R.string.reset))
+                        Text(stringResource(Res.string.reset))
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -418,7 +445,7 @@ fun LastFMSettings(
                             showMinTrackDurationDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.cancel))
+                        Text(stringResource(Res.string.cancel))
                     }
                     TextButton(
                         onClick = {
@@ -435,7 +462,7 @@ fun LastFMSettings(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.scrobble_min_track_duration),
+                        text = stringResource(Res.string.scrobble_min_track_duration),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -472,7 +499,7 @@ fun LastFMSettings(
                             tempScrobbleDelayPercent = LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT
                         }
                     ) {
-                        Text(stringResource(R.string.reset))
+                        Text(stringResource(Res.string.reset))
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -483,7 +510,7 @@ fun LastFMSettings(
                             showScrobbleDelayPercentDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.cancel))
+                        Text(stringResource(Res.string.cancel))
                     }
                     TextButton(
                         onClick = {
@@ -500,13 +527,13 @@ fun LastFMSettings(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.scrobble_delay_percent),
+                        text = stringResource(Res.string.scrobble_delay_percent),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
                     Text(
-                        text = stringResource(R.string.sensitivity_percentage, (tempScrobbleDelayPercent * 100).roundToInt()),
+                        text = stringResource(Res.string.sensitivity_percentage, (tempScrobbleDelayPercent * 100).roundToInt()),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -537,7 +564,7 @@ fun LastFMSettings(
                             tempScrobbleDelaySeconds = LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS
                         }
                     ) {
-                        Text(stringResource(R.string.reset))
+                        Text(stringResource(Res.string.reset))
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -548,7 +575,7 @@ fun LastFMSettings(
                             showScrobbleDelaySecondsDialog = false
                         }
                     ) {
-                        Text(stringResource(android.R.string.cancel))
+                        Text(stringResource(Res.string.cancel))
                     }
                     TextButton(
                         onClick = {
@@ -565,7 +592,7 @@ fun LastFMSettings(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.scrobble_delay_minutes),
+                        text = stringResource(Res.string.scrobble_delay_minutes),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -589,39 +616,39 @@ fun LastFMSettings(
         Spacer(Modifier.height(8.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.scrobbling_configuration),
+            title = stringResource(Res.string.scrobbling_configuration),
             items = listOf(
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.scrobble_min_track_duration)) },
+                    title = { Text(stringResource(Res.string.scrobble_min_track_duration)) },
                     description = { Text(makeTimeString((minTrackDuration * 1000).toLong())) },
                     onClick = { showMinTrackDurationDialog = true },
-                    icon = painterResource(R.drawable.timer)
+                    icon = painterResource(Res.drawable.timer)
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.scrobble_delay_percent)) },
-                    description = { Text(stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt())) },
+                    title = { Text(stringResource(Res.string.scrobble_delay_percent)) },
+                    description = { Text(stringResource(Res.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt())) },
                     onClick = { showScrobbleDelayPercentDialog = true },
-                    icon = painterResource(R.drawable.timer)
+                    icon = painterResource(Res.drawable.timer)
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.scrobble_delay_minutes)) },
+                    title = { Text(stringResource(Res.string.scrobble_delay_minutes)) },
                     description = { Text(makeTimeString((scrobbleDelaySeconds * 1000).toLong())) },
                     onClick = { showScrobbleDelaySecondsDialog = true },
-                    icon = painterResource(R.drawable.timer)
+                    icon = painterResource(Res.drawable.timer)
                 ),
             )
         )
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.lastfm_integration)) },
+        title = { Text(stringResource(Res.string.lastfm_integration)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

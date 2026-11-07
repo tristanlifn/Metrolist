@@ -28,16 +28,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedDecorativeElement
 import com.metrolist.music.ui.theme.bbh_bartle
 import kotlin.random.Random
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.wrapped_total_artists_subtitle
+import com.metrolist.music.resources.wrapped_total_artists_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WrappedTotalArtistsScreen(
@@ -77,7 +79,7 @@ fun WrappedTotalArtistsScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(id = R.string.wrapped_total_artists_title),
+                text = stringResource(Res.string.wrapped_total_artists_title),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.headlineSmall.copy(color = Color.White, textAlign = TextAlign.Center)
             )
@@ -108,7 +110,7 @@ fun WrappedTotalArtistsScreen(
             }
             Spacer(Modifier.height(16.dp))
             Text(
-                text = stringResource(id = R.string.wrapped_total_artists_subtitle),
+                text = stringResource(Res.string.wrapped_total_artists_subtitle),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.bodyLarge.copy(color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center)
             )

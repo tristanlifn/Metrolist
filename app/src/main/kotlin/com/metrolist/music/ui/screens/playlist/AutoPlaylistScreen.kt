@@ -74,8 +74,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -95,7 +93,6 @@ import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
@@ -129,6 +126,36 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.liked
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_is_empty
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import com.metrolist.music.resources.upload
+import com.metrolist.music.resources.upload_complete
+import com.metrolist.music.resources.upload_failed
+import com.metrolist.music.resources.upload_file_too_large
+import com.metrolist.music.resources.upload_progress
+import com.metrolist.music.resources.upload_songs
+import com.metrolist.music.resources.upload_unsupported_format
+import com.metrolist.music.resources.uploaded_playlist
+import com.metrolist.music.resources.uploading
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -139,19 +166,19 @@ fun AutoPlaylistScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
-    val uploadUnsupportedFormatStr = stringResource(R.string.upload_unsupported_format)
-    val uploadFileTooLargeStr = stringResource(R.string.upload_file_too_large)
-    val uploadFailedStr = stringResource(R.string.upload_failed)
-    val uploadCompleteStr = stringResource(R.string.upload_complete)
+    val uploadUnsupportedFormatStr = stringResource(Res.string.upload_unsupported_format)
+    val uploadFileTooLargeStr = stringResource(Res.string.upload_file_too_large)
+    val uploadFailedStr = stringResource(Res.string.upload_failed)
+    val uploadCompleteStr = stringResource(Res.string.upload_complete)
     val focusManager = LocalFocusManager.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val playlist =
         when (viewModel.playlist) {
-            "liked" -> stringResource(R.string.liked)
-            "uploaded" -> stringResource(R.string.uploaded_playlist)
-            else -> stringResource(R.string.offline)
+            "liked" -> stringResource(Res.string.liked)
+            "uploaded" -> stringResource(Res.string.uploaded_playlist)
+            else -> stringResource(Res.string.offline)
         }
 
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle(null)
@@ -386,7 +413,7 @@ fun AutoPlaylistScreen(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist),
+                    text = stringResource(Res.string.remove_download_playlist_confirm, playlist),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -395,7 +422,7 @@ fun AutoPlaylistScreen(
                 TextButton(
                     onClick = { showRemoveDownloadDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -429,11 +456,11 @@ fun AutoPlaylistScreen(
             },
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.upload),
+                    painter = painterResource(Res.drawable.upload),
                     contentDescription = null,
                 )
             },
-            title = { Text(stringResource(R.string.uploading)) },
+            title = { Text(stringResource(Res.string.uploading)) },
             buttons = {
                 TextButton(
                     onClick = {
@@ -444,12 +471,12 @@ fun AutoPlaylistScreen(
                         showUploadDialog = false
                     },
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         ) {
             Text(
-                text = stringResource(R.string.upload_progress, currentUploadIndex, totalUploads),
+                text = stringResource(Res.string.upload_progress, currentUploadIndex, totalUploads),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -520,8 +547,8 @@ fun AutoPlaylistScreen(
                 if (songs!!.isEmpty()) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            icon = Res.drawable.music_note,
+                            text = stringResource(Res.string.playlist_is_empty),
                         )
                     }
                 } else {
@@ -551,10 +578,10 @@ fun AutoPlaylistScreen(
                                 onSortDescendingChange = onSortDescendingChange,
                                 sortTypeText = { sortType ->
                                     when (sortType) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        SongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                        SongSortType.NAME -> Res.string.sort_by_name
+                                        SongSortType.ARTIST -> Res.string.sort_by_artist
+                                        SongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
@@ -599,7 +626,7 @@ fun AutoPlaylistScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -709,8 +736,8 @@ fun AutoPlaylistScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.upload),
-                        contentDescription = stringResource(R.string.upload_songs),
+                        painter = painterResource(Res.drawable.upload),
+                        contentDescription = stringResource(Res.string.upload_songs),
                     )
                 }
             }
@@ -721,7 +748,7 @@ fun AutoPlaylistScreen(
                 when {
                     inSelectMode -> {
                         Text(
-                            text = pluralStringResource(R.plurals.n_song, selection.size, selection.size),
+                            text = pluralStringResource(Res.plurals.n_song, selection.size, selection.size),
                             style = MaterialTheme.typography.titleLarge,
                         )
                     }
@@ -732,7 +759,7 @@ fun AutoPlaylistScreen(
                             onValueChange = { query = it },
                             placeholder = {
                                 Text(
-                                    text = stringResource(R.string.search),
+                                    text = stringResource(Res.string.search),
                                     style = MaterialTheme.typography.titleLarge,
                                 )
                             },
@@ -790,7 +817,7 @@ fun AutoPlaylistScreen(
                     Icon(
                         painter =
                             painterResource(
-                                if (inSelectMode) R.drawable.close else R.drawable.arrow_back,
+                                if (inSelectMode) Res.drawable.close else Res.drawable.arrow_back,
                             ),
                         contentDescription = null,
                     )
@@ -823,7 +850,7 @@ fun AutoPlaylistScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                         )
                     }
@@ -832,7 +859,7 @@ fun AutoPlaylistScreen(
                         onClick = { isSearching = true },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(Res.drawable.search),
                             contentDescription = null,
                         )
                     }
@@ -904,7 +931,7 @@ private fun AutoPlaylistHeader(
         Text(
             text =
                 buildString {
-                    append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
+                    append(pluralStringResource(Res.plurals.n_song, songs.size, songs.size))
                     if (likeLength > 0) {
                         append(" ")
                         append(makeTimeString(likeLength * 1000L))
@@ -944,8 +971,8 @@ private fun AutoPlaylistHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
+                        painter = painterResource(Res.drawable.shuffle),
+                        contentDescription = stringResource(Res.string.shuffle),
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -970,8 +997,8 @@ private fun AutoPlaylistHeader(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
+                        painter = painterResource(Res.drawable.play),
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp),
                     )
@@ -1026,7 +1053,7 @@ private fun AutoPlaylistHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                     )

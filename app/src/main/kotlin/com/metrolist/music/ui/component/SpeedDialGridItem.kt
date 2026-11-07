@@ -19,16 +19,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.YTItem
-import com.metrolist.music.R
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.ui.utils.resize
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ic_push_pin
+import com.metrolist.music.resources.navigate_next
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SpeedDialGridItem(
@@ -90,7 +92,7 @@ fun SpeedDialGridItem(
             // Navigation Chevron for browsable items (Album, Playlist, Artist)
             if (item !is SongItem) {
                 Icon(
-                    painter = painterResource(R.drawable.navigate_next),
+                    painter = painterResource(Res.drawable.navigate_next),
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
@@ -100,7 +102,7 @@ fun SpeedDialGridItem(
         // Pinned Icon
         if (isPinned) {
             Icon(
-                painter = painterResource(R.drawable.ic_push_pin),
+                painter = painterResource(Res.drawable.ic_push_pin),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier

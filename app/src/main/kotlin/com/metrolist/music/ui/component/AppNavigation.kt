@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.metrolist.music.ui.screens.Screens
 import kotlinx.coroutines.delay
@@ -117,7 +117,7 @@ fun AppNavigationRail(
                 interactionSource = interactionSource,
                 icon = {
                     Icon(
-                        painter = painterResource(id = iconRes),
+                        painter = painterResource(iconRes),
                         contentDescription = stringResource(screen.titleId)
                     )
                 }
@@ -199,7 +199,7 @@ fun AppNavigationBar(
                 interactionSource = interactionSource,
                 icon = {
                     Icon(
-                        painter = painterResource(id = iconRes),
+                        painter = painterResource(iconRes),
                         contentDescription = stringResource(screen.titleId)
                     )
                 },

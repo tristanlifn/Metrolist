@@ -59,9 +59,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -76,7 +73,6 @@ import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.entities.Album
@@ -96,6 +92,19 @@ import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.AlbumViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_selected
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.other_versions
+import com.metrolist.music.resources.play
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -268,7 +277,7 @@ fun AlbumScreen(
                                 buildString {
                                     append(
                                         pluralStringResource(
-                                            R.plurals.n_song,
+                                            Res.plurals.n_song,
                                             albumWithSongs.songs.size,
                                             albumWithSongs.songs.size,
                                         ),
@@ -315,9 +324,9 @@ fun AlbumScreen(
                                             if (albumWithSongs.album.bookmarkedAt !=
                                                 null
                                             ) {
-                                                R.drawable.favorite
+                                                Res.drawable.favorite
                                             } else {
-                                                R.drawable.favorite_border
+                                                Res.drawable.favorite_border
                                             },
                                         ),
                                     contentDescription = null,
@@ -351,8 +360,8 @@ fun AlbumScreen(
                                 modifier = Modifier.fillMaxSize(),
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.play),
-                                    contentDescription = stringResource(R.string.play),
+                                    painter = painterResource(Res.drawable.play),
+                                    contentDescription = stringResource(Res.string.play),
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(32.dp),
                                 )
@@ -382,7 +391,7 @@ fun AlbumScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.more_vert),
+                                    painter = painterResource(Res.drawable.more_vert),
                                     contentDescription = null,
                                     modifier = Modifier.size(24.dp),
                                 )
@@ -429,7 +438,7 @@ fun AlbumScreen(
                                     },
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.more_vert),
+                                        painter = painterResource(Res.drawable.more_vert),
                                         contentDescription = null,
                                     )
                                 }
@@ -469,7 +478,7 @@ fun AlbumScreen(
             if (otherVersions.isNotEmpty()) {
                 item(key = "other_versions_title") {
                     NavigationTitle(
-                        title = stringResource(R.string.other_versions),
+                        title = stringResource(Res.string.other_versions),
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -523,7 +532,7 @@ fun AlbumScreen(
     TopAppBar(
         title = {
             if (inSelectMode) {
-                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                Text(pluralStringResource(Res.plurals.n_selected, selection.size, selection.size))
             } else {
                 Text(
                     text = albumWithSongs?.album?.title.orEmpty(),
@@ -537,7 +546,7 @@ fun AlbumScreen(
             if (inSelectMode) {
                 IconButton(onClick = onExitSelectionMode) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(Res.drawable.close),
                         contentDescription = null,
                     )
                 }
@@ -547,7 +556,7 @@ fun AlbumScreen(
                     onLongClick = { navController.backToMain() },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
+                        painter = painterResource(Res.drawable.arrow_back),
                         contentDescription = null,
                     )
                 }
@@ -582,7 +591,7 @@ fun AlbumScreen(
                     },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                     )
                 }

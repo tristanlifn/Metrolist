@@ -12,11 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.models.WatchEndpoint
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.Playlist
@@ -25,6 +23,9 @@ import com.metrolist.music.ui.menu.ArtistMenu
 import com.metrolist.music.ui.menu.PlaylistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import kotlinx.coroutines.CoroutineScope
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.more_vert
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun LibraryArtistListItem(
@@ -49,7 +50,7 @@ fun LibraryArtistListItem(
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.more_vert),
+                    painter = painterResource(Res.drawable.more_vert),
                     contentDescription = null
                 )
             }
@@ -118,7 +119,7 @@ fun LibraryAlbumListItem(
             }
         ) {
             Icon(
-                painter = painterResource(R.drawable.more_vert),
+                painter = painterResource(Res.drawable.more_vert),
                 contentDescription = null
             )
         }
@@ -218,7 +219,7 @@ fun LibraryPlaylistListItem(
             }
         ) {
             Icon(
-                painter = painterResource(R.drawable.more_vert),
+                painter = painterResource(Res.drawable.more_vert),
                 contentDescription = null
             )
         }

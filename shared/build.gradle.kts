@@ -12,9 +12,16 @@ plugins {
 val syncAppResources = tasks.register<Sync>("syncAppResources") {
     val appRes = rootProject.layout.projectDirectory.dir("app/src/main/res")
     from(appRes) {
-        include("values*/strings.xml", "values*/metrolist_strings.xml", "drawable/*.png", "drawable/*.xml")
+        include("values*/strings.xml", "values*/metrolist_strings.xml", "values*/app_name.xml", "drawable/*.png", "drawable/*.xml")
         // Compose resources only load vector XML; shapes and layer lists are Android widget backgrounds.
-        eachFile { if (name.endsWith(".xml") && path.startsWith("drawable/") && "<vector" !in file.readText()) exclude() }
+        // App-colour references (@color/) only appear in home screen widget icons, which the shared UI never shows.
+        eachFile {
+            if (name.endsWith(".xml") && path.startsWith("drawable/")) {
+                // file is unavailable once a filter applies, so read the source directly.
+                val text = appRes.file(path).asFile.readText()
+                if ("<vector" !in text || "@color/" in text) exclude()
+            }
+        }
         // Compose resources have no script qualifier.
         eachFile { path = path.replace("values-b+sr+Latn/", "values-sr/") }
     }
@@ -25,7 +32,16 @@ val syncAppResources = tasks.register<Sync>("syncAppResources") {
     }
     // Compose resources keep Android's \' \" \\ escapes literally and only substitute numbered arguments.
     // Gradle doesn't track filter lambdas; bump this when the conversion below changes.
-    inputs.property("conversionVersion", 2)
+    inputs.property("conversionVersion", 4)
+    // The Compose vector parser only takes literal colours and dp/px sizes; Icon applies its own tint, so the theme tint can go.
+    filesMatching("drawable/*.xml") {
+        filter { line ->
+            line
+                .replace("@android:color/white", "#FFFFFFFF")
+                .replace(Regex("""(android:(?:width|height)="[\d.]+)dip""""), "\$1dp\"")
+                .replace(Regex("""\s*android:tint="\?attr/colorControlNormal""""), "")
+        }
+    }
     filesMatching("values*/*strings.xml") {
         filter { line ->
             line
@@ -52,7 +68,9 @@ kotlin {
 
     android {
         namespace = "com.metrolist.shared"
-        compileSdk = 37
+        compileSdk {
+            version = release(37) { minorApiLevel = 1 }
+        }
         minSdk = 26
         androidResources { enable = true }
     }
@@ -64,6 +82,10 @@ kotlin {
             api(libs.room.runtime)
             api(libs.compose.multiplatform.runtime)
             api(libs.compose.components.resources)
+            api(libs.compose.multiplatform.foundation)
+            api(libs.compose.multiplatform.ui)
+            api(libs.compose.multiplatform.animation)
+            api(libs.compose.multiplatform.material3)
             api(libs.datastore.preferences.core)
             api(libs.kermit)
             implementation(libs.kuromoji.ipadic)

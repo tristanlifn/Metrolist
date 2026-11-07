@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens
 
+import com.metrolist.music.ui.screens.wrapped.WrappedManager
+import org.koin.compose.koinInject
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -80,8 +82,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -173,6 +173,39 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.min
 import kotlin.random.Random
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.and
+import com.metrolist.music.resources.daily_discover_based_on
+import com.metrolist.music.resources.daily_discover_because_you_listen_to
+import com.metrolist.music.resources.daily_discover_for_fans_of
+import com.metrolist.music.resources.daily_discover_similar_to
+import com.metrolist.music.resources.daily_discover_sounds_like
+import com.metrolist.music.resources.episodes_for_later
+import com.metrolist.music.resources.forgotten_favorites
+import com.metrolist.music.resources.found_in_settings_content
+import com.metrolist.music.resources.from_the_community
+import com.metrolist.music.resources.ic_widget_play
+import com.metrolist.music.resources.keep_listening
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.mixes
+import com.metrolist.music.resources.mood_and_genres
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.open
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.plays
+import com.metrolist.music.resources.podcast_channels
+import com.metrolist.music.resources.quick_picks
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.similar_to
+import com.metrolist.music.resources.speed_dial
+import com.metrolist.music.resources.wrapped_ready_subtitle
+import com.metrolist.music.resources.wrapped_ready_title
+import com.metrolist.music.resources.your_daily_discover
+import com.metrolist.music.resources.your_shows
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 sealed class HomeSection(
     val id: String,
@@ -375,7 +408,7 @@ fun CommunityPlaylistCard(
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = song.artists.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                                text = song.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                                     ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
@@ -409,7 +442,7 @@ fun CommunityPlaylistCard(
                             .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_widget_play),
+                        painter = painterResource(Res.drawable.ic_widget_play),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(24.dp),
@@ -430,7 +463,7 @@ fun CommunityPlaylistCard(
                             .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), CircleShape),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.radio),
+                        painter = painterResource(Res.drawable.radio),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(24.dp),
@@ -490,7 +523,7 @@ fun CommunityPlaylistCard(
                             .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), CircleShape),
                 ) {
                     Icon(
-                        painter = painterResource(if (isBookmarked) R.drawable.library_add_check else R.drawable.library_add),
+                        painter = painterResource(if (isBookmarked) Res.drawable.library_add_check else Res.drawable.library_add),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(24.dp),
@@ -516,7 +549,7 @@ fun DailyDiscoverCard(
     val artistNameAliases = LocalArtistNameAliases.current
 
     val song = dailyDiscover.recommendation as? SongItem
-    val playsString = stringResource(R.string.plays)
+    val playsString = stringResource(Res.string.plays)
 
     Card(
         modifier =
@@ -596,7 +629,7 @@ fun DailyDiscoverCard(
                                     append(
                                         (dailyDiscover.recommendation as? SongItem)
                                             ?.artists
-                                            ?.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                                            ?.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                                                 ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                                             }.orEmpty(),
                                     )
@@ -611,11 +644,11 @@ fun DailyDiscoverCard(
 
                     val messages =
                         listOf(
-                            R.string.daily_discover_sounds_like,
-                            R.string.daily_discover_because_you_listen_to,
-                            R.string.daily_discover_similar_to,
-                            R.string.daily_discover_based_on,
-                            R.string.daily_discover_for_fans_of,
+                            Res.string.daily_discover_sounds_like,
+                            Res.string.daily_discover_because_you_listen_to,
+                            Res.string.daily_discover_similar_to,
+                            Res.string.daily_discover_based_on,
+                            Res.string.daily_discover_for_fans_of,
                         )
                     val messageRes =
                         remember(dailyDiscover.seed.id) {
@@ -626,7 +659,7 @@ fun DailyDiscoverCard(
                         text =
                             stringResource(
                                 messageRes,
-                                "${dailyDiscover.seed.title} • ${dailyDiscover.seed.artists.joinToArtistString(" ${stringResource(R.string.and)} ") {
+                                "${dailyDiscover.seed.title} • ${dailyDiscover.seed.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") {
                                     ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                                 }}",
                             ),
@@ -698,7 +731,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) { viewModel.loadHomeData() }
 
     val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsStateWithLifecycle()
-    val wrappedState by viewModel.wrappedManager.state.collectAsStateWithLifecycle()
+    val wrappedState by koinInject<WrappedManager>().state.collectAsStateWithLifecycle()
     val isWrappedDataReady = wrappedState.isDataReady
 
     val isLoggedIn =
@@ -771,7 +804,7 @@ fun HomeScreen(
         }
     }
 
-    val foundInSettings = stringResource(R.string.found_in_settings_content)
+    val foundInSettings = stringResource(Res.string.found_in_settings_content)
     LaunchedEffect(wrappedDismissed) {
         if (wrappedDismissed) {
             viewModel.markWrappedAsSeen()
@@ -1228,7 +1261,7 @@ fun HomeScreen(
                     if (savedPodcastShows.isNotEmpty()) {
                         item(key = "00_your_shows_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.your_shows),
+                                title = stringResource(Res.string.your_shows),
                                 onClick = {
                                     navController.navigate("youtube_browse/FEmusic_library_non_music_audio_list")
                                 },
@@ -1253,7 +1286,7 @@ fun HomeScreen(
                     if (episodesForLater.isNotEmpty()) {
                         item(key = "00_episodes_for_later_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.episodes_for_later),
+                                title = stringResource(Res.string.episodes_for_later),
                                 onClick = {
                                     navController.navigate("online_playlist/SE")
                                 },
@@ -1279,7 +1312,7 @@ fun HomeScreen(
                     if (featuredPodcasts.isNotEmpty() && savedPodcastShows.isEmpty()) {
                         item(key = "0_podcast_channels_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.podcast_channels),
+                                title = stringResource(Res.string.podcast_channels),
                             )
                         }
 
@@ -1404,7 +1437,7 @@ fun HomeScreen(
                                             verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
                                         ) {
                                             Text(
-                                                text = stringResource(R.string.wrapped_ready_title),
+                                                text = stringResource(Res.string.wrapped_ready_title),
                                                 style =
                                                     MaterialTheme.typography.headlineLarge.copy(
                                                         fontFamily = bbhFont,
@@ -1413,7 +1446,7 @@ fun HomeScreen(
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(
-                                                text = stringResource(R.string.wrapped_ready_subtitle),
+                                                text = stringResource(Res.string.wrapped_ready_subtitle),
                                                 style =
                                                     MaterialTheme.typography.bodyLarge.copy(
                                                         textAlign = TextAlign.Center,
@@ -1423,7 +1456,7 @@ fun HomeScreen(
                                             Button(onClick = {
                                                 navController.navigate("wrapped")
                                             }) {
-                                                Text(stringResource(R.string.open))
+                                                Text(stringResource(Res.string.open))
                                             }
                                         }
                                     } else {
@@ -1441,7 +1474,7 @@ fun HomeScreen(
                             speedDialItems.takeIf { it.isNotEmpty() }?.let { items ->
                                 item(key = "speed_dial_title") {
                                     NavigationTitle(
-                                        title = stringResource(R.string.speed_dial),
+                                        title = stringResource(Res.string.speed_dial),
                                     )
                                 }
 
@@ -1762,7 +1795,7 @@ fun HomeScreen(
                         HomeSection.QuickPicks -> {
                             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                                 item(key = "quick_picks_title") {
-                                    val quickPicksTitle = stringResource(R.string.quick_picks)
+                                    val quickPicksTitle = stringResource(Res.string.quick_picks)
                                     NavigationTitle(
                                         title = quickPicksTitle,
                                         onPlayAllClick =
@@ -1822,7 +1855,7 @@ fun HomeScreen(
                                                         },
                                                     ) {
                                                         Icon(
-                                                            painter = painterResource(R.drawable.more_vert),
+                                                            painter = painterResource(Res.drawable.more_vert),
                                                             contentDescription = null,
                                                         )
                                                     }
@@ -1872,7 +1905,7 @@ fun HomeScreen(
                             communityPlaylists?.takeIf { it.isNotEmpty() }?.let { playlists ->
                                 item(key = "community_playlists_title") {
                                     NavigationTitle(
-                                        title = stringResource(R.string.from_the_community),
+                                        title = stringResource(Res.string.from_the_community),
                                     )
                                 }
 
@@ -1907,7 +1940,7 @@ fun HomeScreen(
                         HomeSection.DailyDiscover -> {
                             dailyDiscover?.takeIf { it.isNotEmpty() }?.let { discoverList ->
                                 item(key = "daily_discover_title") {
-                                    val title = stringResource(R.string.your_daily_discover)
+                                    val title = stringResource(Res.string.your_daily_discover)
                                     NavigationTitle(
                                         title = title,
                                         onPlayAllClick = {
@@ -1983,7 +2016,7 @@ fun HomeScreen(
                             keepListening?.takeIf { it.isNotEmpty() }?.let { keepListening ->
                                 item(key = "keep_listening_title") {
                                     NavigationTitle(
-                                        title = stringResource(R.string.keep_listening),
+                                        title = stringResource(Res.string.keep_listening),
                                     )
                                 }
 
@@ -2023,7 +2056,7 @@ fun HomeScreen(
                             accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                                 item(key = "account_playlists_title") {
                                     NavigationTitle(
-                                        label = stringResource(R.string.mixes),
+                                        label = stringResource(Res.string.mixes),
                                         title = accountName,
                                         thumbnail = {
                                             if (url != null) {
@@ -2036,8 +2069,8 @@ fun HomeScreen(
                                                             .diskCacheKey(url)
                                                             .crossfade(false)
                                                             .build(),
-                                                    placeholder = painterResource(id = R.drawable.person),
-                                                    error = painterResource(id = R.drawable.person),
+                                                    placeholder = painterResource(Res.drawable.person),
+                                                    error = painterResource(Res.drawable.person),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.Crop,
                                                     modifier =
@@ -2047,7 +2080,7 @@ fun HomeScreen(
                                                 )
                                             } else {
                                                 Icon(
-                                                    painter = painterResource(id = R.drawable.person),
+                                                    painter = painterResource(Res.drawable.person),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(ListThumbnailSize),
                                                 )
@@ -2080,7 +2113,7 @@ fun HomeScreen(
                         HomeSection.ForgottenFavorites -> {
                             forgottenFavorites?.takeIf { it.isNotEmpty() }?.let { forgottenFavorites ->
                                 item(key = "forgotten_favorites_title") {
-                                    val forgottenFavoritesTitle = stringResource(R.string.forgotten_favorites)
+                                    val forgottenFavoritesTitle = stringResource(Res.string.forgotten_favorites)
                                     NavigationTitle(
                                         title = forgottenFavoritesTitle,
                                         onPlayAllClick =
@@ -2145,7 +2178,7 @@ fun HomeScreen(
                                                         },
                                                     ) {
                                                         Icon(
-                                                            painter = painterResource(R.drawable.more_vert),
+                                                            painter = painterResource(Res.drawable.more_vert),
                                                             contentDescription = null,
                                                         )
                                                     }
@@ -2196,7 +2229,7 @@ fun HomeScreen(
                             recommendation?.let {
                                 item(key = "similar_to_title_${section.index}") {
                                     NavigationTitle(
-                                        label = stringResource(R.string.similar_to),
+                                        label = stringResource(Res.string.similar_to),
                                         title = recommendation.title.title,
                                         thumbnail =
                                             recommendation.title.thumbnailUrl?.let { thumbnailUrl ->
@@ -2373,7 +2406,7 @@ fun HomeScreen(
                                                             },
                                                         ) {
                                                             Icon(
-                                                                painter = painterResource(R.drawable.more_vert),
+                                                                painter = painterResource(Res.drawable.more_vert),
                                                                 contentDescription = null,
                                                             )
                                                         }
@@ -2442,7 +2475,7 @@ fun HomeScreen(
                             explorePage?.moodAndGenres?.let { moodAndGenres ->
                                 item(key = "mood_and_genres_title") {
                                     NavigationTitle(
-                                        title = stringResource(R.string.mood_and_genres),
+                                        title = stringResource(Res.string.mood_and_genres),
                                         onClick = {
                                             navController.navigate("mood_and_genres")
                                         },
@@ -2531,7 +2564,7 @@ fun HomeScreen(
             HideOnScrollFAB(
                 visible = allLocalItems.isNotEmpty() || allYtItems.isNotEmpty(),
                 lazyListState = lazylistState,
-                icon = R.drawable.shuffle,
+                icon = Res.drawable.shuffle,
                 onClick = {
                     if (!isListenTogetherGuest) {
                         val local =

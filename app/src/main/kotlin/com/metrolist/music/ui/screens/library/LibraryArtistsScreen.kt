@@ -41,15 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.ArtistFilter
 import com.metrolist.music.constants.ArtistFilterKey
 import com.metrolist.music.constants.ArtistSortDescendingKey
@@ -75,6 +71,27 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LibraryArtistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.artist
+import com.metrolist.music.resources.artists
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.filter_library
+import com.metrolist.music.resources.filter_liked
+import com.metrolist.music.resources.grid_view
+import com.metrolist.music.resources.library_artist_empty
+import com.metrolist.music.resources.list
+import com.metrolist.music.resources.n_artist
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import com.metrolist.music.resources.sort_by_song_count
+import com.metrolist.music.resources.switch_to_grid_view
+import com.metrolist.music.resources.switch_to_list_view
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -102,20 +119,20 @@ fun LibraryArtistsScreen(
         Row {
             Spacer(Modifier.width(12.dp))
             FilterChip(
-                label = { Text(stringResource(R.string.artists)) },
+                label = { Text(stringResource(Res.string.artists)) },
                 selected = true,
                 colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
                 onClick = onDeselect,
                 shape = RoundedCornerShape(16.dp),
                 leadingIcon = {
-                    Icon(painter = painterResource(R.drawable.close), contentDescription = "")
+                    Icon(painter = painterResource(Res.drawable.close), contentDescription = "")
                 },
             )
             ChipsRow(
                 chips =
                 listOf(
-                    ArtistFilter.LIKED to stringResource(R.string.filter_liked),
-                    ArtistFilter.LIBRARY to stringResource(R.string.filter_library)
+                    ArtistFilter.LIKED to stringResource(Res.string.filter_liked),
+                    ArtistFilter.LIBRARY to stringResource(Res.string.filter_library)
                 ),
                 currentValue = filter,
                 onValueUpdate = {
@@ -173,10 +190,10 @@ fun LibraryArtistsScreen(
                 onSortDescendingChange = onSortDescendingChange,
                 sortTypeText = { sortType ->
                     when (sortType) {
-                        ArtistSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        ArtistSortType.NAME -> R.string.sort_by_name
-                        ArtistSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        ArtistSortType.PLAY_TIME -> R.string.sort_by_play_time
+                        ArtistSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                        ArtistSortType.NAME -> Res.string.sort_by_name
+                        ArtistSortType.SONG_COUNT -> Res.string.sort_by_song_count
+                        ArtistSortType.PLAY_TIME -> Res.string.sort_by_play_time
                     }
                 },
             )
@@ -185,7 +202,7 @@ fun LibraryArtistsScreen(
 
             Text(
                 text = pluralStringResource(
-                    R.plurals.n_artist,
+                    Res.plurals.n_artist,
                     filteredArtists.size,
                     filteredArtists.size,
                 ),
@@ -198,8 +215,8 @@ fun LibraryArtistsScreen(
                 modifier = Modifier.padding(start = 8.dp).size(40.dp),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.search),
-                    contentDescription = stringResource(R.string.search),
+                    painter = painterResource(Res.drawable.search),
+                    contentDescription = stringResource(Res.string.search),
                 )
             }
 
@@ -213,14 +230,14 @@ fun LibraryArtistsScreen(
                     painter =
                     painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+                            LibraryViewType.LIST -> Res.drawable.list
+                            LibraryViewType.GRID -> Res.drawable.grid_view
                         },
                     ),
                     contentDescription = stringResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.string.switch_to_grid_view
-                            LibraryViewType.GRID -> R.string.switch_to_list_view
+                            LibraryViewType.LIST -> Res.string.switch_to_grid_view
+                            LibraryViewType.GRID -> Res.string.switch_to_list_view
                         },
                     ),
                 )
@@ -256,14 +273,14 @@ fun LibraryArtistsScreen(
                             item(key = "empty_placeholder") {
                                 if (searchQuery.isNotBlank()) {
                                     LibrarySearchEmptyPlaceholder(
-                                        icon = R.drawable.search,
-                                        text = stringResource(R.string.no_results_found),
+                                        icon = Res.drawable.search,
+                                        text = stringResource(Res.string.no_results_found),
                                         modifier = Modifier.animateItem(),
                                     )
                                 } else {
                                     LibrarySearchEmptyPlaceholder(
-                                        icon = R.drawable.artist,
-                                        text = stringResource(R.string.library_artist_empty),
+                                        icon = Res.drawable.artist,
+                                        text = stringResource(Res.string.library_artist_empty),
                                         modifier = Modifier.animateItem(),
                                     )
                                 }
@@ -315,14 +332,14 @@ fun LibraryArtistsScreen(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 if (searchQuery.isNotBlank()) {
                                     LibrarySearchEmptyPlaceholder(
-                                        icon = R.drawable.search,
-                                        text = stringResource(R.string.no_results_found),
+                                        icon = Res.drawable.search,
+                                        text = stringResource(Res.string.no_results_found),
                                         modifier = Modifier.animateItem(),
                                     )
                                 } else {
                                     LibrarySearchEmptyPlaceholder(
-                                        icon = R.drawable.artist,
-                                        text = stringResource(R.string.library_artist_empty),
+                                        icon = Res.drawable.artist,
+                                        text = stringResource(Res.string.library_artist_empty),
                                         modifier = Modifier.animateItem(),
                                     )
                                 }

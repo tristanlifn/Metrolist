@@ -57,8 +57,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -86,7 +84,6 @@ import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.innertube.models.YTItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.MiniPlayerBottomSpacing
@@ -115,6 +112,33 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.OnlineSearchViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.albums
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.artists
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.dismiss
+import com.metrolist.music.resources.filter_albums
+import com.metrolist.music.resources.filter_all
+import com.metrolist.music.resources.filter_artists
+import com.metrolist.music.resources.filter_community_playlists
+import com.metrolist.music.resources.filter_episodes
+import com.metrolist.music.resources.filter_featured_playlists
+import com.metrolist.music.resources.filter_podcasts
+import com.metrolist.music.resources.filter_profiles
+import com.metrolist.music.resources.filter_songs
+import com.metrolist.music.resources.filter_videos
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.other
+import com.metrolist.music.resources.playlists
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.search_yt_music
+import com.metrolist.music.resources.songs
+import com.metrolist.music.resources.top_result
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -296,7 +320,7 @@ fun OnlineSearchResult(
                     onClick = longClick,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                     )
                 }
@@ -376,7 +400,7 @@ fun OnlineSearchResult(
             },
             placeholder = {
                 Text(
-                    text = stringResource(R.string.search_yt_music),
+                    text = stringResource(Res.string.search_yt_music),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -386,8 +410,8 @@ fun OnlineSearchResult(
                     onClick = { navController.navigateUp() },
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = stringResource(R.string.dismiss),
+                        painter = painterResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.dismiss),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -400,7 +424,7 @@ fun OnlineSearchResult(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(Res.drawable.close),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -455,23 +479,23 @@ fun OnlineSearchResult(
             ) {
                 val visibleChips =
                     listOf(
-                        null to stringResource(R.string.filter_all),
-                        FILTER_SONG to stringResource(R.string.filter_songs),
+                        null to stringResource(Res.string.filter_all),
+                        FILTER_SONG to stringResource(Res.string.filter_songs),
                     ).let { baseChips ->
                         if (!hideVideoSongs) {
-                            baseChips + (FILTER_VIDEO to stringResource(R.string.filter_videos))
+                            baseChips + (FILTER_VIDEO to stringResource(Res.string.filter_videos))
                         } else {
                             baseChips
                         }
                     } +
                         listOf(
-                            FILTER_ALBUM to stringResource(R.string.filter_albums),
-                            FILTER_ARTIST to stringResource(R.string.filter_artists),
-                            FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
-                            FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists),
-                            FILTER_PODCAST to stringResource(R.string.filter_podcasts),
-                            FILTER_EPISODE to stringResource(R.string.filter_episodes),
-                            FILTER_PROFILE to stringResource(R.string.filter_profiles),
+                            FILTER_ALBUM to stringResource(Res.string.filter_albums),
+                            FILTER_ARTIST to stringResource(Res.string.filter_artists),
+                            FILTER_COMMUNITY_PLAYLIST to stringResource(Res.string.filter_community_playlists),
+                            FILTER_FEATURED_PLAYLIST to stringResource(Res.string.filter_featured_playlists),
+                            FILTER_PODCAST to stringResource(Res.string.filter_podcasts),
+                            FILTER_EPISODE to stringResource(Res.string.filter_episodes),
+                            FILTER_PROFILE to stringResource(Res.string.filter_profiles),
                         )
 
                 ChipsRow(
@@ -508,8 +532,8 @@ fun OnlineSearchResult(
                         if (searchSummary?.summaries?.isEmpty() == true) {
                             item {
                                 EmptyPlaceholder(
-                                    icon = R.drawable.search,
-                                    text = stringResource(R.string.no_results_found),
+                                    icon = Res.drawable.search,
+                                    text = stringResource(Res.string.no_results_found),
                                 )
                             }
                         }
@@ -533,8 +557,8 @@ fun OnlineSearchResult(
                         if (itemsPage?.items?.isEmpty() == true) {
                             item {
                                 EmptyPlaceholder(
-                                    icon = R.drawable.search,
-                                    text = stringResource(R.string.no_results_found),
+                                    icon = Res.drawable.search,
+                                    text = stringResource(Res.string.no_results_found),
                                 )
                             }
                         }
@@ -569,7 +593,7 @@ fun OnlineSearchResult(
             }
             HideOnScrollFAB(
                 lazyListState = lazyListState,
-                icon = R.drawable.mic,
+                icon = Res.drawable.mic,
                 onClick = { navController.navigate("recognition") },
             )
         }
@@ -579,15 +603,15 @@ fun OnlineSearchResult(
 @Composable
 private fun String.toLocalizedSearchSection(): String =
     when (this) {
-        YouTubeConstants.DEFAULT_TOP_RESULT -> stringResource(R.string.top_result)
-        YouTubeConstants.DEFAULT_OTHER_RESULTS -> stringResource(R.string.other)
-        "Songs" -> stringResource(R.string.songs)
-        "Videos" -> stringResource(R.string.filter_videos)
-        "Albums" -> stringResource(R.string.albums)
-        "Artists" -> stringResource(R.string.artists)
-        "Playlists" -> stringResource(R.string.playlists)
-        "Podcasts" -> stringResource(R.string.filter_podcasts)
-        "Episodes" -> stringResource(R.string.filter_episodes)
-        "Profiles" -> stringResource(R.string.filter_profiles)
+        YouTubeConstants.DEFAULT_TOP_RESULT -> stringResource(Res.string.top_result)
+        YouTubeConstants.DEFAULT_OTHER_RESULTS -> stringResource(Res.string.other)
+        "Songs" -> stringResource(Res.string.songs)
+        "Videos" -> stringResource(Res.string.filter_videos)
+        "Albums" -> stringResource(Res.string.albums)
+        "Artists" -> stringResource(Res.string.artists)
+        "Playlists" -> stringResource(Res.string.playlists)
+        "Podcasts" -> stringResource(Res.string.filter_podcasts)
+        "Episodes" -> stringResource(Res.string.filter_episodes)
+        "Profiles" -> stringResource(Res.string.filter_profiles)
         else -> this
     }

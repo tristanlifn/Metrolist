@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -26,18 +25,21 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.ui.utils.isScrollingUp
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.recognize_music
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyListState,
-    @DrawableRes icon: Int,
+    icon: DrawableResource,
     onClick: () -> Unit,
     onRecognitionClick: (() -> Unit)? = null,
 ) {
@@ -65,8 +67,8 @@ fun BoxScope.HideOnScrollFAB(
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.mic),
-                        contentDescription = stringResource(R.string.recognize_music),
+                        painter = painterResource(Res.drawable.mic),
+                        contentDescription = stringResource(Res.string.recognize_music),
                         modifier = Modifier.size(20.dp)
                     )
                 }

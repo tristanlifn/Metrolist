@@ -26,14 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.play
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun PlayingIndicator(
@@ -108,7 +109,7 @@ fun PlayingIndicatorBox(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(Res.drawable.play),
                     contentDescription = null,
                     tint = color,
                 )

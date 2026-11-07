@@ -27,14 +27,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -47,6 +44,18 @@ import com.metrolist.music.utils.ArtistNameAliases
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.pin
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.start_radio
+import com.metrolist.music.resources.subscribe
+import com.metrolist.music.resources.subscribed
+import com.metrolist.music.resources.unpin
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -93,13 +102,13 @@ fun YouTubeArtistMenu(
                                 NewAction(
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.radio),
+                                            painter = painterResource(Res.drawable.radio),
                                             contentDescription = null,
                                             modifier = Modifier.size(28.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     },
-                                    text = stringResource(R.string.start_radio),
+                                    text = stringResource(Res.string.start_radio),
                                     onClick = {
                                         playerConnection.playQueue(YouTubeQueue(watchEndpoint))
                                         onDismiss()
@@ -113,13 +122,13 @@ fun YouTubeArtistMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                    painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            text = if (isPinned) stringResource(R.string.unpin) else stringResource(R.string.pin),
+                            text = if (isPinned) stringResource(Res.string.unpin) else stringResource(Res.string.pin),
                             onClick = {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     if (isPinned) {
@@ -137,13 +146,13 @@ fun YouTubeArtistMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.share),
+                                    painter = painterResource(Res.drawable.share),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            text = stringResource(R.string.share),
+                            text = stringResource(Res.string.share),
                             onClick = {
                                 val intent = Intent().apply {
                                     action = Intent.ACTION_SEND
@@ -166,15 +175,15 @@ fun YouTubeArtistMenu(
                 items = listOf(
                     Material3MenuItemData(
                         title = {
-                            Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
+                            Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(Res.string.subscribed) else stringResource(Res.string.subscribe))
                         },
                         icon = {
                             Icon(
                                 painter = painterResource(
                                     if (libraryArtist?.artist?.bookmarkedAt != null) {
-                                        R.drawable.subscribed
+                                        Res.drawable.subscribed
                                     } else {
-                                        R.drawable.subscribe
+                                        Res.drawable.subscribe
                                     }
                                 ),
                                 contentDescription = null,

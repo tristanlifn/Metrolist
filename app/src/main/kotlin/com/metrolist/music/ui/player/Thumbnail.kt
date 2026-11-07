@@ -56,8 +56,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -86,6 +84,12 @@ import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.delay
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.hide_player_thumbnail
+import com.metrolist.music.resources.now_playing
+import com.metrolist.music.resources.small_icon
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -428,7 +432,7 @@ private fun ThumbnailHeader(
                 )
             } else {
                 Text(
-                    text = stringResource(R.string.now_playing),
+                    text = stringResource(Res.string.now_playing),
                     style = MaterialTheme.typography.titleMedium,
                     color = textColor
                 )
@@ -567,8 +571,8 @@ private fun HiddenThumbnailPlaceholder(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(R.drawable.small_icon),
-            contentDescription = stringResource(R.string.hide_player_thumbnail),
+            painter = painterResource(Res.drawable.small_icon),
+            contentDescription = stringResource(Res.string.hide_player_thumbnail),
             tint = textBackgroundColor.copy(alpha = 0.7f),
             modifier = Modifier.size(120.dp)
         )

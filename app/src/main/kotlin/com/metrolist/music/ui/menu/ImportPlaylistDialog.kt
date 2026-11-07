@@ -13,16 +13,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.ui.component.TextFieldDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.import_playlist
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ImportPlaylistDialog(
@@ -41,8 +43,8 @@ fun ImportPlaylistDialog(
 
     if (isVisible) {
         TextFieldDialog(
-            icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
-            title = { Text(text = stringResource(R.string.import_playlist)) },
+            icon = { Icon(painter = painterResource(Res.drawable.add), contentDescription = null) },
+            title = { Text(text = stringResource(Res.string.import_playlist)) },
             initialTextFieldValue = textFieldValue,
             autoFocus = false,
             onDismiss = onDismiss,

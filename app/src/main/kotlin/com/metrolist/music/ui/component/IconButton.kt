@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Indication
@@ -31,13 +30,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun ResizableIconButton(
-    @DrawableRes icon: Int,
+    icon: DrawableResource,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
     enabled: Boolean = true,

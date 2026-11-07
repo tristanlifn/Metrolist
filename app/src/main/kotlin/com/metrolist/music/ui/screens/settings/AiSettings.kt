@@ -32,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -43,7 +42,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.AiProviderKey
 import com.metrolist.music.constants.AiSystemPromptKey
 import com.metrolist.music.constants.DEFAULT_AI_SYSTEM_PROMPT
@@ -60,6 +58,49 @@ import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ai_api_key
+import com.metrolist.music.resources.ai_base_url
+import com.metrolist.music.resources.ai_deepl_formality
+import com.metrolist.music.resources.ai_deepl_formality_default
+import com.metrolist.music.resources.ai_deepl_formality_less
+import com.metrolist.music.resources.ai_deepl_formality_more
+import com.metrolist.music.resources.ai_lyrics_translation
+import com.metrolist.music.resources.ai_model
+import com.metrolist.music.resources.ai_provider
+import com.metrolist.music.resources.ai_provider_claude_help
+import com.metrolist.music.resources.ai_provider_deepl_help
+import com.metrolist.music.resources.ai_provider_gemini_help
+import com.metrolist.music.resources.ai_provider_help
+import com.metrolist.music.resources.ai_provider_inception_help
+import com.metrolist.music.resources.ai_provider_mistral_help
+import com.metrolist.music.resources.ai_provider_openai_help
+import com.metrolist.music.resources.ai_provider_openrouter_help
+import com.metrolist.music.resources.ai_provider_perplexity_help
+import com.metrolist.music.resources.ai_provider_xai_help
+import com.metrolist.music.resources.ai_setup_guide
+import com.metrolist.music.resources.ai_system_prompt
+import com.metrolist.music.resources.ai_system_prompt_default
+import com.metrolist.music.resources.ai_system_prompt_reset
+import com.metrolist.music.resources.ai_target_language
+import com.metrolist.music.resources.ai_translation_literal
+import com.metrolist.music.resources.ai_translation_literal_desc
+import com.metrolist.music.resources.ai_translation_mode
+import com.metrolist.music.resources.ai_translation_transcribed
+import com.metrolist.music.resources.ai_translation_transcribed_desc
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.discover_tune
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.explore_outlined
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.key
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.not_set
+import com.metrolist.music.resources.translate
+import com.metrolist.music.resources.tune
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,15 +131,15 @@ fun AiSettings(navController: NavController) {
 
     val providerHelpText =
         mapOf(
-            "OpenRouter" to stringResource(R.string.ai_provider_openrouter_help),
-            "OpenAI" to stringResource(R.string.ai_provider_openai_help),
-            "Perplexity" to stringResource(R.string.ai_provider_perplexity_help),
-            "Claude" to stringResource(R.string.ai_provider_claude_help),
-            "Gemini" to stringResource(R.string.ai_provider_gemini_help),
-            "XAi" to stringResource(R.string.ai_provider_xai_help),
-            "Mistral" to stringResource(R.string.ai_provider_mistral_help),
-            "Inception" to stringResource(R.string.ai_provider_inception_help),
-            "DeepL" to stringResource(R.string.ai_provider_deepl_help),
+            "OpenRouter" to stringResource(Res.string.ai_provider_openrouter_help),
+            "OpenAI" to stringResource(Res.string.ai_provider_openai_help),
+            "Perplexity" to stringResource(Res.string.ai_provider_perplexity_help),
+            "Claude" to stringResource(Res.string.ai_provider_claude_help),
+            "Gemini" to stringResource(Res.string.ai_provider_gemini_help),
+            "XAi" to stringResource(Res.string.ai_provider_xai_help),
+            "Mistral" to stringResource(Res.string.ai_provider_mistral_help),
+            "Inception" to stringResource(Res.string.ai_provider_inception_help),
+            "DeepL" to stringResource(Res.string.ai_provider_deepl_help),
             "Custom" to "",
         )
 
@@ -187,8 +228,8 @@ fun AiSettings(navController: NavController) {
                     Text(stringResource(android.R.string.ok))
                 }
             },
-            icon = { Icon(painterResource(R.drawable.info), null) },
-            title = { Text(stringResource(R.string.ai_provider_help)) },
+            icon = { Icon(painterResource(Res.drawable.info), null) },
+            title = { Text(stringResource(Res.string.ai_provider_help)) },
             text = {
                 Column {
                     providerHelpText.forEach { (provider, help) ->
@@ -254,27 +295,27 @@ fun AiSettings(navController: NavController) {
                     Text(stringResource(android.R.string.ok))
                 }
             },
-            icon = { Icon(painterResource(R.drawable.info), null) },
-            title = { Text(stringResource(R.string.ai_translation_mode)) },
+            icon = { Icon(painterResource(Res.drawable.info), null) },
+            title = { Text(stringResource(Res.string.ai_translation_mode)) },
             text = {
                 Column {
                     Text(
-                        text = "${stringResource(R.string.ai_translation_literal)}:",
+                        text = "${stringResource(Res.string.ai_translation_literal)}:",
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 8.dp),
                     )
                     Text(
-                        text = stringResource(R.string.ai_translation_literal_desc),
+                        text = stringResource(Res.string.ai_translation_literal_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 12.dp),
                     )
 
                     Text(
-                        text = "${stringResource(R.string.ai_translation_transcribed)}:",
+                        text = "${stringResource(Res.string.ai_translation_transcribed)}:",
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
-                        text = stringResource(R.string.ai_translation_transcribed_desc),
+                        text = stringResource(Res.string.ai_translation_transcribed_desc),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -302,7 +343,7 @@ fun AiSettings(navController: NavController) {
                     }
                 showProviderDialog = false
             },
-            title = stringResource(R.string.ai_provider),
+            title = stringResource(Res.string.ai_provider),
             current = aiProvider,
             values = aiProviders.keys.toList(),
             valueText = { it },
@@ -316,13 +357,13 @@ fun AiSettings(navController: NavController) {
                 translateMode = it
                 showTranslateModeDialog = false
             },
-            title = stringResource(R.string.ai_translation_mode),
+            title = stringResource(Res.string.ai_translation_mode),
             current = translateMode,
             values = listOf("Literal", "Transcribed"),
             valueText = {
                 when (it) {
-                    "Literal" -> stringResource(R.string.ai_translation_literal)
-                    "Transcribed" -> stringResource(R.string.ai_translation_transcribed)
+                    "Literal" -> stringResource(Res.string.ai_translation_literal)
+                    "Transcribed" -> stringResource(Res.string.ai_translation_transcribed)
                     else -> it
                 }
             },
@@ -336,7 +377,7 @@ fun AiSettings(navController: NavController) {
                 translateLanguage = it
                 showLanguageDialog = false
             },
-            title = stringResource(R.string.ai_target_language),
+            title = stringResource(Res.string.ai_target_language),
             current = translateLanguage,
             values = LanguageCodeToName.keys.sortedBy { LanguageCodeToName[it] },
             valueText = { LanguageCodeToName[it] ?: it },
@@ -345,8 +386,8 @@ fun AiSettings(navController: NavController) {
 
     if (showApiKeyDialog) {
         TextFieldDialog(
-            title = { Text(stringResource(R.string.ai_api_key)) },
-            icon = { Icon(painterResource(R.drawable.key), null) },
+            title = { Text(stringResource(Res.string.ai_api_key)) },
+            icon = { Icon(painterResource(Res.drawable.key), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterApiKey),
             onDone = {
                 openRouterApiKey = it
@@ -358,8 +399,8 @@ fun AiSettings(navController: NavController) {
 
     if (showDeeplApiKeyDialog) {
         TextFieldDialog(
-            title = { Text("DeepL ${stringResource(R.string.ai_api_key)}") },
-            icon = { Icon(painterResource(R.drawable.key), null) },
+            title = { Text("DeepL ${stringResource(Res.string.ai_api_key)}") },
+            icon = { Icon(painterResource(Res.drawable.key), null) },
             initialTextFieldValue = TextFieldValue(text = deeplApiKey),
             onDone = {
                 deeplApiKey = it
@@ -376,14 +417,14 @@ fun AiSettings(navController: NavController) {
                 deeplFormality = it
                 showDeeplFormalityDialog = false
             },
-            title = stringResource(R.string.ai_deepl_formality),
+            title = stringResource(Res.string.ai_deepl_formality),
             current = deeplFormality,
             values = listOf("default", "more", "less"),
             valueText = {
                 when (it) {
-                    "default" -> stringResource(R.string.ai_deepl_formality_default)
-                    "more" -> stringResource(R.string.ai_deepl_formality_more)
-                    "less" -> stringResource(R.string.ai_deepl_formality_less)
+                    "default" -> stringResource(Res.string.ai_deepl_formality_default)
+                    "more" -> stringResource(Res.string.ai_deepl_formality_more)
+                    "less" -> stringResource(Res.string.ai_deepl_formality_less)
                     else -> it
                 }
             },
@@ -392,8 +433,8 @@ fun AiSettings(navController: NavController) {
 
     if (showBaseUrlDialog && aiProvider == "Custom") {
         TextFieldDialog(
-            title = { Text(stringResource(R.string.ai_base_url)) },
-            icon = { Icon(painterResource(R.drawable.link), null) },
+            title = { Text(stringResource(Res.string.ai_base_url)) },
+            icon = { Icon(painterResource(Res.drawable.link), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterBaseUrl),
             onDone = {
                 openRouterBaseUrl = it
@@ -415,7 +456,7 @@ fun AiSettings(navController: NavController) {
                     showModelDialog = false
                 }
             },
-            title = stringResource(R.string.ai_model),
+            title = stringResource(Res.string.ai_model),
             current = if (openRouterModel in commonModels) openRouterModel else "custom_input",
             values = commonModels + "custom_input",
             valueText = {
@@ -426,8 +467,8 @@ fun AiSettings(navController: NavController) {
 
     if (showCustomModelInput) {
         TextFieldDialog(
-            title = { Text(stringResource(R.string.ai_model)) },
-            icon = { Icon(painterResource(R.drawable.discover_tune), null) },
+            title = { Text(stringResource(Res.string.ai_model)) },
+            icon = { Icon(painterResource(Res.drawable.discover_tune), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterModel),
             onDone = {
                 openRouterModel = it
@@ -439,8 +480,8 @@ fun AiSettings(navController: NavController) {
 
     if (showSystemPromptDialog) {
         TextFieldDialog(
-            title = { Text(stringResource(R.string.ai_system_prompt)) },
-            icon = { Icon(painterResource(R.drawable.edit), null) },
+            title = { Text(stringResource(Res.string.ai_system_prompt)) },
+            icon = { Icon(painterResource(Res.drawable.edit), null) },
             initialTextFieldValue = TextFieldValue(text = aiSystemPrompt.ifBlank { DEFAULT_AI_SYSTEM_PROMPT }),
             singleLine = false,
             maxLines = 12,
@@ -466,7 +507,7 @@ fun AiSettings(navController: NavController) {
                                 showSystemPromptDialog = false
                             },
                         ) {
-                            Text(stringResource(R.string.ai_system_prompt_reset))
+                            Text(stringResource(Res.string.ai_system_prompt_reset))
                         }
                     }
                 }
@@ -492,19 +533,19 @@ fun AiSettings(navController: NavController) {
         )
 
         Material3SettingsGroup(
-            title = stringResource(R.string.ai_provider),
+            title = stringResource(Res.string.ai_provider),
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.explore_outlined),
-                        title = { Text(stringResource(R.string.ai_provider)) },
+                        icon = painterResource(Res.drawable.explore_outlined),
+                        title = { Text(stringResource(Res.string.ai_provider)) },
                         description = { Text(aiProvider) },
                         onClick = { showProviderDialog = true },
                         trailingContent = {
                             IconButton(onClick = { showProviderHelpDialog = true }) {
                                 Icon(
-                                    painterResource(R.drawable.info),
-                                    contentDescription = stringResource(R.string.ai_provider_help),
+                                    painterResource(Res.drawable.info),
+                                    contentDescription = stringResource(Res.string.ai_provider_help),
                                     modifier = Modifier.size(20.dp),
                                 )
                             }
@@ -512,9 +553,9 @@ fun AiSettings(navController: NavController) {
                     ),
                     if (aiProvider == "Custom") {
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.link),
-                            title = { Text(stringResource(R.string.ai_base_url)) },
-                            description = { Text(openRouterBaseUrl.ifBlank { stringResource(R.string.not_set) }) },
+                            icon = painterResource(Res.drawable.link),
+                            title = { Text(stringResource(Res.string.ai_base_url)) },
+                            description = { Text(openRouterBaseUrl.ifBlank { stringResource(Res.string.not_set) }) },
                             onClick = { showBaseUrlDialog = true },
                         )
                     } else {
@@ -526,20 +567,20 @@ fun AiSettings(navController: NavController) {
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.ai_setup_guide),
+            title = stringResource(Res.string.ai_setup_guide),
             items =
                 buildList {
                     if (aiProvider == "DeepL") {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.key),
-                                title = { Text("DeepL ${stringResource(R.string.ai_api_key)}") },
+                                icon = painterResource(Res.drawable.key),
+                                title = { Text("DeepL ${stringResource(Res.string.ai_api_key)}") },
                                 description = {
                                     Text(
                                         if (deeplApiKey.isNotEmpty()) {
                                             "•".repeat(minOf(deeplApiKey.length, 8))
                                         } else {
-                                            stringResource(R.string.not_set)
+                                            stringResource(Res.string.not_set)
                                         },
                                     )
                                 },
@@ -548,14 +589,14 @@ fun AiSettings(navController: NavController) {
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.tune),
-                                title = { Text(stringResource(R.string.ai_deepl_formality)) },
+                                icon = painterResource(Res.drawable.tune),
+                                title = { Text(stringResource(Res.string.ai_deepl_formality)) },
                                 description = {
                                     Text(
                                         when (deeplFormality) {
-                                            "default" -> stringResource(R.string.ai_deepl_formality_default)
-                                            "more" -> stringResource(R.string.ai_deepl_formality_more)
-                                            "less" -> stringResource(R.string.ai_deepl_formality_less)
+                                            "default" -> stringResource(Res.string.ai_deepl_formality_default)
+                                            "more" -> stringResource(Res.string.ai_deepl_formality_more)
+                                            "less" -> stringResource(Res.string.ai_deepl_formality_less)
                                             else -> deeplFormality
                                         },
                                     )
@@ -566,14 +607,14 @@ fun AiSettings(navController: NavController) {
                     } else {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.key),
-                                title = { Text(stringResource(R.string.ai_api_key)) },
+                                icon = painterResource(Res.drawable.key),
+                                title = { Text(stringResource(Res.string.ai_api_key)) },
                                 description = {
                                     Text(
                                         if (openRouterApiKey.isNotEmpty()) {
                                             "•".repeat(minOf(openRouterApiKey.length, 8))
                                         } else {
-                                            stringResource(R.string.not_set)
+                                            stringResource(Res.string.not_set)
                                         },
                                     )
                                 },
@@ -582,9 +623,9 @@ fun AiSettings(navController: NavController) {
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.discover_tune),
-                                title = { Text(stringResource(R.string.ai_model)) },
-                                description = { Text(openRouterModel.ifBlank { stringResource(R.string.not_set) }) },
+                                icon = painterResource(Res.drawable.discover_tune),
+                                title = { Text(stringResource(Res.string.ai_model)) },
+                                description = { Text(openRouterModel.ifBlank { stringResource(Res.string.not_set) }) },
                                 onClick = { showModelDialog = true },
                             ),
                         )
@@ -595,19 +636,19 @@ fun AiSettings(navController: NavController) {
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.ai_translation_mode),
+            title = stringResource(Res.string.ai_translation_mode),
             items =
                 buildList {
                     if (aiProvider != "DeepL") {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.translate),
-                                title = { Text(stringResource(R.string.ai_translation_mode)) },
+                                icon = painterResource(Res.drawable.translate),
+                                title = { Text(stringResource(Res.string.ai_translation_mode)) },
                                 description = {
                                     Text(
                                         when (translateMode) {
-                                            "Literal" -> stringResource(R.string.ai_translation_literal)
-                                            "Transcribed" -> stringResource(R.string.ai_translation_transcribed)
+                                            "Literal" -> stringResource(Res.string.ai_translation_literal)
+                                            "Transcribed" -> stringResource(Res.string.ai_translation_transcribed)
                                             else -> translateMode
                                         },
                                     )
@@ -616,7 +657,7 @@ fun AiSettings(navController: NavController) {
                                 trailingContent = {
                                     IconButton(onClick = { showTranslateModeHelpDialog = true }) {
                                         Icon(
-                                            painterResource(R.drawable.info),
+                                            painterResource(Res.drawable.info),
                                             contentDescription = null,
                                             modifier = Modifier.size(20.dp),
                                         )
@@ -626,8 +667,8 @@ fun AiSettings(navController: NavController) {
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.edit),
-                                title = { Text(stringResource(R.string.ai_system_prompt)) },
+                                icon = painterResource(Res.drawable.edit),
+                                title = { Text(stringResource(Res.string.ai_system_prompt)) },
                                 description = {
                                     Text(
                                         if (aiSystemPrompt.isNotBlank()) {
@@ -635,7 +676,7 @@ fun AiSettings(navController: NavController) {
                                                 if (aiSystemPrompt.length > 60) "$it…" else it
                                             }
                                         } else {
-                                            stringResource(R.string.ai_system_prompt_default)
+                                            stringResource(Res.string.ai_system_prompt_default)
                                         },
                                     )
                                 },
@@ -645,8 +686,8 @@ fun AiSettings(navController: NavController) {
                     }
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.language),
-                            title = { Text(stringResource(R.string.ai_target_language)) },
+                            icon = painterResource(Res.drawable.language),
+                            title = { Text(stringResource(Res.string.ai_target_language)) },
                             description = { Text(LanguageCodeToName[translateLanguage] ?: translateLanguage) },
                             onClick = { showLanguageDialog = true },
                         ),
@@ -658,11 +699,11 @@ fun AiSettings(navController: NavController) {
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.ai_lyrics_translation)) },
+        title = { Text(stringResource(Res.string.ai_lyrics_translation)) },
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

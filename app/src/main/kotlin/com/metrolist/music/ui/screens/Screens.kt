@@ -5,43 +5,53 @@
 
 package com.metrolist.music.ui.screens
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.filter_library
+import com.metrolist.music.resources.group_filled
+import com.metrolist.music.resources.group_outlined
+import com.metrolist.music.resources.home
+import com.metrolist.music.resources.home_filled
+import com.metrolist.music.resources.home_outlined
+import com.metrolist.music.resources.library_music_filled
+import com.metrolist.music.resources.library_music_outlined
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.together
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 @Immutable
 sealed class Screens(
-    @StringRes val titleId: Int,
-    @DrawableRes val iconIdInactive: Int,
-    @DrawableRes val iconIdActive: Int,
+    val titleId: StringResource,
+    val iconIdInactive: DrawableResource,
+    val iconIdActive: DrawableResource,
     val route: String,
 ) {
     object Home : Screens(
-        titleId = R.string.home,
-        iconIdInactive = R.drawable.home_outlined,
-        iconIdActive = R.drawable.home_filled,
+        titleId = Res.string.home,
+        iconIdInactive = Res.drawable.home_outlined,
+        iconIdActive = Res.drawable.home_filled,
         route = "home"
     )
 
     object Search : Screens(
-        titleId = R.string.search,
-        iconIdInactive = R.drawable.search,
-        iconIdActive = R.drawable.search,
+        titleId = Res.string.search,
+        iconIdInactive = Res.drawable.search,
+        iconIdActive = Res.drawable.search,
         route = "search_input"
     )
 
     object ListenTogether : Screens(
-        titleId = R.string.together,
-        iconIdInactive = R.drawable.group_outlined,
-        iconIdActive = R.drawable.group_filled,
+        titleId = Res.string.together,
+        iconIdInactive = Res.drawable.group_outlined,
+        iconIdActive = Res.drawable.group_filled,
         route = "listen_together"
     )
 
     object Library : Screens(
-        titleId = R.string.filter_library,
-        iconIdInactive = R.drawable.library_music_outlined,
-        iconIdActive = R.drawable.library_music_filled,
+        titleId = Res.string.filter_library,
+        iconIdInactive = Res.drawable.library_music_outlined,
+        iconIdActive = Res.drawable.library_music_filled,
         route = "library"
     )
 

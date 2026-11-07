@@ -92,8 +92,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -117,7 +115,6 @@ import coil3.toBitmap
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.AiProviderKey
 import com.metrolist.music.constants.AiSystemPromptKey
 import com.metrolist.music.constants.DarkModeKey
@@ -179,6 +176,36 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.ai_api_key_required
+import com.metrolist.music.resources.ai_lyrics_translated
+import com.metrolist.music.resources.ai_translating_lyrics
+import com.metrolist.music.resources.auto_scroll
+import com.metrolist.music.resources.background_color
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.customize_colors
+import com.metrolist.music.resources.error
+import com.metrolist.music.resources.failed_to_create_image
+import com.metrolist.music.resources.generating_image
+import com.metrolist.music.resources.gradient
+import com.metrolist.music.resources.lyrics_not_found
+import com.metrolist.music.resources.max_selection_limit
+import com.metrolist.music.resources.player_background_blur
+import com.metrolist.music.resources.player_background_solid
+import com.metrolist.music.resources.player_background_style
+import com.metrolist.music.resources.please_wait
+import com.metrolist.music.resources.secondary_text_color
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.share_as_image
+import com.metrolist.music.resources.share_as_text
+import com.metrolist.music.resources.share_lyrics
+import com.metrolist.music.resources.share_selected
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.text_color
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A composable function that displays lyrics for the currently playing song.
@@ -203,8 +230,8 @@ fun OriginalLyrics(
     val configuration = LocalWindowInfo.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    val shareLyricsStr = stringResource(R.string.share_lyrics)
-    val failedToCreateImageTemplate = stringResource(R.string.failed_to_create_image)
+    val shareLyricsStr = stringResource(Res.string.share_lyrics)
+    val failedToCreateImageTemplate = stringResource(Res.string.failed_to_create_image)
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
     val changeLyrics by rememberPreference(LyricsClickKey, true)
@@ -383,7 +410,7 @@ fun OriginalLyrics(
         }
     }
 
-    val aiApiKeyRequiredStr = stringResource(R.string.ai_api_key_required)
+    val aiApiKeyRequiredStr = stringResource(Res.string.ai_api_key_required)
 
     // Listen for manual trigger
     LaunchedEffect(showLyrics, lines.size) {
@@ -500,7 +527,7 @@ fun OriginalLyrics(
 
     // Define max selection limit
     val maxSelectionLimit = 5
-    val maxSelectionLimitMsg = stringResource(R.string.max_selection_limit, maxSelectionLimit)
+    val maxSelectionLimitMsg = stringResource(Res.string.max_selection_limit, maxSelectionLimit)
 
     // Show toast when max selection is reached
     LaunchedEffect(showMaxSelectionToast) {
@@ -708,7 +735,7 @@ fun OriginalLyrics(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                             Text(
-                                text = stringResource(R.string.ai_translating_lyrics),
+                                text = stringResource(Res.string.ai_translating_lyrics),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
@@ -731,7 +758,7 @@ fun OriginalLyrics(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.error),
+                                painter = painterResource(Res.drawable.error),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.size(16.dp),
@@ -760,13 +787,13 @@ fun OriginalLyrics(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.check),
+                                painter = painterResource(Res.drawable.check),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
                                 modifier = Modifier.size(16.dp),
                             )
                             Text(
-                                text = stringResource(R.string.ai_lyrics_translated),
+                                text = stringResource(Res.string.ai_lyrics_translated),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
@@ -786,7 +813,7 @@ fun OriginalLyrics(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(R.string.lyrics_not_found),
+                    text = stringResource(Res.string.lyrics_not_found),
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
@@ -1727,12 +1754,12 @@ fun OriginalLyrics(
             ) {
                 FilledTonalButton(onClick = latestResyncLyrics) {
                     Icon(
-                        painter = painterResource(id = R.drawable.sync),
-                        contentDescription = stringResource(R.string.auto_scroll),
+                        painter = painterResource(Res.drawable.sync),
+                        contentDescription = stringResource(Res.string.auto_scroll),
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.auto_scroll))
+                    Text(text = stringResource(Res.string.auto_scroll))
                 }
             }
 
@@ -1752,8 +1779,8 @@ fun OriginalLyrics(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.close),
-                            contentDescription = stringResource(R.string.cancel),
+                            painter = painterResource(Res.drawable.close),
+                            contentDescription = stringResource(Res.string.cancel),
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -1782,12 +1809,12 @@ fun OriginalLyrics(
                         enabled = selectedIndices.isNotEmpty(),
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.share),
-                            contentDescription = stringResource(R.string.share_selected),
+                            painter = painterResource(Res.drawable.share),
+                            contentDescription = stringResource(Res.string.share_selected),
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.share))
+                        Text(text = stringResource(Res.string.share))
                     }
                 }
             }
@@ -1802,7 +1829,7 @@ fun OriginalLyrics(
                 ) {
                     Box(modifier = Modifier.padding(32.dp)) {
                         Text(
-                            text = stringResource(R.string.generating_image) + "\n" + stringResource(R.string.please_wait),
+                            text = stringResource(Res.string.generating_image) + "\n" + stringResource(Res.string.please_wait),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -1827,7 +1854,7 @@ fun OriginalLyrics(
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(
-                            text = stringResource(R.string.share_lyrics),
+                            text = stringResource(Res.string.share_lyrics),
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -1862,13 +1889,13 @@ fun OriginalLyrics(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.share), // Use new share icon
+                                painter = painterResource(Res.drawable.share), // Use new share icon
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = stringResource(R.string.share_as_text),
+                                text = stringResource(Res.string.share_as_text),
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
@@ -1887,13 +1914,13 @@ fun OriginalLyrics(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.share), // Use new share icon
+                                painter = painterResource(Res.drawable.share), // Use new share icon
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = stringResource(R.string.share_as_image),
+                                text = stringResource(Res.string.share_as_image),
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
@@ -1907,7 +1934,7 @@ fun OriginalLyrics(
                             horizontalArrangement = Arrangement.End,
                         ) {
                             Text(
-                                text = stringResource(R.string.cancel),
+                                text = stringResource(Res.string.cancel),
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Medium,
@@ -2012,7 +2039,7 @@ fun OriginalLyrics(
                                 .padding(20.dp),
                     ) {
                         Text(
-                            text = stringResource(id = R.string.customize_colors),
+                            text = stringResource(Res.string.customize_colors),
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
@@ -2020,7 +2047,7 @@ fun OriginalLyrics(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Text(text = stringResource(id = R.string.player_background_style), style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(Res.string.player_background_style), style = MaterialTheme.typography.titleMedium)
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.padding(vertical = 8.dp),
@@ -2028,9 +2055,9 @@ fun OriginalLyrics(
                             LyricsBackgroundStyle.entries.forEach { style ->
                                 val label =
                                     when (style) {
-                                        LyricsBackgroundStyle.SOLID -> stringResource(R.string.player_background_solid)
-                                        LyricsBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
-                                        LyricsBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                                        LyricsBackgroundStyle.SOLID -> stringResource(Res.string.player_background_solid)
+                                        LyricsBackgroundStyle.BLUR -> stringResource(Res.string.player_background_blur)
+                                        LyricsBackgroundStyle.GRADIENT -> stringResource(Res.string.gradient)
                                     }
                                 val selected = previewBackgroundStyle == style
 
@@ -2063,7 +2090,7 @@ fun OriginalLyrics(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        Text(text = stringResource(id = R.string.background_color), style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(Res.string.background_color), style = MaterialTheme.typography.titleMedium)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                             (
                                 paletteColors +
@@ -2096,7 +2123,7 @@ fun OriginalLyrics(
                             }
                         }
 
-                        Text(text = stringResource(id = R.string.text_color), style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(Res.string.text_color), style = MaterialTheme.typography.titleMedium)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                             (paletteColors + listOf(Color.White, Color.Black, Color(0xFF1DB954))).distinct().take(8).forEach { color ->
                                 Box(
@@ -2114,7 +2141,7 @@ fun OriginalLyrics(
                             }
                         }
 
-                        Text(text = stringResource(id = R.string.secondary_text_color), style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(Res.string.secondary_text_color), style = MaterialTheme.typography.titleMedium)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                             (
                                 paletteColors.map { it.copy(alpha = 0.7f) } +
@@ -2196,7 +2223,7 @@ fun OriginalLyrics(
                             },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(stringResource(id = R.string.share))
+                            Text(stringResource(Res.string.share))
                         }
                     }
                 }

@@ -27,8 +27,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -37,7 +35,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.constants.AddToPlaylistPosition
 import com.metrolist.music.constants.AddToPlaylistPositionKey
 import com.metrolist.music.constants.AddToPlaylistSortDescendingKey
@@ -89,6 +86,28 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.add_anyway
+import com.metrolist.music.resources.arrow_downward
+import com.metrolist.music.resources.arrow_upward
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.create_playlist
+import com.metrolist.music.resources.duplicates
+import com.metrolist.music.resources.duplicates_description_multiple
+import com.metrolist.music.resources.duplicates_description_single
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.liked_songs
+import com.metrolist.music.resources.playlist_add_local_to_synced_note
+import com.metrolist.music.resources.skip_duplicates
+import com.metrolist.music.resources.sort_ascending
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_last_updated
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_song_count
+import com.metrolist.music.resources.sort_descending
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AddToPlaylistDialogOnline(
@@ -187,12 +206,12 @@ fun AddToPlaylistDialogOnline(
                         .graphicsLayer { scaleX = scale; scaleY = scale }
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.add),
+                        painter = painterResource(Res.drawable.add),
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp).size(20.dp)
                     )
                     Text(
-                        text = stringResource(R.string.create_playlist),
+                        text = stringResource(Res.string.create_playlist),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -234,10 +253,10 @@ fun AddToPlaylistDialogOnline(
                                     label = {
                                         Text(
                                             text = stringResource(when (type) {
-                                                PlaylistSortType.CREATE_DATE  -> R.string.sort_by_create_date
-                                                PlaylistSortType.NAME         -> R.string.sort_by_name
-                                                PlaylistSortType.SONG_COUNT   -> R.string.sort_by_song_count
-                                                PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                                PlaylistSortType.CREATE_DATE  -> Res.string.sort_by_create_date
+                                                PlaylistSortType.NAME         -> Res.string.sort_by_name
+                                                PlaylistSortType.SONG_COUNT   -> Res.string.sort_by_song_count
+                                                PlaylistSortType.LAST_UPDATED -> Res.string.sort_by_last_updated
                                             }),
                                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                                         )
@@ -267,10 +286,10 @@ fun AddToPlaylistDialogOnline(
                         ) {
                             Icon(
                                 painter = painterResource(
-                                    if (sortDescending) R.drawable.arrow_downward else R.drawable.arrow_upward
+                                    if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward
                                 ),
                                 contentDescription = stringResource(
-                                    if (sortDescending) R.string.sort_descending else R.string.sort_ascending
+                                    if (sortDescending) Res.string.sort_descending else Res.string.sort_ascending
                                 ),
                                 tint = arrowFg,
                                 modifier = Modifier.size(18.dp)
@@ -424,10 +443,10 @@ fun AddToPlaylistDialogOnline(
                             }
                         }
                     },
-                    title = stringResource(R.string.liked_songs),
+                    title = stringResource(Res.string.liked_songs),
                     thumbnailContent = {
                         Image(
-                            painter = painterResource(id = R.drawable.favorite),
+                            painter = painterResource(Res.drawable.favorite),
                             contentDescription = null,
                             modifier = Modifier.size(40.dp),
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
@@ -439,7 +458,7 @@ fun AddToPlaylistDialogOnline(
 
             item {
                 Text(
-                    text = stringResource(R.string.playlist_add_local_to_synced_note),
+                    text = stringResource(Res.string.playlist_add_local_to_synced_note),
                     fontSize = TextUnit(12F, TextUnitType.Sp),
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
@@ -458,7 +477,7 @@ fun AddToPlaylistDialogOnline(
     // duplicate songs warning
     if (showDuplicateDialog) {
         DefaultDialog(
-            title = { Text(stringResource(R.string.duplicates)) },
+            title = { Text(stringResource(Res.string.duplicates)) },
             buttons = {
                 TextButton(
                     onClick = {
@@ -475,7 +494,7 @@ fun AddToPlaylistDialogOnline(
                         }
                     }
                 ) {
-                    Text(stringResource(R.string.skip_duplicates))
+                    Text(stringResource(Res.string.skip_duplicates))
                 }
 
                 TextButton(
@@ -491,7 +510,7 @@ fun AddToPlaylistDialogOnline(
                         }
                     }
                 ) {
-                    Text(stringResource(R.string.add_anyway))
+                    Text(stringResource(Res.string.add_anyway))
                 }
 
                 TextButton(
@@ -499,7 +518,7 @@ fun AddToPlaylistDialogOnline(
                         showDuplicateDialog = false
                     }
                 ) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
             onDismiss = {
@@ -508,9 +527,9 @@ fun AddToPlaylistDialogOnline(
         ) {
             Text(
                 text = if (duplicates.size == 1) {
-                    stringResource(R.string.duplicates_description_single)
+                    stringResource(Res.string.duplicates_description_single)
                 } else {
-                    stringResource(R.string.duplicates_description_multiple, duplicates.size)
+                    stringResource(Res.string.duplicates_description_multiple, duplicates.size)
                 },
                 textAlign = TextAlign.Start,
                 modifier = Modifier.align(Alignment.Start)

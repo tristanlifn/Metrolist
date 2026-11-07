@@ -28,12 +28,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_forward
+import com.metrolist.music.resources.play_all
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun NavigationTitle(
@@ -92,7 +94,7 @@ fun NavigationTitle(
                     .height(24.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.play_all),
+                    text = stringResource(Res.string.play_all),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -100,7 +102,7 @@ fun NavigationTitle(
 
         if (onClick != null) {
             Icon(
-                painter = painterResource(R.drawable.arrow_forward),
+                painter = painterResource(Res.drawable.arrow_forward),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )

@@ -42,17 +42,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.components.AutoResizingText
 import com.metrolist.music.ui.theme.bbhBartle
 import kotlinx.coroutines.delay
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.app_logo
+import com.metrolist.music.resources.wrapped_intro_button
+import com.metrolist.music.resources.wrapped_intro_subtitle
+import com.metrolist.music.resources.wrapped_intro_title
+import com.metrolist.music.resources.wrapped_logo_content_description
+import com.metrolist.music.resources.wrapped_year
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 private const val FADE_IN_DURATION = 1000
 private const val SLIDE_IN_DURATION = 1000
@@ -108,7 +114,7 @@ fun WrappedIntro(onNext: () -> Unit) {
         ) {
             BoxWithConstraints {
                 AutoResizingText(
-                    text = stringResource(id = R.string.wrapped_year),
+                    text = stringResource(Res.string.wrapped_year),
                     style = TextStyle.Default.copy(
                         fontFamily = bbhBartle,
                         fontSize = 800.sp, // Increased size
@@ -134,8 +140,8 @@ fun WrappedIntro(onNext: () -> Unit) {
                 enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
+                    painter = painterResource(Res.drawable.app_logo),
+                    contentDescription = stringResource(Res.string.wrapped_logo_content_description),
                     modifier = Modifier.size(100.dp)
                 )
             }
@@ -154,9 +160,9 @@ fun WrappedIntro(onNext: () -> Unit) {
                         letterSpacing = 2.sp,
                         fontSize = 50.sp
                     )
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.DarkGray), modifier = Modifier.offset(x = 2.dp, y = 2.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.Gray), modifier = Modifier.offset(x = 1.dp, y = 1.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.White))
+                    AutoResizingText(text = stringResource(Res.string.wrapped_intro_title), style = baseStyle.copy(color = Color.DarkGray), modifier = Modifier.offset(x = 2.dp, y = 2.dp))
+                    AutoResizingText(text = stringResource(Res.string.wrapped_intro_title), style = baseStyle.copy(color = Color.Gray), modifier = Modifier.offset(x = 1.dp, y = 1.dp))
+                    AutoResizingText(text = stringResource(Res.string.wrapped_intro_title), style = baseStyle.copy(color = Color.White))
                 }
             }
 
@@ -169,7 +175,7 @@ fun WrappedIntro(onNext: () -> Unit) {
                 enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY))
             ) {
                 Text(
-                    text = stringResource(id = R.string.wrapped_intro_subtitle),
+                    text = stringResource(Res.string.wrapped_intro_subtitle),
                     color = Color.White,
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center
@@ -191,7 +197,7 @@ fun WrappedIntro(onNext: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
             ) {
                 Text(
-                    text = stringResource(id = R.string.wrapped_intro_button),
+                    text = stringResource(Res.string.wrapped_intro_button),
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)

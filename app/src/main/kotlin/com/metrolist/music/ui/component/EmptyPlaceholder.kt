@@ -5,7 +5,6 @@
 
 package com.metrolist.music.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun EmptyPlaceholder(
-    @DrawableRes icon: Int,
+    icon: DrawableResource,
     text: String,
     modifier: Modifier = Modifier,
 ) {

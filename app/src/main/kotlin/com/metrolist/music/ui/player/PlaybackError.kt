@@ -32,8 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,12 +39,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.PlayerError
 import com.metrolist.music.utils.NetworkConnectivity
 import org.koin.compose.koinInject
 import java.time.Instant
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.content_copy
+import com.metrolist.music.resources.copy
+import com.metrolist.music.resources.error
+import com.metrolist.music.resources.error_explicit_login_recommended
+import com.metrolist.music.resources.error_job_cancelled
+import com.metrolist.music.resources.error_no_internet_connection
+import com.metrolist.music.resources.error_offline_playback
+import com.metrolist.music.resources.error_playback_failed
+import com.metrolist.music.resources.error_unknown
+import com.metrolist.music.resources.replay
+import com.metrolist.music.resources.retry
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PlaybackError(
@@ -79,17 +90,17 @@ fun PlaybackError(
         }
     val guidance =
         when {
-            isExplicitRestricted -> stringResource(R.string.error_explicit_login_recommended)
-            isJobCancelled -> stringResource(R.string.error_job_cancelled)
+            isExplicitRestricted -> stringResource(Res.string.error_explicit_login_recommended)
+            isJobCancelled -> stringResource(Res.string.error_job_cancelled)
             else -> null
         }
     val errorMessage =
         playbackErrorMessages(
             isOnline = isOnline,
-            offlineMessage = stringResource(R.string.error_offline_playback),
+            offlineMessage = stringResource(Res.string.error_offline_playback),
             guidance = guidance,
             rawErrorMessages = rawErrorMessages,
-        ).joinToString("\n").ifBlank { stringResource(R.string.error_unknown) }
+        ).joinToString("\n").ifBlank { stringResource(Res.string.error_unknown) }
     val causeSummary =
         remember(causes) {
             causes
@@ -114,7 +125,7 @@ fun PlaybackError(
             .padding(16.dp),
     ) {
         Icon(
-            painter = painterResource(R.drawable.error),
+            painter = painterResource(Res.drawable.error),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(48.dp),
@@ -124,7 +135,7 @@ fun PlaybackError(
 
         Text(
             text = stringResource(
-                if (isOnline) R.string.error_playback_failed else R.string.error_no_internet_connection,
+                if (isOnline) Res.string.error_playback_failed else Res.string.error_no_internet_connection,
             ),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.error,
@@ -186,12 +197,12 @@ fun PlaybackError(
                 ),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.replay),
+                    painter = painterResource(Res.drawable.replay),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = stringResource(R.string.retry))
+                Text(text = stringResource(Res.string.retry))
             }
 
             OutlinedButton(
@@ -202,12 +213,12 @@ fun PlaybackError(
                 shape = RoundedCornerShape(20.dp),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.content_copy),
+                    painter = painterResource(Res.drawable.content_copy),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = stringResource(R.string.copy))
+                Text(text = stringResource(Res.string.copy))
             }
         }
     }

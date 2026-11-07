@@ -55,8 +55,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -75,7 +73,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
@@ -85,6 +82,20 @@ import com.metrolist.music.ui.component.YouTubeListItem
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.viewmodels.OnlinePodcastViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add_to_library
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.error_unknown
+import com.metrolist.music.resources.library_add
+import com.metrolist.music.resources.library_add_check
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.retry
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.view_channel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -156,12 +167,12 @@ fun OnlinePodcastScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = error ?: stringResource(R.string.error_unknown),
+                            text = error ?: stringResource(Res.string.error_unknown),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center
                         )
                         Button(onClick = { viewModel.retry() }) {
-                            Text(stringResource(R.string.retry))
+                            Text(stringResource(Res.string.retry))
                         }
                     }
                 }
@@ -225,7 +236,7 @@ fun OnlinePodcastScreen(
                                         YouTubeSongMenu(episode.asSongItem(), menuState::dismiss)
                                     }
                                 }) {
-                                    Icon(painterResource(R.drawable.more_vert), null)
+                                    Icon(painterResource(Res.drawable.more_vert), null)
                                 }
                             }
                         )
@@ -242,7 +253,7 @@ fun OnlinePodcastScreen(
                         onValueChange = { query = it },
                         placeholder = {
                             Text(
-                                text = stringResource(R.string.search),
+                                text = stringResource(Res.string.search),
                                 style = MaterialTheme.typography.titleLarge
                             )
                         },
@@ -279,7 +290,7 @@ fun OnlinePodcastScreen(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
+                        painter = painterResource(Res.drawable.arrow_back),
                         contentDescription = null
                     )
                 }
@@ -288,8 +299,8 @@ fun OnlinePodcastScreen(
                 if (!isSearching) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = stringResource(R.string.search)
+                            painter = painterResource(Res.drawable.search),
+                            contentDescription = stringResource(Res.string.search)
                         )
                     }
                 }
@@ -372,13 +383,13 @@ private fun PodcastHeader(
                 modifier = Modifier.height(40.dp)
             ) {
                 Icon(
-                    painter = painterResource(if (inLibrary) R.drawable.library_add_check else R.drawable.library_add),
+                    painter = painterResource(if (inLibrary) Res.drawable.library_add_check else Res.drawable.library_add),
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
-                    text = stringResource(if (inLibrary) R.string.remove_from_library else R.string.add_to_library)
+                    text = stringResource(if (inLibrary) Res.string.remove_from_library else Res.string.add_to_library)
                 )
             }
 
@@ -388,13 +399,13 @@ private fun PodcastHeader(
                 modifier = Modifier.height(40.dp)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.person),
+                    painter = painterResource(Res.drawable.person),
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
-                    text = stringResource(R.string.view_channel)
+                    text = stringResource(Res.string.view_channel)
                 )
             }
         }

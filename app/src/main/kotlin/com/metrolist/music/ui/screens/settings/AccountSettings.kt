@@ -42,8 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -53,7 +51,6 @@ import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.BuildConfig
-import com.metrolist.music.R
 import com.metrolist.music.constants.AccountChannelHandleKey
 import com.metrolist.music.constants.AccountEmailKey
 import com.metrolist.music.constants.AccountNameKey
@@ -72,6 +69,33 @@ import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.AccountSettingsViewModel
 import com.metrolist.music.viewmodels.HomeViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.account
+import com.metrolist.music.resources.action_logout
+import com.metrolist.music.resources.advanced_login
+import com.metrolist.music.resources.app_name
+import com.metrolist.music.resources.cached
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.integration
+import com.metrolist.music.resources.integrations
+import com.metrolist.music.resources.login
+import com.metrolist.music.resources.logout_clear
+import com.metrolist.music.resources.logout_dialog_message
+import com.metrolist.music.resources.logout_dialog_title
+import com.metrolist.music.resources.logout_keep
+import com.metrolist.music.resources.more_content
+import com.metrolist.music.resources.new_version_available
+import com.metrolist.music.resources.settings
+import com.metrolist.music.resources.switch_youtube_channel
+import com.metrolist.music.resources.token
+import com.metrolist.music.resources.token_adv_login_description
+import com.metrolist.music.resources.token_hidden
+import com.metrolist.music.resources.token_shown
+import com.metrolist.music.resources.update
+import com.metrolist.music.resources.yt_sync
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AccountSettings(
@@ -119,13 +143,13 @@ fun AccountSettings(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringResource(id = R.string.app_name),
+                text = stringResource(Res.string.app_name),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(start = 4.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = onClose) {
-                Icon(painterResource(R.drawable.close), contentDescription = null)
+                Icon(painterResource(Res.drawable.close), contentDescription = null)
             }
         }
 
@@ -135,10 +159,10 @@ fun AccountSettings(
         if (showLogoutDialog) {
             DefaultDialog(
                 onDismiss = { showLogoutDialog = false },
-                title = { Text(stringResource(R.string.logout_dialog_title)) },
+                title = { Text(stringResource(Res.string.logout_dialog_title)) },
                 content = {
                     Text(
-                        text = stringResource(R.string.logout_dialog_message),
+                        text = stringResource(Res.string.logout_dialog_message),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(horizontal = 18.dp)
                     )
@@ -152,7 +176,7 @@ fun AccountSettings(
                                     Timber.d("[LOGOUT_CLEAR] Starting clear and logout process")
                                     // Forget account first (stops all sync), then clear data.
                                     // This prevents background syncs from re-adding songs.
-                                    accountSettingsViewModel.logoutAndClearLibraryData(context)
+                                    accountSettingsViewModel.logoutAndClearLibraryData()
                                     Timber.d("[LOGOUT_CLEAR] Library data cleared and account forgotten")
                                 } catch (e: Exception) {
                                     Timber.e(e, "[LOGOUT_CLEAR] Error clearing library data, proceeding with logout")
@@ -165,21 +189,21 @@ fun AccountSettings(
                             }
                         }
                     ) {
-                        Text(stringResource(R.string.logout_clear))
+                        Text(stringResource(Res.string.logout_clear))
                     }
                     TextButton(
                         onClick = {
                             Timber.d("[LOGOUT_KEEP] User chose to keep data")
                             scope.launch {
                                 Timber.d("[LOGOUT_KEEP] Starting logout process (keeping data)")
-                                accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
+                                accountSettingsViewModel.logoutKeepData(onInnerTubeCookieChange)
                                 Timber.d("[LOGOUT_KEEP] Logout complete")
                                 showLogoutDialog = false
                                 onClose()
                             }
                         }
                     ) {
-                        Text(stringResource(R.string.logout_keep))
+                        Text(stringResource(Res.string.logout_keep))
                     }
                 }
             )
@@ -222,7 +246,6 @@ fun AccountSettings(
                     // before restarting, preventing the race condition where the process
                     // would be killed before async DataStore coroutines finished writing.
                     accountSettingsViewModel.saveTokenAndRestart(
-                        context = context,
                         cookie = cookie,
                         visitorData = visitorDataValue,
                         dataSyncId = dataSyncIdValue,
@@ -247,7 +270,7 @@ fun AccountSettings(
                 },
                 extraContent = {
                     Spacer(Modifier.height(8.dp))
-                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
+                    InfoLabel(text = stringResource(Res.string.token_adv_login_description))
                 }
             )
         }
@@ -271,11 +294,11 @@ fun AccountSettings(
                             }
 
                             Text(
-                                text = if (isLoggedIn) accountName else stringResource(R.string.login),
+                                text = if (isLoggedIn) accountName else stringResource(Res.string.login),
                             )
                         }
                     },
-                    icon = if (!isLoggedIn) painterResource(R.drawable.login) else null,
+                    icon = if (!isLoggedIn) painterResource(Res.drawable.login) else null,
                     trailingContent = {
                         if (isLoggedIn) {
                             OutlinedButton(
@@ -288,7 +311,7 @@ fun AccountSettings(
                                     contentColor = MaterialTheme.colorScheme.onSurface
                                 )
                             ) {
-                                Text(stringResource(R.string.action_logout))
+                                Text(stringResource(Res.string.action_logout))
                             }
                         }
                     },
@@ -303,8 +326,8 @@ fun AccountSettings(
                 ),
                 if (isLoggedIn) {
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.switch_youtube_channel)) },
-                        icon = painterResource(R.drawable.account),
+                        title = { Text(stringResource(Res.string.switch_youtube_channel)) },
+                        icon = painterResource(Res.drawable.account),
                         onClick = {
                             onClose()
                             navController.navigate("switch_channel")
@@ -323,13 +346,13 @@ fun AccountSettings(
                     title = {
                         Text(
                             when {
-                                !isLoggedIn -> stringResource(R.string.advanced_login)
-                                showToken -> stringResource(R.string.token_shown)
-                                else -> stringResource(R.string.token_hidden)
+                                !isLoggedIn -> stringResource(Res.string.advanced_login)
+                                showToken -> stringResource(Res.string.token_shown)
+                                else -> stringResource(Res.string.token_hidden)
                             }
                         )
                     },
-                    icon = painterResource(R.drawable.token),
+                    icon = painterResource(Res.drawable.token),
                     onClick = {
                         if (!isLoggedIn) showTokenEditor = true
                         else if (!showToken) showToken = true
@@ -337,8 +360,8 @@ fun AccountSettings(
                     }
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.more_content)) },
-                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(Res.string.more_content)) },
+                    icon = painterResource(Res.drawable.cached),
                     trailingContent = {
                         Switch(
                             enabled = isLoggedIn,
@@ -349,8 +372,7 @@ fun AccountSettings(
                             },
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (useLoginForBrowse) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (useLoginForBrowse) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -361,8 +383,8 @@ fun AccountSettings(
                     enabled = isLoggedIn
                 ),
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.yt_sync)) },
-                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(Res.string.yt_sync)) },
+                    icon = painterResource(Res.drawable.cached),
                     trailingContent = {
                         Switch(
                             enabled = isLoggedIn,
@@ -370,8 +392,7 @@ fun AccountSettings(
                             onCheckedChange = onYtmSyncChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (ytmSync) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (ytmSync) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -391,8 +412,8 @@ fun AccountSettings(
             items = buildList {
                 add(
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.integrations)) },
-                        icon = painterResource(R.drawable.integration),
+                        title = { Text(stringResource(Res.string.integrations)) },
+                        icon = painterResource(Res.drawable.integration),
                         onClick = {
                             onClose()
                             navController.navigate("settings/integrations")
@@ -401,8 +422,8 @@ fun AccountSettings(
                 )
                 add(
                     Material3SettingsItem(
-                        title = { Text(stringResource(R.string.settings)) },
-                        icon = painterResource(R.drawable.settings),
+                        title = { Text(stringResource(Res.string.settings)) },
+                        icon = painterResource(Res.drawable.settings),
                         showBadge = BuildConfig.UPDATER_AVAILABLE &&
                             latestVersionName != BuildConfig.BASE_VERSION_NAME,
                         onClick = {
@@ -418,9 +439,9 @@ fun AccountSettings(
                     if (downloadUrl != null) {
                         add(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.new_version_available)) },
+                                title = { Text(stringResource(Res.string.new_version_available)) },
                                 description = { Text(latestVersionName) },
-                                icon = painterResource(R.drawable.update),
+                                icon = painterResource(Res.drawable.update),
                                 showBadge = true,
                                 onClick = { uriHandler.openUri(downloadUrl) }
                             )

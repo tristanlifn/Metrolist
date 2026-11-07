@@ -41,14 +41,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
 import org.koin.compose.viewmodel.koinViewModel
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_LIST
 import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.db.entities.Album
@@ -68,6 +65,19 @@ import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.viewmodels.LocalFilter
 import com.metrolist.music.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.filter_albums
+import com.metrolist.music.resources.filter_all
+import com.metrolist.music.resources.filter_artists
+import com.metrolist.music.resources.filter_playlists
+import com.metrolist.music.resources.filter_songs
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.navigate_next
+import com.metrolist.music.resources.no_results_found
+import com.metrolist.music.resources.queue_searched_songs
+import com.metrolist.music.resources.search
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -79,7 +89,7 @@ fun LocalSearchScreen(
     viewModel: LocalSearchViewModel = koinViewModel(),
 ) {
     val navController = LocalNavController.current
-    val queueSearchedSongsStr = stringResource(R.string.queue_searched_songs)
+    val queueSearchedSongsStr = stringResource(Res.string.queue_searched_songs)
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -125,11 +135,11 @@ fun LocalSearchScreen(
         ChipsRow(
             chips =
                 listOf(
-                    LocalFilter.ALL to stringResource(R.string.filter_all),
-                    LocalFilter.SONG to stringResource(R.string.filter_songs),
-                    LocalFilter.ALBUM to stringResource(R.string.filter_albums),
-                    LocalFilter.ARTIST to stringResource(R.string.filter_artists),
-                    LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists),
+                    LocalFilter.ALL to stringResource(Res.string.filter_all),
+                    LocalFilter.SONG to stringResource(Res.string.filter_songs),
+                    LocalFilter.ALBUM to stringResource(Res.string.filter_albums),
+                    LocalFilter.ARTIST to stringResource(Res.string.filter_artists),
+                    LocalFilter.PLAYLIST to stringResource(Res.string.filter_playlists),
                 ),
             currentValue = searchFilter,
             onValueUpdate = { viewModel.filter.value = it },
@@ -160,10 +170,10 @@ fun LocalSearchScreen(
                                 text =
                                     stringResource(
                                         when (filter) {
-                                            LocalFilter.SONG -> R.string.filter_songs
-                                            LocalFilter.ALBUM -> R.string.filter_albums
-                                            LocalFilter.ARTIST -> R.string.filter_artists
-                                            LocalFilter.PLAYLIST -> R.string.filter_playlists
+                                            LocalFilter.SONG -> Res.string.filter_songs
+                                            LocalFilter.ALBUM -> Res.string.filter_albums
+                                            LocalFilter.ARTIST -> Res.string.filter_artists
+                                            LocalFilter.PLAYLIST -> Res.string.filter_playlists
                                             LocalFilter.ALL -> error("")
                                         },
                                     ),
@@ -172,7 +182,7 @@ fun LocalSearchScreen(
                             )
 
                             Icon(
-                                painter = painterResource(R.drawable.navigate_next),
+                                painter = painterResource(Res.drawable.navigate_next),
                                 contentDescription = null,
                             )
                         }
@@ -207,7 +217,7 @@ fun LocalSearchScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -293,8 +303,8 @@ fun LocalSearchScreen(
             if (result.query.isNotEmpty() && result.map.isEmpty()) {
                 item(key = "no_result") {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        icon = Res.drawable.search,
+                        text = stringResource(Res.string.no_results_found),
                     )
                 }
             }

@@ -72,8 +72,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -85,7 +83,6 @@ import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.CropAlbumArtKey
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.MiniPlayerHeight
@@ -123,6 +120,24 @@ import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.metrolist.music.ui.theme.PlayerColorExtractor
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.and
+import com.metrolist.music.resources.cast_connected
+import com.metrolist.music.resources.error_playing
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.pause
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.replay
+import com.metrolist.music.resources.skip_next
+import com.metrolist.music.resources.skip_previous
+import com.metrolist.music.resources.subscribe
+import com.metrolist.music.resources.subscribed
+import com.metrolist.music.resources.volume_off
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Stable wrapper for progress state - reads values only during draw phase
@@ -458,7 +473,7 @@ private fun NewMiniPlayer(
                 // Cast indicator
                 if (isCasting) {
                     Icon(
-                        painter = painterResource(R.drawable.cast_connected),
+                        painter = painterResource(Res.drawable.cast_connected),
                         contentDescription = "Casting",
                         tint = primaryColor,
                         modifier = Modifier.size(20.dp),
@@ -604,11 +619,11 @@ private fun NewMiniPlayerPlayButton(
                     painter =
                         painterResource(
                             if (isListenTogetherGuest) {
-                                if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                                if (isMuted) Res.drawable.volume_off else Res.drawable.volume_up
                             } else if (playbackState == PlaybackState.ENDED) {
-                                R.drawable.replay
+                                Res.drawable.replay
                             } else {
-                                R.drawable.play
+                                Res.drawable.play
                             },
                         ),
                     contentDescription = null,
@@ -653,7 +668,7 @@ private fun NewMiniPlayerSongInfo(
                 if (metadata.explicit) MIcon.Explicit()
                  if (metadata.artists.any { it.name.isNotBlank() }) {
                      Text(
-                         text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                         text = metadata.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") { it.name },
                          color = onSurfaceColor.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         maxLines = 1,
@@ -665,7 +680,7 @@ private fun NewMiniPlayerSongInfo(
 
             AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
                 Text(
-                    text = stringResource(R.string.error_playing),
+                    text = stringResource(Res.string.error_playing),
                     color = errorColor,
                     fontSize = 10.sp,
                     maxLines = 1,
@@ -862,7 +877,7 @@ private fun LegacyMiniPlayer(
                 enabled = canSkipNext && !isListenTogetherGuest,
                 onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.seekToNext() }),
             ) {
-                Icon(painter = painterResource(R.drawable.skip_next), contentDescription = null)
+                Icon(painter = painterResource(Res.drawable.skip_next), contentDescription = null)
             }
         }
 
@@ -877,7 +892,7 @@ private fun LegacyMiniPlayer(
                 Icon(
                     painter =
                         painterResource(
-                            if (offsetXAnimatable.value > 0) R.drawable.skip_previous else R.drawable.skip_next,
+                            if (offsetXAnimatable.value > 0) Res.drawable.skip_previous else Res.drawable.skip_next,
                         ),
                     contentDescription = null,
                     tint =
@@ -925,10 +940,10 @@ private fun LegacyPlayPauseButton(
             painter =
                 painterResource(
                     when {
-                        isListenTogetherGuest -> if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                        playbackState == PlaybackState.ENDED -> R.drawable.replay
-                        effectiveIsPlaying -> R.drawable.pause
-                        else -> R.drawable.play
+                        isListenTogetherGuest -> if (isMuted) Res.drawable.volume_off else Res.drawable.volume_up
+                        playbackState == PlaybackState.ENDED -> Res.drawable.replay
+                        effectiveIsPlaying -> Res.drawable.pause
+                        else -> Res.drawable.play
                     },
                 ),
             contentDescription = null,
@@ -987,7 +1002,7 @@ private fun LegacyMiniMediaInfo(
                         ),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.info),
+                        painter = painterResource(Res.drawable.info),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center),
@@ -1014,7 +1029,7 @@ private fun LegacyMiniMediaInfo(
 
              if (mediaMetadata.artists.any { it.name.isNotBlank() }) {
                  Text(
-                     text = mediaMetadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                     text = mediaMetadata.artists.joinToArtistString(" ${stringResource(Res.string.and)} ") { it.name },
                      color = MaterialTheme.colorScheme.secondary,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -1076,7 +1091,7 @@ private fun SubscribeButton(
                 },
     ) {
         Icon(
-            painter = painterResource(if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe),
+            painter = painterResource(if (isSubscribed) Res.drawable.subscribed else Res.drawable.subscribe),
             contentDescription = null,
             tint = if (isSubscribed) primaryColor else onSurfaceColor.copy(alpha = 0.7f),
             modifier = Modifier.size(20.dp),
@@ -1114,7 +1129,7 @@ private fun FavoriteButton(
                 ).clickable { playerConnection.toggleLike() },
     ) {
         Icon(
-            painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),
+            painter = painterResource(if (isLiked) Res.drawable.favorite else Res.drawable.favorite_border),
             contentDescription = null,
             tint = if (isLiked) errorColor else onSurfaceColor.copy(alpha = 0.7f),
             modifier = Modifier.size(20.dp),

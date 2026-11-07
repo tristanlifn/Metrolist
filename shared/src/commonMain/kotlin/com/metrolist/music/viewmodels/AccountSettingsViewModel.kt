@@ -5,11 +5,11 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
-import android.content.Intent
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.metrolist.music.App
+import co.touchlab.kermit.Logger
 import com.metrolist.music.constants.AccountChannelHandleKey
 import com.metrolist.music.constants.AccountEmailKey
 import com.metrolist.music.constants.AccountNameKey
@@ -18,24 +18,25 @@ import com.metrolist.music.constants.InnerTubeAuthUserKey
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.utils.SyncUtils
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.safeDataStoreEdit
+import com.metrolist.music.utils.AppSession
+import com.metrolist.music.utils.safeEdit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 class AccountSettingsViewModel(
     private val syncUtils: SyncUtils,
+    private val dataStore: DataStore<Preferences>,
+    private val appSession: AppSession,
 ) : ViewModel() {
 
     /**
      * Clear all library data including songs, albums, artists, playlists, podcasts.
      */
     suspend fun clearAllLibraryData() {
-        Timber.d("[LOGOUT_CLEAR] ViewModel: clearAllLibraryData called")
+        Logger.d { "[LOGOUT_CLEAR] ViewModel: clearAllLibraryData called" }
         syncUtils.clearAllLibraryData()
-        Timber.d("[LOGOUT_CLEAR] ViewModel: clearAllLibraryData completed")
+        Logger.d { "[LOGOUT_CLEAR] ViewModel: clearAllLibraryData completed" }
     }
 
     /**
@@ -43,29 +44,29 @@ class AccountSettingsViewModel(
      * THEN clear all library data. This prevents sync operations that are
      * triggered by the database becoming empty from re-adding songs.
      */
-    suspend fun logoutAndClearLibraryData(context: Context) {
-        Timber.d("[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData called")
+    suspend fun logoutAndClearLibraryData() {
+        Logger.d { "[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData called" }
         withContext(Dispatchers.IO) {
             // Forget account first — clears cookie/auth from DataStore.
             // Once isLoggedIn() returns false, ALL sync operations will skip.
-            App.forgetAccount(context)
+            appSession.forgetAccount()
 
             // Now clear the local database. Any sync coroutines that observe
             // the empty state will check isLoggedIn() and skip silently.
             syncUtils.clearAllLibraryData()
         }
-        Timber.d("[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData completed")
+        Logger.d { "[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData completed" }
     }
 
     /**
      * Just logout without clearing library data
      */
-    suspend fun logoutKeepData(context: Context, onCookieChange: (String) -> Unit) {
-        Timber.d("[LOGOUT_KEEP] ViewModel: logoutKeepData called")
+    suspend fun logoutKeepData(onCookieChange: (String) -> Unit) {
+        Logger.d { "[LOGOUT_KEEP] ViewModel: logoutKeepData called" }
         withContext(Dispatchers.IO) {
-            App.forgetAccount(context)
+            appSession.forgetAccount()
         }
-        Timber.d("[LOGOUT_KEEP] ViewModel: Account forgotten, clearing cookie in UI")
+        Logger.d { "[LOGOUT_KEEP] ViewModel: Account forgotten, clearing cookie in UI" }
         onCookieChange("")
     }
 
@@ -76,7 +77,6 @@ class AccountSettingsViewModel(
      * before async DataStore coroutines finish writing.
      */
     fun saveTokenAndRestart(
-        context: Context,
         cookie: String,
         visitorData: String,
         dataSyncId: String,
@@ -86,7 +86,7 @@ class AccountSettingsViewModel(
         accountChannelHandle: String,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val saved = context.safeDataStoreEdit { settings ->
+            val saved = dataStore.safeEdit { settings ->
                 settings[InnerTubeCookieKey] = cookie
                 settings[VisitorDataKey] = visitorData
                 settings[DataSyncIdKey] = dataSyncId
@@ -96,14 +96,11 @@ class AccountSettingsViewModel(
                 settings[AccountChannelHandleKey] = accountChannelHandle
             }
             if (!saved) {
-                Timber.e("saveTokenAndRestart: DataStore write failed — skipping restart to avoid losing credentials")
+                Logger.e { "saveTokenAndRestart: DataStore write failed — skipping restart to avoid losing credentials" }
                 return@launch
             }
             withContext(Dispatchers.Main) {
-                val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                context.startActivity(intent)
-                Runtime.getRuntime().exit(0)
+                appSession.restart()
             }
         }
     }

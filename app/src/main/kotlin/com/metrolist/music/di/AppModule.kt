@@ -35,6 +35,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
+import com.metrolist.music.playback.Media3SongCache
+import com.metrolist.music.playback.SongCache
+import com.metrolist.music.utils.AndroidAppSession
+import com.metrolist.music.utils.AppSession
 import org.koin.dsl.module
 
 val appModule = module {
@@ -67,6 +72,7 @@ val appModule = module {
             get(),
         )
     }
+    single<SongCache> { Media3SongCache(get(PlayerCache)) }
     single { DownloadUtil(get(), get(), get(), get(DownloadCache), get(PlayerCache)) }
 
     singleOf(::ListenTogetherClient)
@@ -76,6 +82,7 @@ val appModule = module {
     singleOf(::EQProfileRepository)
     single { PlaylistWidgetManager(get(), get(), get(ApplicationScope)) }
     singleOf(::MetrolistWidgetManager)
+    singleOf(::AndroidAppSession) bind AppSession::class
 
     // Unscoped in Hilt, so a new instance per injection.
     factoryOf(::LyricsHelper)

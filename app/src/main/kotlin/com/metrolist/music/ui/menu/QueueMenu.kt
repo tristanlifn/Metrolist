@@ -45,8 +45,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,6 +76,40 @@ import com.metrolist.music.ui.component.NewActionGrid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.artist
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.details
+import com.metrolist.music.resources.details_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.download_desc
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.play_next
+import com.metrolist.music.resources.play_next_desc
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.refetch
+import com.metrolist.music.resources.refetch_desc
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_from_queue
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.start_radio
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.view_album
+import com.metrolist.music.resources.view_artist
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun QueueMenu(
@@ -239,8 +271,8 @@ fun QueueMenu(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (isFavorite) R.drawable.favorite
-                        else R.drawable.favorite_border
+                        if (isFavorite) Res.drawable.favorite
+                        else Res.drawable.favorite_border
                     ),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error
                     else LocalContentColor.current,
@@ -272,13 +304,13 @@ fun QueueMenu(
                     NewAction(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.radio),
+                                painter = painterResource(Res.drawable.radio),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        text = stringResource(R.string.start_radio),
+                        text = stringResource(Res.string.start_radio),
                         onClick = {
                             onDismiss()
                             val currentMediaId = playerConnection.mediaMetadata.value?.id
@@ -294,25 +326,25 @@ fun QueueMenu(
                     NewAction(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.playlist_add),
+                                painter = painterResource(Res.drawable.playlist_add),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        text = stringResource(R.string.add_to_playlist),
+                        text = stringResource(Res.string.add_to_playlist),
                         onClick = { showChoosePlaylistDialog = true }
                     ),
                     NewAction(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        text = stringResource(R.string.share),
+                        text = stringResource(Res.string.share),
                         onClick = {
                             onDismiss()
                             val intent = Intent().apply {
@@ -336,11 +368,11 @@ fun QueueMenu(
             Material3MenuGroup(
                 items = listOfNotNull(
                     Material3MenuItemData(
-                        title = { Text(text = stringResource(R.string.play_next)) },
-                        description = { Text(text = stringResource(R.string.play_next_desc)) },
+                        title = { Text(text = stringResource(Res.string.play_next)) },
+                        description = { Text(text = stringResource(Res.string.play_next_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.playlist_play),
+                                painter = painterResource(Res.drawable.playlist_play),
                                 contentDescription = null,
                             )
                         },
@@ -354,11 +386,11 @@ fun QueueMenu(
                         }
                     ),
                     Material3MenuItemData(
-                        title = { Text(text = stringResource(R.string.add_to_queue)) },
-                        description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                        title = { Text(text = stringResource(Res.string.add_to_queue)) },
+                        description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                             )
                         },
@@ -373,10 +405,10 @@ fun QueueMenu(
                     ),
                     if (onRemoveFromQueue != null) {
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.remove_from_queue)) },
+                            title = { Text(text = stringResource(Res.string.remove_from_queue)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.delete), // Uses trashcan icon
+                                    painter = painterResource(Res.drawable.delete), // Uses trashcan icon
                                     contentDescription = null,
                                 )
                             },
@@ -400,11 +432,11 @@ fun QueueMenu(
                         Download.STATE_COMPLETED -> {
                             Material3MenuItemData(
                                 title = {
-                                    Text(text = stringResource(R.string.remove_download))
+                                    Text(text = stringResource(Res.string.remove_download))
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.offline),
+                                        painter = painterResource(Res.drawable.offline),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -422,7 +454,7 @@ fun QueueMenu(
 
                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
+                                title = { Text(text = stringResource(Res.string.downloading)) },
                                 icon = {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
@@ -442,11 +474,11 @@ fun QueueMenu(
 
                         else -> {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
+                                title = { Text(text = stringResource(Res.string.action_download)) },
+                                description = { Text(text = stringResource(Res.string.download_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.download),
+                                        painter = painterResource(Res.drawable.download),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -470,7 +502,7 @@ fun QueueMenu(
                     if (artists.isNotEmpty()) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.view_artist)) },
+                                title = { Text(text = stringResource(Res.string.view_artist)) },
                                 description = {
                                     Text(
                                         text = mediaMetadata.artists.joinToString { it.name },
@@ -480,7 +512,7 @@ fun QueueMenu(
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.artist),
+                                        painter = painterResource(Res.drawable.artist),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -501,7 +533,7 @@ fun QueueMenu(
                     if (currentAlbum != null) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.view_album)) },
+                                title = { Text(text = stringResource(Res.string.view_album)) },
                                 description = {
                                     Text(
                                         text = currentAlbum.title,
@@ -511,7 +543,7 @@ fun QueueMenu(
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.album),
+                                        painter = painterResource(Res.drawable.album),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -536,11 +568,11 @@ fun QueueMenu(
                 items = buildList {
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.refetch)) },
-                            description = { Text(text = stringResource(R.string.refetch_desc)) },
+                            title = { Text(text = stringResource(Res.string.refetch)) },
+                            description = { Text(text = stringResource(Res.string.refetch_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.sync),
+                                    painter = painterResource(Res.drawable.sync),
                                     contentDescription = null,
                                     modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                                 )
@@ -562,11 +594,11 @@ fun QueueMenu(
                     )
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.details)) },
-                            description = { Text(text = stringResource(R.string.details_desc)) },
+                            title = { Text(text = stringResource(Res.string.details)) },
+                            description = { Text(text = stringResource(Res.string.details_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.info),
+                                    painter = painterResource(Res.drawable.info),
                                     contentDescription = null,
                                     modifier = Modifier.size(24.dp)
                                 )

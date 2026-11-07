@@ -26,14 +26,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.importing_playlist
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.progress_percent
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LoadingScreen(
@@ -62,14 +66,14 @@ fun LoadingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.playlist_add),
+                painter = painterResource(Res.drawable.playlist_add),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(32.dp)
             )
 
             Text(
-                text = stringResource(R.string.importing_playlist),
+                text = stringResource(Res.string.importing_playlist),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -97,7 +101,7 @@ fun LoadingScreen(
             )
 
             Text(
-                text = stringResource(R.string.progress_percent, value.toString()),
+                text = stringResource(Res.string.progress_percent, value.toString()),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -108,7 +112,7 @@ fun LoadingScreen(
                     onClick = onCancel,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             }
         }

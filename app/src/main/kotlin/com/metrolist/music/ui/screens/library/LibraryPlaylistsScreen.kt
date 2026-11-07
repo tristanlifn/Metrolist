@@ -46,16 +46,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_PLAYLIST
 import com.metrolist.music.constants.GridItemSize
@@ -91,6 +87,29 @@ import com.metrolist.music.viewmodels.LibraryPlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.cached_playlist
+import com.metrolist.music.resources.create_playlist
+import com.metrolist.music.resources.grid_view
+import com.metrolist.music.resources.library_playlist_empty
+import com.metrolist.music.resources.liked
+import com.metrolist.music.resources.list
+import com.metrolist.music.resources.my_top
+import com.metrolist.music.resources.n_playlist
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_last_updated
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_song_count
+import com.metrolist.music.resources.switch_to_grid_view
+import com.metrolist.music.resources.switch_to_list_view
+import com.metrolist.music.resources.uploaded_playlist
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 private data class VisiblePlaylistItem(
     val key: String,
@@ -147,7 +166,7 @@ fun LibraryPlaylistsScreen(
         Playlist(
             playlist = PlaylistEntity(
                 id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.liked)
+                name = stringResource(Res.string.liked)
             ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -157,7 +176,7 @@ fun LibraryPlaylistsScreen(
         Playlist(
             playlist = PlaylistEntity(
                 id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.offline)
+                name = stringResource(Res.string.offline)
             ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -167,7 +186,7 @@ fun LibraryPlaylistsScreen(
         Playlist(
             playlist = PlaylistEntity(
                 id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.my_top) + " $topSize"
+                name = stringResource(Res.string.my_top) + " $topSize"
             ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -178,7 +197,7 @@ fun LibraryPlaylistsScreen(
         Playlist(
             playlist = PlaylistEntity(
                 id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.uploaded_playlist)
+                name = stringResource(Res.string.uploaded_playlist)
             ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -188,7 +207,7 @@ fun LibraryPlaylistsScreen(
         Playlist(
             playlist = PlaylistEntity(
                 id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.cached_playlist)
+                name = stringResource(Res.string.cached_playlist)
             ),
             songCount = 0,
             songThumbnails = emptyList(),
@@ -347,10 +366,10 @@ fun LibraryPlaylistsScreen(
                 onSortDescendingChange = onSortDescendingChange,
                 sortTypeText = { sortType ->
                     when (sortType) {
-                        PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        PlaylistSortType.NAME -> R.string.sort_by_name
-                        PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                        PlaylistSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                        PlaylistSortType.NAME -> Res.string.sort_by_name
+                        PlaylistSortType.SONG_COUNT -> Res.string.sort_by_song_count
+                        PlaylistSortType.LAST_UPDATED -> Res.string.sort_by_last_updated
                     }
                 },
             )
@@ -359,7 +378,7 @@ fun LibraryPlaylistsScreen(
 
             Text(
                 text = pluralStringResource(
-                    R.plurals.n_playlist,
+                    Res.plurals.n_playlist,
                     visibleResults.count { !it.autoPlaylist },
                     visibleResults.count { !it.autoPlaylist },
                 ),
@@ -372,8 +391,8 @@ fun LibraryPlaylistsScreen(
                 modifier = Modifier.padding(start = 8.dp).size(40.dp),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.search),
-                    contentDescription = stringResource(R.string.search),
+                    painter = painterResource(Res.drawable.search),
+                    contentDescription = stringResource(Res.string.search),
                 )
             }
 
@@ -387,14 +406,14 @@ fun LibraryPlaylistsScreen(
                     painter =
                     painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+                            LibraryViewType.LIST -> Res.drawable.list
+                            LibraryViewType.GRID -> Res.drawable.grid_view
                         },
                     ),
                     contentDescription = stringResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.string.switch_to_grid_view
-                            LibraryViewType.GRID -> R.string.switch_to_list_view
+                            LibraryViewType.LIST -> Res.string.switch_to_grid_view
+                            LibraryViewType.GRID -> Res.string.switch_to_list_view
                         },
                     ),
                 )
@@ -432,8 +451,8 @@ fun LibraryPlaylistsScreen(
                             } else {
                                 LibrarySearchEmptyPlaceholder(
                                     modifier = Modifier.animateItem(),
-                                    icon = R.drawable.playlist_play,
-                                    text = stringResource(R.string.library_playlist_empty),
+                                    icon = Res.drawable.playlist_play,
+                                    text = stringResource(Res.string.library_playlist_empty),
                                 )
                             }
                         }
@@ -500,8 +519,8 @@ fun LibraryPlaylistsScreen(
                             } else {
                                 LibrarySearchEmptyPlaceholder(
                                     modifier = Modifier.animateItem(),
-                                    icon = R.drawable.playlist_play,
-                                    text = stringResource(R.string.library_playlist_empty),
+                                    icon = Res.drawable.playlist_play,
+                                    text = stringResource(Res.string.library_playlist_empty),
                                 )
                             }
                         }
@@ -552,8 +571,8 @@ fun LibraryPlaylistsScreen(
                 .padding(16.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.add),
-                contentDescription = stringResource(R.string.create_playlist),
+                painter = painterResource(Res.drawable.add),
+                contentDescription = stringResource(Res.string.create_playlist),
             )
         }
     }

@@ -36,8 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.MediaInfo
@@ -56,14 +54,55 @@ import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.utils.ArtistNameAliases
 import com.metrolist.music.utils.rememberEnumPreference
 import androidx.compose.ui.platform.LocalLocale
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.media3_icon_feed
+import com.metrolist.music.resources.media3_icon_thumb_down_unfilled
+import com.metrolist.music.resources.media3_icon_thumb_up_unfilled
+import com.metrolist.music.resources.media3_icon_bookmark_filled
+import com.metrolist.music.resources.bitrate
+import com.metrolist.music.resources.codecs
+import com.metrolist.music.resources.content_copy
+import com.metrolist.music.resources.contrast
+import com.metrolist.music.resources.description
+import com.metrolist.music.resources.dislikes
+import com.metrolist.music.resources.file_size
+import com.metrolist.music.resources.general
+import com.metrolist.music.resources.gradient
+import com.metrolist.music.resources.info
+import com.metrolist.music.resources.information
+import com.metrolist.music.resources.key
+import com.metrolist.music.resources.likes
+import com.metrolist.music.resources.loudness
+import com.metrolist.music.resources.loudness_level
+import com.metrolist.music.resources.loudness_level_aggressive
+import com.metrolist.music.resources.loudness_level_balanced
+import com.metrolist.music.resources.loudness_level_loud
+import com.metrolist.music.resources.loudness_level_quiet
+import com.metrolist.music.resources.media_id
+import com.metrolist.music.resources.mime_type
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.person
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.sample_rate
+import com.metrolist.music.resources.song_artists
+import com.metrolist.music.resources.song_title
+import com.metrolist.music.resources.stream_client
+import com.metrolist.music.resources.unknown
+import com.metrolist.music.resources.views
+import com.metrolist.music.resources.volume
+import com.metrolist.music.resources.volume_mute
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun getLoudnessLevelLabel(loudnessLevel: LoudnessLevel): String {
     return when (loudnessLevel) {
-        LoudnessLevel.AGGRESSIVE -> stringResource(R.string.loudness_level_aggressive)
-        LoudnessLevel.LOUD -> stringResource(R.string.loudness_level_loud)
-        LoudnessLevel.BALANCED -> stringResource(R.string.loudness_level_balanced)
-        LoudnessLevel.QUIET -> stringResource(R.string.loudness_level_quiet)
+        LoudnessLevel.AGGRESSIVE -> stringResource(Res.string.loudness_level_aggressive)
+        LoudnessLevel.LOUD -> stringResource(Res.string.loudness_level_loud)
+        LoudnessLevel.BALANCED -> stringResource(Res.string.loudness_level_balanced)
+        LoudnessLevel.QUIET -> stringResource(Res.string.loudness_level_quiet)
     }
 }
 
@@ -124,58 +163,58 @@ fun ShowMediaInfo(videoId: String) {
             item(contentType = "MediaDetails") {
                 Column {
                     val baseList = listOf(
-                        stringResource(R.string.song_title) to (info?.title ?: song?.title),
-                        stringResource(R.string.song_artists) to (
+                        stringResource(Res.string.song_title) to (info?.title ?: song?.title),
+                        stringResource(Res.string.song_artists) to (
                             song?.artists?.joinToString {
                                 ArtistNameAliases.resolve(artistNameAliases, it.id, it.name)
                             } ?: info?.author?.let {
                                 ArtistNameAliases.resolve(artistNameAliases, null, it)
                             }
                         ),
-                        stringResource(R.string.media_id) to (song?.id ?: info?.videoId)
+                        stringResource(Res.string.media_id) to (song?.id ?: info?.videoId)
                     )
 
                     val baseIconsList = listOf(
-                        R.drawable.music_note,
-                        R.drawable.person,
-                        R.drawable.media3_icon_bookmark_filled,
+                        Res.drawable.music_note,
+                        Res.drawable.person,
+                        Res.drawable.media3_icon_bookmark_filled,
                     )
 
                     val iconsList = listOf(
-                        R.drawable.media3_icon_feed,
-                        R.drawable.media3_icon_thumb_up_unfilled,
-                        R.drawable.media3_icon_thumb_down_unfilled,
-                        R.drawable.key,
-                        R.drawable.play,
-                        R.drawable.info,
-                        R.drawable.radio,
-                        R.drawable.gradient,
-                        R.drawable.contrast,
-                        R.drawable.volume_up,
-                        R.drawable.volume_up,
-                        R.drawable.volume_mute,
-                        R.drawable.content_copy
+                        Res.drawable.media3_icon_feed,
+                        Res.drawable.media3_icon_thumb_up_unfilled,
+                        Res.drawable.media3_icon_thumb_down_unfilled,
+                        Res.drawable.key,
+                        Res.drawable.play,
+                        Res.drawable.info,
+                        Res.drawable.radio,
+                        Res.drawable.gradient,
+                        Res.drawable.contrast,
+                        Res.drawable.volume_up,
+                        Res.drawable.volume_up,
+                        Res.drawable.volume_mute,
+                        Res.drawable.content_copy
                     )
 
                     val measuredLufs: Double? = currentFormat?.perceptualLoudnessDb ?: currentFormat?.loudnessDb?.let { it + LoudnessLevel.AGGRESSIVE.targetLufs }
 
                     val extendedList = if (currentFormat != null) {
                         listOf(
-                            stringResource(R.string.views) to info?.viewCount?.let(::numberFormatter).orEmpty(),
-                            stringResource(R.string.likes) to info?.like?.let(::numberFormatter).orEmpty(),
-                            stringResource(R.string.dislikes) to info?.dislike?.let(::numberFormatter).orEmpty(),
+                            stringResource(Res.string.views) to info?.viewCount?.let(::numberFormatter).orEmpty(),
+                            stringResource(Res.string.likes) to info?.like?.let(::numberFormatter).orEmpty(),
+                            stringResource(Res.string.dislikes) to info?.dislike?.let(::numberFormatter).orEmpty(),
                             "Itag" to currentFormat?.itag?.toString(),
-                            stringResource(R.string.stream_client) to currentStreamClient,
-                            stringResource(R.string.mime_type) to currentFormat?.mimeType,
-                            stringResource(R.string.codecs) to currentFormat?.codecs,
-                            stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
-                            stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                            stringResource(R.string.loudness) to measuredLufs?.let {
+                            stringResource(Res.string.stream_client) to currentStreamClient,
+                            stringResource(Res.string.mime_type) to currentFormat?.mimeType,
+                            stringResource(Res.string.codecs) to currentFormat?.codecs,
+                            stringResource(Res.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
+                            stringResource(Res.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
+                            stringResource(Res.string.loudness) to measuredLufs?.let {
                                 String.format(LocalLocale.current.platformLocale, "%.2f dB", it - targetLufs)
                             },
-                            stringResource(R.string.loudness_level) to getLoudnessLevelLabel(loudnessLevel),
-                            stringResource(R.string.volume) to if (playerConnection != null) "${(playerConnection.volume.value * 100).toInt()}%" else null,
-                            stringResource(R.string.file_size) to
+                            stringResource(Res.string.loudness_level) to getLoudnessLevelLabel(loudnessLevel),
+                            stringResource(Res.string.volume) to if (playerConnection != null) "${(playerConnection.volume.value * 100).toInt()}%" else null,
+                            stringResource(Res.string.file_size) to
                                     currentFormat?.contentLength?.let {
                                         Formatter.formatShortFileSize(
                                             context,
@@ -192,7 +231,7 @@ fun ShowMediaInfo(videoId: String) {
                     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
                     baseList.forEachIndexed { index, (label, text) ->
-                        val displayText = text ?: stringResource(R.string.unknown)
+                        val displayText = text ?: stringResource(Res.string.unknown)
                         cardsBaseList += Material3SettingsItem(
                             title = { Text(label) },
                             description = { Text(displayText) },
@@ -205,7 +244,7 @@ fun ShowMediaInfo(videoId: String) {
                     }
 
                     extendedList.forEachIndexed { index, (label, text) ->
-                        val displayText = text ?: stringResource(R.string.unknown)
+                        val displayText = text ?: stringResource(Res.string.unknown)
                         cardsExtendedList += Material3SettingsItem(
                             title = { Text(label) },
                             description = { Text(displayText) },
@@ -218,26 +257,26 @@ fun ShowMediaInfo(videoId: String) {
                     }
 
                     Material3SettingsGroup(
-                        title = stringResource(R.string.general),
+                        title = stringResource(Res.string.general),
                         items = cardsBaseList
                     )
 
                     Spacer(Modifier.height(8.dp))
 
                     Material3SettingsGroup(
-                        title = stringResource(R.string.information),
+                        title = stringResource(Res.string.information),
                         items = cardsExtendedList
                     )
 
                     Spacer(Modifier.height(8.dp))
 
-                    val descriptionText = info?.description ?: stringResource(R.string.unknown)
+                    val descriptionText = info?.description ?: stringResource(Res.string.unknown)
 
                     Material3SettingsGroup(
-                        title = stringResource(R.string.description),
+                        title = stringResource(Res.string.description),
                         items = listOf(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.description)) },
+                                title = { Text(stringResource(Res.string.description)) },
                                 description = { Text(descriptionText) },
                                 onClick = {
                                     cm.setPrimaryClip(ClipData.newPlainText("text", descriptionText))

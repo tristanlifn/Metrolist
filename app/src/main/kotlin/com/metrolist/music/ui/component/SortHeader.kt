@@ -24,13 +24,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.metrolist.music.R
 import com.metrolist.music.constants.PlaylistSongSortType
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_downward
+import com.metrolist.music.resources.arrow_upward
+import com.metrolist.music.resources.radio_button_checked
+import com.metrolist.music.resources.radio_button_unchecked
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 inline fun <reified T : Enum<T>> SortHeader(
@@ -38,7 +43,7 @@ inline fun <reified T : Enum<T>> SortHeader(
     sortDescending: Boolean,
     crossinline onSortTypeChange: (T) -> Unit,
     crossinline onSortDescendingChange: (Boolean) -> Unit,
-    crossinline sortTypeText: (T) -> Int,
+    crossinline sortTypeText: (T) -> StringResource,
     modifier: Modifier = Modifier,
     showDescending: Boolean? = true,
 ) {
@@ -83,9 +88,9 @@ inline fun <reified T : Enum<T>> SortHeader(
                                 if (sortType ==
                                     type
                                 ) {
-                                    R.drawable.radio_button_checked
+                                    Res.drawable.radio_button_checked
                                 } else {
-                                    R.drawable.radio_button_unchecked
+                                    Res.drawable.radio_button_unchecked
                                 },
                             ),
                             contentDescription = null,
@@ -101,7 +106,7 @@ inline fun <reified T : Enum<T>> SortHeader(
 
         if (sortType != PlaylistSongSortType.CUSTOM && showDescending == true) {
             ResizableIconButton(
-                icon = if (sortDescending) R.drawable.arrow_downward else R.drawable.arrow_upward,
+                icon = if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
                 color = MaterialTheme.colorScheme.primary,
                 modifier =
                 Modifier

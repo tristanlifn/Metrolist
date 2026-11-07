@@ -64,15 +64,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
-import com.metrolist.music.R
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.DynamicThemeKey
 import com.metrolist.music.constants.PureBlackKey
@@ -82,33 +79,70 @@ import com.metrolist.music.ui.theme.DefaultThemeColor
 import com.metrolist.music.ui.theme.MetrolistTheme
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cd_back
+import com.metrolist.music.resources.cd_dark_mode
+import com.metrolist.music.resources.cd_light_mode
+import com.metrolist.music.resources.cd_palette_item
+import com.metrolist.music.resources.cd_pure_black_mode
+import com.metrolist.music.resources.cd_system_mode
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.color_palette
+import com.metrolist.music.resources.palette
+import com.metrolist.music.resources.palette_amber
+import com.metrolist.music.resources.palette_blue
+import com.metrolist.music.resources.palette_blue_grey
+import com.metrolist.music.resources.palette_brown
+import com.metrolist.music.resources.palette_crimson
+import com.metrolist.music.resources.palette_cyan
+import com.metrolist.music.resources.palette_deep_orange
+import com.metrolist.music.resources.palette_deep_purple
+import com.metrolist.music.resources.palette_dynamic
+import com.metrolist.music.resources.palette_green
+import com.metrolist.music.resources.palette_grey
+import com.metrolist.music.resources.palette_indigo
+import com.metrolist.music.resources.palette_light_green
+import com.metrolist.music.resources.palette_lime
+import com.metrolist.music.resources.palette_orange
+import com.metrolist.music.resources.palette_purple
+import com.metrolist.music.resources.palette_rose
+import com.metrolist.music.resources.palette_sky_blue
+import com.metrolist.music.resources.palette_teal
+import com.metrolist.music.resources.palette_yellow
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.theme_colors
+import com.metrolist.music.resources.theme_mode
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.StringResource
 
 data class ThemePalette(
-    val nameRes: Int,
+    val nameRes: StringResource,
     val seedColor: Color
 )
 
 val PaletteColors = listOf(
-    ThemePalette(R.string.palette_dynamic, Color.Transparent), // Sentinel for System/Dynamic colors
-    ThemePalette(R.string.palette_crimson, Color(0xFFEC5464)), // Slightly shifted from DefaultThemeColor (0xFFED5564) to avoid conflict
-    ThemePalette(R.string.palette_rose, Color(0xFFD81B60)),
-    ThemePalette(R.string.palette_purple, Color(0xFF8E24AA)),
-    ThemePalette(R.string.palette_deep_purple, Color(0xFF5E35B1)),
-    ThemePalette(R.string.palette_indigo, Color(0xFF3949AB)),
-    ThemePalette(R.string.palette_blue, Color(0xFF1E88E5)),
-    ThemePalette(R.string.palette_sky_blue, Color(0xFF039BE5)),
-    ThemePalette(R.string.palette_cyan, Color(0xFF00ACC1)),
-    ThemePalette(R.string.palette_teal, Color(0xFF00897B)),
-    ThemePalette(R.string.palette_green, Color(0xFF43A047)),
-    ThemePalette(R.string.palette_light_green, Color(0xFF7CB342)),
-    ThemePalette(R.string.palette_lime, Color(0xFFC0CA33)),
-    ThemePalette(R.string.palette_yellow, Color(0xFFFDD835)),
-    ThemePalette(R.string.palette_amber, Color(0xFFFFB300)),
-    ThemePalette(R.string.palette_orange, Color(0xFFFB8C00)),
-    ThemePalette(R.string.palette_deep_orange, Color(0xFFF4511E)),
-    ThemePalette(R.string.palette_brown, Color(0xFF6D4C41)),
-    ThemePalette(R.string.palette_grey, Color(0xFF757575)),
-    ThemePalette(R.string.palette_blue_grey, Color(0xFF546E7A)),
+    ThemePalette(Res.string.palette_dynamic, Color.Transparent), // Sentinel for System/Dynamic colors
+    ThemePalette(Res.string.palette_crimson, Color(0xFFEC5464)), // Slightly shifted from DefaultThemeColor (0xFFED5564) to avoid conflict
+    ThemePalette(Res.string.palette_rose, Color(0xFFD81B60)),
+    ThemePalette(Res.string.palette_purple, Color(0xFF8E24AA)),
+    ThemePalette(Res.string.palette_deep_purple, Color(0xFF5E35B1)),
+    ThemePalette(Res.string.palette_indigo, Color(0xFF3949AB)),
+    ThemePalette(Res.string.palette_blue, Color(0xFF1E88E5)),
+    ThemePalette(Res.string.palette_sky_blue, Color(0xFF039BE5)),
+    ThemePalette(Res.string.palette_cyan, Color(0xFF00ACC1)),
+    ThemePalette(Res.string.palette_teal, Color(0xFF00897B)),
+    ThemePalette(Res.string.palette_green, Color(0xFF43A047)),
+    ThemePalette(Res.string.palette_light_green, Color(0xFF7CB342)),
+    ThemePalette(Res.string.palette_lime, Color(0xFFC0CA33)),
+    ThemePalette(Res.string.palette_yellow, Color(0xFFFDD835)),
+    ThemePalette(Res.string.palette_amber, Color(0xFFFFB300)),
+    ThemePalette(Res.string.palette_orange, Color(0xFFFB8C00)),
+    ThemePalette(Res.string.palette_deep_orange, Color(0xFFF4511E)),
+    ThemePalette(Res.string.palette_brown, Color(0xFF6D4C41)),
+    ThemePalette(Res.string.palette_grey, Color(0xFF757575)),
+    ThemePalette(Res.string.palette_blue_grey, Color(0xFF546E7A)),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -169,12 +203,12 @@ fun ThemeScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.theme_colors)) },
+        title = { Text(stringResource(Res.string.theme_colors)) },
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_back),
-                    contentDescription = stringResource(R.string.cd_back)
+                    painter = painterResource(Res.drawable.arrow_back),
+                    contentDescription = stringResource(Res.string.cd_back)
                 )
             }
         }
@@ -310,7 +344,7 @@ fun ThemeControls(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = stringResource(R.string.theme_mode),
+                    text = stringResource(Res.string.theme_mode),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -381,7 +415,7 @@ fun ThemeControls(
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = stringResource(R.string.color_palette),
+                    text = stringResource(Res.string.color_palette),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -472,10 +506,10 @@ fun ModeCircle(
     val interactionSource = remember { MutableInteractionSource() }
     
     val contentDesc = when {
-        targetPureBlack -> stringResource(R.string.cd_pure_black_mode)
-        targetMode == DarkMode.OFF -> stringResource(R.string.cd_light_mode)
-        targetMode == DarkMode.ON -> stringResource(R.string.cd_dark_mode)
-        else -> stringResource(R.string.cd_system_mode)
+        targetPureBlack -> stringResource(Res.string.cd_pure_black_mode)
+        targetMode == DarkMode.OFF -> stringResource(Res.string.cd_light_mode)
+        targetMode == DarkMode.ON -> stringResource(Res.string.cd_dark_mode)
+        else -> stringResource(Res.string.cd_system_mode)
     }
     
     Box(
@@ -511,7 +545,7 @@ fun ModeCircle(
         when {
             showIcon -> {
                 Icon(
-                    painter = painterResource(R.drawable.sync),
+                    painter = painterResource(Res.drawable.sync),
                     contentDescription = null,
                     tint = modeColorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
@@ -533,7 +567,7 @@ fun ModeCircle(
                     )
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.check),
+                        painter = painterResource(Res.drawable.check),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inversePrimary,
                         modifier = Modifier.size(20.dp)
@@ -589,7 +623,7 @@ fun PaletteItem(
     val interactionSource = remember { MutableInteractionSource() }
     
     val paletteName = stringResource(palette.nameRes)
-    val contentDesc = stringResource(R.string.cd_palette_item, paletteName)
+    val contentDesc = stringResource(Res.string.cd_palette_item, paletteName)
     
     Box(
         modifier = Modifier
@@ -628,7 +662,7 @@ fun PaletteItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.palette),
+                    painter = painterResource(Res.drawable.palette),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)

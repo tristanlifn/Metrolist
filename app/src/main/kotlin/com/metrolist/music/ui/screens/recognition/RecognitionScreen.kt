@@ -70,8 +70,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,7 +79,6 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.RecognitionHistory
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.utils.backToMain
@@ -91,6 +88,28 @@ import com.metrolist.shazamkit.models.RecognitionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.error
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.listening
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.no_match_found
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.play_on_app
+import com.metrolist.music.resources.processing
+import com.metrolist.music.resources.re_listen
+import com.metrolist.music.resources.recognition_error
+import com.metrolist.music.resources.recognition_history
+import com.metrolist.music.resources.recognize_music
+import com.metrolist.music.resources.refresh
+import com.metrolist.music.resources.tap_to_recognize
+import com.metrolist.music.resources.try_again
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,14 +220,14 @@ fun RecognitionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.recognize_music)) },
+                title = { Text(stringResource(Res.string.recognize_music)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.navigateUp() },
                         onLongClick = { navController.backToMain() },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
+                            painter = painterResource(Res.drawable.arrow_back),
                             contentDescription = null,
                         )
                     }
@@ -216,8 +235,8 @@ fun RecognitionScreen(
                 actions = {
                     IconButton(onClick = { navController.navigate("recognition_history") }) {
                         Icon(
-                            painter = painterResource(R.drawable.history),
-                            contentDescription = stringResource(R.string.recognition_history),
+                            painter = painterResource(Res.drawable.history),
+                            contentDescription = stringResource(Res.string.recognition_history),
                         )
                     }
                 },
@@ -329,7 +348,7 @@ private fun ReadyState(onStartRecognition: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.mic),
+                    painter = painterResource(Res.drawable.mic),
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.onPrimary,
@@ -338,7 +357,7 @@ private fun ReadyState(onStartRecognition: () -> Unit) {
         }
 
         Text(
-            text = stringResource(R.string.tap_to_recognize),
+            text = stringResource(Res.string.tap_to_recognize),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -399,7 +418,7 @@ private fun ListeningState(onCancel: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.mic),
+                    painter = painterResource(Res.drawable.mic),
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.onPrimary,
@@ -408,13 +427,13 @@ private fun ListeningState(onCancel: () -> Unit) {
         }
 
         Text(
-            text = stringResource(R.string.listening),
+            text = stringResource(Res.string.listening),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
 
         OutlinedButton(onClick = onCancel) {
-            Text(stringResource(R.string.cancel))
+            Text(stringResource(Res.string.cancel))
         }
     }
 }
@@ -463,7 +482,7 @@ private fun ProcessingState() {
             )
 
             Icon(
-                painter = painterResource(R.drawable.music_note),
+                painter = painterResource(Res.drawable.music_note),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.primary,
@@ -471,7 +490,7 @@ private fun ProcessingState() {
         }
 
         Text(
-            text = stringResource(R.string.processing),
+            text = stringResource(Res.string.processing),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -557,12 +576,12 @@ private fun SuccessState(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(Res.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.play_on_app))
+                Text(stringResource(Res.string.play_on_app))
             }
 
             FilledTonalButton(
@@ -570,12 +589,12 @@ private fun SuccessState(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.mic),
+                    painter = painterResource(Res.drawable.mic),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.re_listen))
+                Text(stringResource(Res.string.re_listen))
             }
 
             // Close button - Material 3 Expressive outlined style
@@ -584,12 +603,12 @@ private fun SuccessState(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.close),
+                    painter = painterResource(Res.drawable.close),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.close))
+                Text(stringResource(Res.string.close))
             }
         }
     }
@@ -613,7 +632,7 @@ private fun NoMatchState(
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                painter = painterResource(R.drawable.close),
+                painter = painterResource(Res.drawable.close),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onErrorContainer,
@@ -621,7 +640,7 @@ private fun NoMatchState(
         }
 
         Text(
-            text = stringResource(R.string.no_match_found),
+            text = stringResource(Res.string.no_match_found),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
@@ -636,12 +655,12 @@ private fun NoMatchState(
 
         Button(onClick = onTryAgain) {
             Icon(
-                painter = painterResource(R.drawable.refresh),
+                painter = painterResource(Res.drawable.refresh),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(stringResource(R.string.try_again))
+            Text(stringResource(Res.string.try_again))
         }
     }
 }
@@ -664,7 +683,7 @@ private fun ErrorState(
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                painter = painterResource(R.drawable.error),
+                painter = painterResource(Res.drawable.error),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onErrorContainer,
@@ -672,7 +691,7 @@ private fun ErrorState(
         }
 
         Text(
-            text = stringResource(R.string.recognition_error),
+            text = stringResource(Res.string.recognition_error),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
@@ -687,12 +706,12 @@ private fun ErrorState(
 
         Button(onClick = onTryAgain) {
             Icon(
-                painter = painterResource(R.drawable.refresh),
+                painter = painterResource(Res.drawable.refresh),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(stringResource(R.string.try_again))
+            Text(stringResource(Res.string.try_again))
         }
     }
 }

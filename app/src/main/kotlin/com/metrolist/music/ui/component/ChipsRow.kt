@@ -49,11 +49,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
 import com.metrolist.music.ui.screens.OptionStats
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.continuous
+import com.metrolist.music.resources.expand_more
+import com.metrolist.music.resources.months
+import com.metrolist.music.resources.weeks
+import com.metrolist.music.resources.years
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun <E> ChipsRow(
@@ -127,16 +132,16 @@ fun <Int> ChoiceChipsRow(
                     Text(
                         text =
                         when (selectedOption) {
-                            OptionStats.WEEKS -> stringResource(id = R.string.weeks)
-                            OptionStats.MONTHS -> stringResource(id = R.string.months)
-                            OptionStats.YEARS -> stringResource(id = R.string.years)
-                            OptionStats.CONTINUOUS -> stringResource(id = R.string.continuous)
+                            OptionStats.WEEKS -> stringResource(Res.string.weeks)
+                            OptionStats.MONTHS -> stringResource(Res.string.months)
+                            OptionStats.YEARS -> stringResource(Res.string.years)
+                            OptionStats.CONTINUOUS -> stringResource(Res.string.continuous)
                         },
                     )
                 },
                 trailingIcon = {
                     Icon(
-                        painter = painterResource(R.drawable.expand_more),
+                        painter = painterResource(Res.drawable.expand_more),
                         contentDescription = null,
                         modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                     )

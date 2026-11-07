@@ -40,15 +40,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
@@ -67,6 +64,21 @@ import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.viewmodels.AccountContentType
 import com.metrolist.music.viewmodels.AccountViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.account
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.auto_playlist
+import com.metrolist.music.resources.episodes_for_later
+import com.metrolist.music.resources.filter_albums
+import com.metrolist.music.resources.filter_artists
+import com.metrolist.music.resources.filter_channels
+import com.metrolist.music.resources.filter_playlists
+import com.metrolist.music.resources.filter_podcasts
+import com.metrolist.music.resources.navigate_next
+import com.metrolist.music.resources.new_episodes
+import com.metrolist.music.resources.queue_music
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -97,10 +109,10 @@ fun AccountScreen(
             ChipsRow(
                 chips =
                     listOf(
-                        AccountContentType.PLAYLISTS to stringResource(R.string.filter_playlists),
-                        AccountContentType.ALBUMS to stringResource(R.string.filter_albums),
-                        AccountContentType.ARTISTS to stringResource(R.string.filter_artists),
-                        AccountContentType.PODCASTS to stringResource(R.string.filter_podcasts),
+                        AccountContentType.PLAYLISTS to stringResource(Res.string.filter_playlists),
+                        AccountContentType.ALBUMS to stringResource(Res.string.filter_albums),
+                        AccountContentType.ARTISTS to stringResource(Res.string.filter_artists),
+                        AccountContentType.PODCASTS to stringResource(Res.string.filter_podcasts),
                     ),
                 currentValue = selectedContentType,
                 onValueUpdate = { viewModel.setSelectedContentType(it) },
@@ -226,8 +238,8 @@ fun AccountScreen(
                     ) {
                         SePlaylistAccountItem(
                             thumbnailUrl = rdpn.thumbnail,
-                            title = stringResource(R.string.new_episodes),
-                            subtitle = stringResource(R.string.auto_playlist),
+                            title = stringResource(Res.string.new_episodes),
+                            subtitle = stringResource(Res.string.auto_playlist),
                             onClick = { navController.navigate("online_playlist/RDPN") },
                         )
                     }
@@ -241,8 +253,8 @@ fun AccountScreen(
                     ) {
                         SePlaylistAccountItem(
                             thumbnailUrl = se.thumbnail,
-                            title = stringResource(R.string.episodes_for_later),
-                            subtitle = stringResource(R.string.auto_playlist),
+                            title = stringResource(Res.string.episodes_for_later),
+                            subtitle = stringResource(Res.string.auto_playlist),
                             onClick = { navController.navigate("online_playlist/SE") },
                         )
                     }
@@ -255,7 +267,7 @@ fun AccountScreen(
                         span = { GridItemSpan(maxLineSpan) },
                     ) {
                         Text(
-                            text = stringResource(R.string.filter_podcasts),
+                            text = stringResource(Res.string.filter_podcasts),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier =
@@ -285,7 +297,7 @@ fun AccountScreen(
                         span = { GridItemSpan(maxLineSpan) },
                     ) {
                         Text(
-                            text = stringResource(R.string.filter_channels),
+                            text = stringResource(Res.string.filter_channels),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier =
@@ -319,14 +331,14 @@ fun AccountScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.account)) },
+        title = { Text(stringResource(Res.string.account)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }
@@ -370,7 +382,7 @@ private fun SePlaylistAccountItem(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource(Res.drawable.queue_music),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(28.dp),
@@ -397,7 +409,7 @@ private fun SePlaylistAccountItem(
         }
 
         Icon(
-            painter = painterResource(R.drawable.navigate_next),
+            painter = painterResource(Res.drawable.navigate_next),
             contentDescription = null,
         )
     }
@@ -439,7 +451,7 @@ private fun PodcastAccountItem(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource(Res.drawable.queue_music),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(28.dp),

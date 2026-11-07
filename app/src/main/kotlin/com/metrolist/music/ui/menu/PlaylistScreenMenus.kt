@@ -28,8 +28,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import com.metrolist.music.LocalListenTogetherManager
@@ -44,6 +42,35 @@ import com.metrolist.music.utils.PlaylistExporter
 import com.metrolist.music.utils.getExportFileUri
 import com.metrolist.music.utils.saveToPublicDocuments
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.action_sync
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_playlist_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.download_in_progress_desc
+import com.metrolist.music.resources.download_playlist_desc
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.edit
+import com.metrolist.music.resources.edit_playlist
+import com.metrolist.music.resources.export_as_csv
+import com.metrolist.music.resources.export_as_m3u
+import com.metrolist.music.resources.export_option_save
+import com.metrolist.music.resources.export_option_share
+import com.metrolist.music.resources.export_playlist
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_download_playlist_desc
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.share_playlist_desc
+import com.metrolist.music.resources.sync
+import com.metrolist.music.resources.sync_playlist_desc
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Menu for Local Playlist Screen
@@ -72,11 +99,11 @@ fun LocalPlaylistMenu(
         when (downloadState) {
             Download.STATE_COMPLETED -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.remove_download)) },
-                    description = { Text(stringResource(R.string.remove_download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.remove_download)) },
+                    description = { Text(stringResource(Res.string.remove_download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.offline),
+                            painter = painterResource(Res.drawable.offline),
                             contentDescription = null,
                         )
                     },
@@ -89,8 +116,8 @@ fun LocalPlaylistMenu(
 
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.downloading)) },
-                    description = { Text(stringResource(R.string.download_in_progress_desc)) },
+                    title = { Text(stringResource(Res.string.downloading)) },
+                    description = { Text(stringResource(Res.string.download_in_progress_desc)) },
                     icon = {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
@@ -106,11 +133,11 @@ fun LocalPlaylistMenu(
 
             else -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.action_download)) },
-                    description = { Text(stringResource(R.string.download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.action_download)) },
+                    description = { Text(stringResource(Res.string.download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.download),
+                            painter = painterResource(Res.drawable.download),
                             contentDescription = null,
                         )
                     },
@@ -128,11 +155,11 @@ fun LocalPlaylistMenu(
         buildList {
             add(
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.edit)) },
-                    description = { Text(stringResource(R.string.edit_playlist)) },
+                    title = { Text(stringResource(Res.string.edit)) },
+                    description = { Text(stringResource(Res.string.edit_playlist)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.edit),
+                            painter = painterResource(Res.drawable.edit),
                             contentDescription = null,
                         )
                     },
@@ -147,11 +174,11 @@ fun LocalPlaylistMenu(
             if (isYouTubePlaylist) {
                 add(
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.action_sync)) },
-                        description = { Text(stringResource(R.string.sync_playlist_desc)) },
+                        title = { Text(stringResource(Res.string.action_sync)) },
+                        description = { Text(stringResource(Res.string.sync_playlist_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.sync),
+                                painter = painterResource(Res.drawable.sync),
                                 contentDescription = null,
                             )
                         },
@@ -166,11 +193,11 @@ fun LocalPlaylistMenu(
             if (!isGuest) {
                 add(
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.add_to_queue)) },
-                        description = { Text(stringResource(R.string.add_to_queue_desc)) },
+                        title = { Text(stringResource(Res.string.add_to_queue)) },
+                        description = { Text(stringResource(Res.string.add_to_queue_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                             )
                         },
@@ -186,11 +213,11 @@ fun LocalPlaylistMenu(
 
             add(
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.share)) },
-                    description = { Text(stringResource(R.string.share_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.share)) },
+                    description = { Text(stringResource(Res.string.share_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                         )
                     },
@@ -217,10 +244,10 @@ fun LocalPlaylistMenu(
             // Export menu group
             add(
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.export_playlist)) },
+                    title = { Text(stringResource(Res.string.export_playlist)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                         )
                     },
@@ -230,11 +257,11 @@ fun LocalPlaylistMenu(
 
             add(
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.delete)) },
-                    description = { Text(stringResource(R.string.delete_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.delete)) },
+                    description = { Text(stringResource(Res.string.delete_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.delete),
+                            painter = painterResource(Res.drawable.delete),
                             contentDescription = null,
                         )
                     },
@@ -331,11 +358,11 @@ fun AutoPlaylistMenu(
         when (downloadState) {
             Download.STATE_COMPLETED -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.remove_download)) },
-                    description = { Text(stringResource(R.string.remove_download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.remove_download)) },
+                    description = { Text(stringResource(Res.string.remove_download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.offline),
+                            painter = painterResource(Res.drawable.offline),
                             contentDescription = null,
                         )
                     },
@@ -348,8 +375,8 @@ fun AutoPlaylistMenu(
 
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.downloading)) },
-                    description = { Text(stringResource(R.string.download_in_progress_desc)) },
+                    title = { Text(stringResource(Res.string.downloading)) },
+                    description = { Text(stringResource(Res.string.download_in_progress_desc)) },
                     icon = {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
@@ -365,11 +392,11 @@ fun AutoPlaylistMenu(
 
             else -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.action_download)) },
-                    description = { Text(stringResource(R.string.download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.action_download)) },
+                    description = { Text(stringResource(Res.string.download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.download),
+                            painter = painterResource(Res.drawable.download),
                             contentDescription = null,
                         )
                     },
@@ -386,11 +413,11 @@ fun AutoPlaylistMenu(
             listOfNotNull(
                 if (!isGuest) {
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.add_to_queue)) },
-                        description = { Text(stringResource(R.string.add_to_queue_desc)) },
+                        title = { Text(stringResource(Res.string.add_to_queue)) },
+                        description = { Text(stringResource(Res.string.add_to_queue_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                             )
                         },
@@ -404,10 +431,10 @@ fun AutoPlaylistMenu(
                 },
                 if (songs.isNotEmpty()) {
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.export_playlist)) },
+                        title = { Text(stringResource(Res.string.export_playlist)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = null,
                             )
                         },
@@ -511,11 +538,11 @@ fun TopPlaylistMenu(
         when (downloadState) {
             Download.STATE_COMPLETED -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.remove_download)) },
-                    description = { Text(stringResource(R.string.remove_download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.remove_download)) },
+                    description = { Text(stringResource(Res.string.remove_download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.offline),
+                            painter = painterResource(Res.drawable.offline),
                             contentDescription = null,
                         )
                     },
@@ -528,8 +555,8 @@ fun TopPlaylistMenu(
 
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.downloading)) },
-                    description = { Text(stringResource(R.string.download_in_progress_desc)) },
+                    title = { Text(stringResource(Res.string.downloading)) },
+                    description = { Text(stringResource(Res.string.download_in_progress_desc)) },
                     icon = {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
@@ -545,11 +572,11 @@ fun TopPlaylistMenu(
 
             else -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.action_download)) },
-                    description = { Text(stringResource(R.string.download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.action_download)) },
+                    description = { Text(stringResource(Res.string.download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.download),
+                            painter = painterResource(Res.drawable.download),
                             contentDescription = null,
                         )
                     },
@@ -566,11 +593,11 @@ fun TopPlaylistMenu(
             listOfNotNull(
                 if (!isGuest) {
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.add_to_queue)) },
-                        description = { Text(stringResource(R.string.add_to_queue_desc)) },
+                        title = { Text(stringResource(Res.string.add_to_queue)) },
+                        description = { Text(stringResource(Res.string.add_to_queue_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                             )
                         },
@@ -612,16 +639,16 @@ fun ExportDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        title = { Text(stringResource(R.string.export_playlist)) },
+        title = { Text(stringResource(Res.string.export_playlist)) },
         buttons = {
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(android.R.string.cancel))
+                Text(text = stringResource(Res.string.cancel))
             }
             TextButton(onClick = { onSave(selected) }) {
-                Text(text = stringResource(R.string.export_option_save))
+                Text(text = stringResource(Res.string.export_option_save))
             }
             TextButton(onClick = { onShare(selected) }) {
-                Text(text = stringResource(R.string.export_option_share))
+                Text(text = stringResource(Res.string.export_option_share))
             }
         },
         horizontalAlignment = Alignment.Start,
@@ -637,7 +664,7 @@ fun ExportDialog(
             ) {
                 RadioButton(selected = selected == "csv", onClick = null)
                 Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(text = stringResource(R.string.export_as_csv))
+                    Text(text = stringResource(Res.string.export_as_csv))
                 }
             }
 
@@ -651,7 +678,7 @@ fun ExportDialog(
             ) {
                 RadioButton(selected = selected == "m3u", onClick = null)
                 Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(text = stringResource(R.string.export_as_m3u))
+                    Text(text = stringResource(Res.string.export_as_m3u))
                 }
             }
         }
@@ -675,11 +702,11 @@ fun CachePlaylistMenu(
         when (downloadState) {
             Download.STATE_COMPLETED -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.remove_download)) },
-                    description = { Text(stringResource(R.string.remove_download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.remove_download)) },
+                    description = { Text(stringResource(Res.string.remove_download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.offline),
+                            painter = painterResource(Res.drawable.offline),
                             contentDescription = null,
                         )
                     },
@@ -692,8 +719,8 @@ fun CachePlaylistMenu(
 
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.downloading)) },
-                    description = { Text(stringResource(R.string.download_in_progress_desc)) },
+                    title = { Text(stringResource(Res.string.downloading)) },
+                    description = { Text(stringResource(Res.string.download_in_progress_desc)) },
                     icon = {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
@@ -709,11 +736,11 @@ fun CachePlaylistMenu(
 
             else -> {
                 Material3MenuItemData(
-                    title = { Text(stringResource(R.string.action_download)) },
-                    description = { Text(stringResource(R.string.download_playlist_desc)) },
+                    title = { Text(stringResource(Res.string.action_download)) },
+                    description = { Text(stringResource(Res.string.download_playlist_desc)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.download),
+                            painter = painterResource(Res.drawable.download),
                             contentDescription = null,
                         )
                     },
@@ -730,11 +757,11 @@ fun CachePlaylistMenu(
             listOfNotNull(
                 if (!isGuest) {
                     Material3MenuItemData(
-                        title = { Text(stringResource(R.string.add_to_queue)) },
-                        description = { Text(stringResource(R.string.add_to_queue_desc)) },
+                        title = { Text(stringResource(Res.string.add_to_queue)) },
+                        description = { Text(stringResource(Res.string.add_to_queue_desc)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                             )
                         },

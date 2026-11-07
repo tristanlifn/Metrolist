@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -32,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -51,6 +49,27 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.sleep_timer
+import com.metrolist.music.resources.sleep_timer_custom
+import com.metrolist.music.resources.sleep_timer_daily
+import com.metrolist.music.resources.sleep_timer_end_time
+import com.metrolist.music.resources.sleep_timer_friday
+import com.metrolist.music.resources.sleep_timer_monday
+import com.metrolist.music.resources.sleep_timer_saturday
+import com.metrolist.music.resources.sleep_timer_start_time
+import com.metrolist.music.resources.sleep_timer_sunday
+import com.metrolist.music.resources.sleep_timer_thursday
+import com.metrolist.music.resources.sleep_timer_tuesday
+import com.metrolist.music.resources.sleep_timer_wednesday
+import com.metrolist.music.resources.sleep_timer_weekdays
+import com.metrolist.music.resources.sleep_timer_weekdays_weekends
+import com.metrolist.music.resources.sleep_timer_weekends
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
 
 fun decodeDayTimes(raw: String): MutableMap<Int, Pair<String, String>> {
     if (raw.isBlank()) return mutableMapOf()
@@ -137,9 +156,9 @@ fun SleepTimerDialog(
         val isStart = pickerKey.contains("start")
         val title =
             if (isStart) {
-                stringResource(R.string.sleep_timer_start_time)
+                stringResource(Res.string.sleep_timer_start_time)
             } else {
-                stringResource(R.string.sleep_timer_end_time)
+                stringResource(Res.string.sleep_timer_end_time)
             }
 
         val currentTime =
@@ -231,19 +250,19 @@ fun SleepTimerDialog(
 
     val dayLabelRes =
         listOf(
-            R.string.sleep_timer_monday,
-            R.string.sleep_timer_tuesday,
-            R.string.sleep_timer_wednesday,
-            R.string.sleep_timer_thursday,
-            R.string.sleep_timer_friday,
-            R.string.sleep_timer_saturday,
-            R.string.sleep_timer_sunday,
+            Res.string.sleep_timer_monday,
+            Res.string.sleep_timer_tuesday,
+            Res.string.sleep_timer_wednesday,
+            Res.string.sleep_timer_thursday,
+            Res.string.sleep_timer_friday,
+            Res.string.sleep_timer_saturday,
+            Res.string.sleep_timer_sunday,
         )
 
     ListDialog(onDismiss = onDismiss) {
         item {
             Text(
-                text = stringResource(R.string.sleep_timer),
+                text = stringResource(Res.string.sleep_timer),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
@@ -259,7 +278,7 @@ fun SleepTimerDialog(
                     selected = selectedRepeat == "daily",
                     onClick = { selectedRepeat = "daily" },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_daily)) },
+                    label = { Text(stringResource(Res.string.sleep_timer_daily)) },
                 )
                 SegmentedButton(
                     selected = selectedRepeat == "weekdays_weekends",
@@ -268,13 +287,13 @@ fun SleepTimerDialog(
                         if (!weekdaysEnabled && !weekendsEnabled) weekdaysEnabled = true
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_weekdays_weekends)) },
+                    label = { Text(stringResource(Res.string.sleep_timer_weekdays_weekends)) },
                 )
                 SegmentedButton(
                     selected = selectedRepeat == "custom",
                     onClick = { selectedRepeat = "custom" },
                     shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_custom)) },
+                    label = { Text(stringResource(Res.string.sleep_timer_custom)) },
                 )
             }
         }
@@ -344,7 +363,7 @@ fun SleepTimerDialog(
                                 .padding(vertical = 8.dp),
                         ) {
                             Text(
-                                text = stringResource(R.string.sleep_timer_weekdays),
+                                text = stringResource(Res.string.sleep_timer_weekdays),
                                 modifier = Modifier.weight(1f),
                             )
                             Switch(
@@ -353,7 +372,7 @@ fun SleepTimerDialog(
                                 thumbContent = {
                                     Icon(
                                         painter = painterResource(
-                                            if (weekdaysEnabled) R.drawable.check else R.drawable.close,
+                                            if (weekdaysEnabled) Res.drawable.check else Res.drawable.close,
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -396,7 +415,7 @@ fun SleepTimerDialog(
                                 .padding(vertical = 8.dp),
                         ) {
                             Text(
-                                text = stringResource(R.string.sleep_timer_weekends),
+                                text = stringResource(Res.string.sleep_timer_weekends),
                                 modifier = Modifier.weight(1f),
                             )
                             Switch(
@@ -405,7 +424,7 @@ fun SleepTimerDialog(
                                 thumbContent = {
                                     Icon(
                                         painter = painterResource(
-                                            if (weekendsEnabled) R.drawable.check else R.drawable.close,
+                                            if (weekendsEnabled) Res.drawable.check else Res.drawable.close,
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -501,7 +520,7 @@ fun SleepTimerDialog(
                                         thumbContent = {
                                             Icon(
                                                 painter = painterResource(
-                                                    if (isDaySelected) R.drawable.check else R.drawable.close,
+                                                    if (isDaySelected) Res.drawable.check else Res.drawable.close,
                                                 ),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -552,7 +571,7 @@ fun SleepTimerDialog(
                     onClick = onDismiss,
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
                 androidx.compose.material3.Button(
                     shapes = ButtonDefaults.shapes(),
@@ -607,13 +626,13 @@ private fun TimeRangeRow(
     ) {
         FilledTonalButton(onClick = onStartClick, modifier = Modifier.weight(1f)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.sleep_timer_start_time), style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(Res.string.sleep_timer_start_time), style = MaterialTheme.typography.labelSmall)
                 Text(startTime, style = MaterialTheme.typography.bodyLarge)
             }
         }
         FilledTonalButton(onClick = onEndClick, modifier = Modifier.weight(1f)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.sleep_timer_end_time), style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(Res.string.sleep_timer_end_time), style = MaterialTheme.typography.labelSmall)
                 Text(endTime, style = MaterialTheme.typography.bodyLarge)
             }
         }
@@ -645,7 +664,7 @@ fun SleepTimerTimePickerDialog(
         title = { Text(title) },
         onDismiss = onDismiss,
         buttons = {
-            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
             Button(onClick = {
                 val hour = timePickerState.hour.toString().padStart(2, '0')
                 val minute = timePickerState.minute.toString().padStart(2, '0')

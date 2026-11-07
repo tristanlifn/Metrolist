@@ -28,17 +28,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongEntity
 import kotlinx.coroutines.FlowPreview
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.fast_forward
+import com.metrolist.music.resources.lyrics_offset
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.replay
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -74,7 +79,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.fast_forward),
+            painter = painterResource(Res.drawable.fast_forward),
             contentDescription = null,
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -83,7 +88,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = stringResource(R.string.lyrics_offset),
+            text = stringResource(Res.string.lyrics_offset),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -175,7 +180,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
                     }
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.replay),
+                        painter = painterResource(Res.drawable.replay),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Reset"
                     )
@@ -196,7 +201,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.remove),
+                    painter = painterResource(Res.drawable.remove),
                     contentDescription = "Decrease"
                 )
             }
@@ -220,7 +225,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.add),
+                    painter = painterResource(Res.drawable.add),
                     contentDescription = "Increase"
                 )
             }

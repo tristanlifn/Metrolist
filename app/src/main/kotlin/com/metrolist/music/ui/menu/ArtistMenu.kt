@@ -26,13 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.ArtistSongSortType
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.db.entities.Artist
@@ -49,6 +46,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.pin
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.subscribe
+import com.metrolist.music.resources.subscribed
+import com.metrolist.music.resources.unpin
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ArtistMenu(
@@ -95,13 +104,13 @@ fun ArtistMenu(
                                 NewAction(
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(Res.drawable.play),
                                             contentDescription = null,
                                             modifier = Modifier.size(28.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     },
-                                    text = stringResource(R.string.play),
+                                    text = stringResource(Res.string.play),
                                     onClick = {
                                         coroutineScope.launch {
                                             val songs = withContext(Dispatchers.IO) {
@@ -126,13 +135,13 @@ fun ArtistMenu(
                                 NewAction(
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.shuffle),
+                                            painter = painterResource(Res.drawable.shuffle),
                                             contentDescription = null,
                                             modifier = Modifier.size(28.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     },
-                                    text = stringResource(R.string.shuffle),
+                                    text = stringResource(Res.string.shuffle),
                                     onClick = {
                                         coroutineScope.launch {
                                             val songs = withContext(Dispatchers.IO) {
@@ -160,13 +169,13 @@ fun ArtistMenu(
                         NewAction(
                             icon = {
                                 Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                    painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            text = if (isPinned) stringResource(R.string.unpin) else stringResource(R.string.pin),
+                            text = if (isPinned) stringResource(Res.string.unpin) else stringResource(Res.string.pin),
                             onClick = {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     if (isPinned) {
@@ -193,13 +202,13 @@ fun ArtistMenu(
                             NewAction(
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.share),
+                                        painter = painterResource(Res.drawable.share),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                text = stringResource(R.string.share),
+                                text = stringResource(Res.string.share),
                                 onClick = {
                                     onDismiss()
                                 val intent = Intent().apply {
@@ -226,11 +235,11 @@ fun ArtistMenu(
                 items = listOf(
                     Material3MenuItemData(
                         title = {
-                            Text(text = if (artist.artist.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
+                            Text(text = if (artist.artist.bookmarkedAt != null) stringResource(Res.string.subscribed) else stringResource(Res.string.subscribe))
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(if (artist.artist.bookmarkedAt != null) R.drawable.subscribed else R.drawable.subscribe),
+                                painter = painterResource(if (artist.artist.bookmarkedAt != null) Res.drawable.subscribed else Res.drawable.subscribe),
                                 contentDescription = null,
                             )
                         },

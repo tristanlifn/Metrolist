@@ -17,10 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.metrolist.music.R
 import com.metrolist.music.utils.Updater
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.release_notes
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ReleaseNotesCard() {
@@ -39,7 +40,7 @@ fun ReleaseNotesCard() {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.release_notes),
+                text = stringResource(Res.string.release_notes),
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(8.dp))

@@ -14,7 +14,7 @@ mediarouter = "1.8.1"
 castFramework = "22.3.1"
 room = "2.8.5"
 koin = "4.2.2"
-composeMultiplatform = "1.12.2"
+composeMultiplatform = "1.13.0-alpha02"
 navigation = "2.9.0"
 ktor = "3.6.0"
 ksp = "2.3.12"
@@ -88,6 +88,11 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.6.2" }
 compose-multiplatform-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+compose-multiplatform-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-multiplatform-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-multiplatform-animation = { module = "org.jetbrains.compose.animation:animation", version.ref = "composeMultiplatform" }
+# Wraps androidx material3 1.5.0-alpha28 on Android; keep in step with material3 above.
+compose-multiplatform-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.13.0-alpha02" }
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }

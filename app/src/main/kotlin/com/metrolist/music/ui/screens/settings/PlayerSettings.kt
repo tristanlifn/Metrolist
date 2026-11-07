@@ -28,14 +28,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.AudioNormalizationKey
 import com.metrolist.music.constants.AudioOffload
 import com.metrolist.music.constants.AudioTrackPlaybackParamsKey
@@ -89,6 +85,108 @@ import com.metrolist.music.ui.component.encodeDayTimes
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 import com.metrolist.music.ui.utils.getLoudnessLevelLabel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.album
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.arrow_forward
+import com.metrolist.music.resources.audio_normalization
+import com.metrolist.music.resources.audio_offload
+import com.metrolist.music.resources.audio_offload_description
+import com.metrolist.music.resources.audio_offload_disabled_by_crossfade
+import com.metrolist.music.resources.audio_quality
+import com.metrolist.music.resources.audio_quality_auto
+import com.metrolist.music.resources.audio_quality_high
+import com.metrolist.music.resources.audio_quality_low
+import com.metrolist.music.resources.audio_track_playback_params
+import com.metrolist.music.resources.audio_track_playback_params_description
+import com.metrolist.music.resources.auto_download_on_like
+import com.metrolist.music.resources.auto_download_on_like_desc
+import com.metrolist.music.resources.auto_load_more
+import com.metrolist.music.resources.auto_load_more_desc
+import com.metrolist.music.resources.auto_radio_queue
+import com.metrolist.music.resources.auto_radio_queue_desc
+import com.metrolist.music.resources.auto_skip_next_on_error
+import com.metrolist.music.resources.auto_skip_next_on_error_desc
+import com.metrolist.music.resources.autoplay
+import com.metrolist.music.resources.autoplay_desc
+import com.metrolist.music.resources.baseline_event_repeat_24
+import com.metrolist.music.resources.bluetooth
+import com.metrolist.music.resources.cast
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.clear_all
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.crossfade
+import com.metrolist.music.resources.crossfade_desc
+import com.metrolist.music.resources.crossfade_duration
+import com.metrolist.music.resources.crossfade_gapless
+import com.metrolist.music.resources.crossfade_gapless_desc
+import com.metrolist.music.resources.disable_load_more_when_repeat_all
+import com.metrolist.music.resources.disable_load_more_when_repeat_all_desc
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.enable_automatic_sleeptimer
+import com.metrolist.music.resources.enable_similar_content
+import com.metrolist.music.resources.fast_forward
+import com.metrolist.music.resources.google_cast
+import com.metrolist.music.resources.google_cast_description
+import com.metrolist.music.resources.graphic_eq
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.history_duration
+import com.metrolist.music.resources.keep_screen_on_when_player_is_expanded
+import com.metrolist.music.resources.linear_scale
+import com.metrolist.music.resources.loudness_level
+import com.metrolist.music.resources.misc
+import com.metrolist.music.resources.more_time
+import com.metrolist.music.resources.pause_music_when_media_is_muted
+import com.metrolist.music.resources.persistent_queue
+import com.metrolist.music.resources.persistent_queue_desc
+import com.metrolist.music.resources.persistent_shuffle_desc
+import com.metrolist.music.resources.persistent_shuffle_title
+import com.metrolist.music.resources.player
+import com.metrolist.music.resources.player_and_audio
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.prevent_duplicate_tracks_in_queue
+import com.metrolist.music.resources.prevent_duplicate_tracks_in_queue_desc
+import com.metrolist.music.resources.queue
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.remember_shuffle_and_repeat
+import com.metrolist.music.resources.remember_shuffle_and_repeat_desc
+import com.metrolist.music.resources.repeat
+import com.metrolist.music.resources.resume_on_bluetooth_connect
+import com.metrolist.music.resources.screenshot
+import com.metrolist.music.resources.seconds
+import com.metrolist.music.resources.seek_seconds_addup
+import com.metrolist.music.resources.seek_seconds_addup_description
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.shuffle_playlist_first
+import com.metrolist.music.resources.shuffle_playlist_first_desc
+import com.metrolist.music.resources.similar
+import com.metrolist.music.resources.similar_content_desc
+import com.metrolist.music.resources.skip_next
+import com.metrolist.music.resources.skip_silence
+import com.metrolist.music.resources.skip_silence_desc
+import com.metrolist.music.resources.skip_silence_instant
+import com.metrolist.music.resources.skip_silence_instant_desc
+import com.metrolist.music.resources.sleep_timer
+import com.metrolist.music.resources.sleep_timer_fade_out_description
+import com.metrolist.music.resources.sleep_timer_fade_out_title
+import com.metrolist.music.resources.sleep_timer_repeat
+import com.metrolist.music.resources.sleep_timer_repeat_description
+import com.metrolist.music.resources.sleep_timer_stop_after_current_song_description
+import com.metrolist.music.resources.sleep_timer_stop_after_current_song_title
+import com.metrolist.music.resources.sleeptimer_description
+import com.metrolist.music.resources.speed
+import com.metrolist.music.resources.stop_music_on_task_clear
+import com.metrolist.music.resources.time_auto
+import com.metrolist.music.resources.timer
+import com.metrolist.music.resources.timer_arrow_down
+import com.metrolist.music.resources.varispeed
+import com.metrolist.music.resources.varispeed_description
+import com.metrolist.music.resources.volume_off_pause
+import com.metrolist.music.resources.volume_up
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -238,14 +336,14 @@ fun PlayerSettings(
                 onAudioQualityChange(it)
                 showAudioQualityDialog = false
             },
-            title = stringResource(R.string.audio_quality),
+            title = stringResource(Res.string.audio_quality),
             current = audioQuality,
             values = AudioQuality.values().toList(),
             valueText = {
                 when (it) {
-                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    AudioQuality.AUTO -> stringResource(Res.string.audio_quality_auto)
+                    AudioQuality.HIGH -> stringResource(Res.string.audio_quality_high)
+                    AudioQuality.LOW -> stringResource(Res.string.audio_quality_low)
                 }
             }
         )
@@ -258,7 +356,7 @@ fun PlayerSettings(
                 onLoudnessLevelChange(it)
                 showLoudnessLevelDialog = false
             },
-            title = stringResource(R.string.loudness_level),
+            title = stringResource(Res.string.loudness_level),
             current = loudnessLevel,
             values = LoudnessLevel.values().toList(),
             valueText = { getLoudnessLevelLabel(it) }
@@ -284,34 +382,33 @@ fun PlayerSettings(
         )
 
         Material3SettingsGroup(
-            title = stringResource(R.string.player),
+            title = stringResource(Res.string.player),
             items = buildList {
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
-                    title = { Text(stringResource(R.string.audio_quality)) },
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.audio_quality)) },
                     description = {
                         Text(
                             when (audioQuality) {
-                                AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                AudioQuality.AUTO -> stringResource(Res.string.audio_quality_auto)
+                                AudioQuality.HIGH -> stringResource(Res.string.audio_quality_high)
+                                AudioQuality.LOW -> stringResource(Res.string.audio_quality_low)
                             }
                         )
                     },
                     onClick = { showAudioQualityDialog = true }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.linear_scale),
-                    title = { Text(stringResource(R.string.crossfade)) },
-                    description = { Text(stringResource(R.string.crossfade_desc)) },
+                    icon = painterResource(Res.drawable.linear_scale),
+                    title = { Text(stringResource(Res.string.crossfade)) },
+                    description = { Text(stringResource(Res.string.crossfade_desc)) },
                     trailingContent = {
                         Switch(
                             checked = crossfadeEnabled,
                             onCheckedChange = onCrossfadeEnabledChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (crossfadeEnabled) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (crossfadeEnabled) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -323,11 +420,11 @@ fun PlayerSettings(
                 ))
                 if (crossfadeEnabled) {
                     add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.timer),
-                        title = { Text(stringResource(R.string.crossfade_duration)) },
+                        icon = painterResource(Res.drawable.timer),
+                        title = { Text(stringResource(Res.string.crossfade_duration)) },
                         description = {
                             Column {
-                                Text(pluralStringResource(R.plurals.seconds, crossfadeDuration.toInt(), crossfadeDuration.toInt()))
+                                Text(pluralStringResource(Res.plurals.seconds, crossfadeDuration.toInt(), crossfadeDuration.toInt()))
                                 Slider(
                                     value = crossfadeDuration,
                                     onValueChange = onCrossfadeDurationChange,
@@ -338,17 +435,16 @@ fun PlayerSettings(
                         }
                     ))
                     add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.album),
-                        title = { Text(stringResource(R.string.crossfade_gapless)) },
-                        description = { Text(stringResource(R.string.crossfade_gapless_desc)) },
+                        icon = painterResource(Res.drawable.album),
+                        title = { Text(stringResource(Res.string.crossfade_gapless)) },
+                        description = { Text(stringResource(Res.string.crossfade_gapless_desc)) },
                         trailingContent = {
                             Switch(
                                 checked = crossfadeGapless,
                                 onCheckedChange = onCrossfadeGaplessChange,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (crossfadeGapless) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (crossfadeGapless) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -360,8 +456,8 @@ fun PlayerSettings(
                     ))
                 }
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.history),
-                    title = { Text(stringResource(R.string.history_duration)) },
+                    icon = painterResource(Res.drawable.history),
+                    title = { Text(stringResource(Res.string.history_duration)) },
                     description = {
                         Column {
                             Text(historyDuration.roundToInt().toString())
@@ -374,17 +470,16 @@ fun PlayerSettings(
                     }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.fast_forward),
-                    title = { Text(stringResource(R.string.skip_silence)) },
-                    description = { Text(stringResource(R.string.skip_silence_desc)) },
+                    icon = painterResource(Res.drawable.fast_forward),
+                    title = { Text(stringResource(Res.string.skip_silence)) },
+                    description = { Text(stringResource(Res.string.skip_silence_desc)) },
                     trailingContent = {
                         Switch(
                             checked = skipSilence,
                             onCheckedChange = onSkipSilenceChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (skipSilence) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (skipSilence) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -395,9 +490,9 @@ fun PlayerSettings(
                     onClick = { onSkipSilenceChange(!skipSilence) }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.skip_next),
-                    title = { Text(stringResource(R.string.skip_silence_instant)) },
-                    description = { Text(stringResource(R.string.skip_silence_instant_desc)) },
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.skip_silence_instant)) },
+                    description = { Text(stringResource(Res.string.skip_silence_instant_desc)) },
                     trailingContent = {
                         Switch(
                             checked = skipSilenceInstant,
@@ -405,8 +500,7 @@ fun PlayerSettings(
                             enabled = skipSilence,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (skipSilenceInstant) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (skipSilenceInstant) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -417,16 +511,15 @@ fun PlayerSettings(
                     onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.volume_up),
-                    title = { Text(stringResource(R.string.audio_normalization)) },
+                    icon = painterResource(Res.drawable.volume_up),
+                    title = { Text(stringResource(Res.string.audio_normalization)) },
                     trailingContent = {
                         Switch(
                             checked = audioNormalization,
                             onCheckedChange = onAudioNormalizationChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (audioNormalization) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (audioNormalization) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -438,8 +531,8 @@ fun PlayerSettings(
                 ))
                 if (audioNormalization) {
                     add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.volume_up),
-                        title = { Text(stringResource(R.string.loudness_level)) },
+                        icon = painterResource(Res.drawable.volume_up),
+                        title = { Text(stringResource(Res.string.loudness_level)) },
                         description = {
                             Text(getLoudnessLevelLabel(loudnessLevel))
                         },
@@ -447,12 +540,12 @@ fun PlayerSettings(
                     ))
                 }
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
-                    title = { Text(stringResource(R.string.audio_offload)) },
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.audio_offload)) },
                     description = {
                         Text(
-                            if (crossfadeEnabled) stringResource(R.string.audio_offload_disabled_by_crossfade)
-                            else stringResource(R.string.audio_offload_description)
+                            if (crossfadeEnabled) stringResource(Res.string.audio_offload_disabled_by_crossfade)
+                            else stringResource(Res.string.audio_offload_description)
                         )
                     },
                     trailingContent = {
@@ -462,8 +555,7 @@ fun PlayerSettings(
                             enabled = !crossfadeEnabled,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (!crossfadeEnabled && audioOffload) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (!crossfadeEnabled && audioOffload) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -474,11 +566,11 @@ fun PlayerSettings(
                     onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
-                    title = { Text(stringResource(R.string.varispeed)) },
+                    icon = painterResource(Res.drawable.graphic_eq),
+                    title = { Text(stringResource(Res.string.varispeed)) },
                     description = {
                         Text(
-                            stringResource(R.string.varispeed_description)
+                            stringResource(Res.string.varispeed_description)
                         )
                     },
                     trailingContent = {
@@ -487,8 +579,7 @@ fun PlayerSettings(
                             onCheckedChange = onVarispeedChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (varispeed) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (varispeed) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -499,10 +590,10 @@ fun PlayerSettings(
                     onClick = { onVarispeedChange(!varispeed) }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.speed),
-                    title = { Text(stringResource(R.string.audio_track_playback_params)) },
+                    icon = painterResource(Res.drawable.speed),
+                    title = { Text(stringResource(Res.string.audio_track_playback_params)) },
                     description = {
-                        Text(stringResource(R.string.audio_track_playback_params_description))
+                        Text(stringResource(Res.string.audio_track_playback_params_description))
                     },
                     trailingContent = {
                         Switch(
@@ -510,8 +601,7 @@ fun PlayerSettings(
                             onCheckedChange = onAudioTrackPlaybackParamsChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (audioTrackPlaybackParams) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (audioTrackPlaybackParams) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -524,17 +614,16 @@ fun PlayerSettings(
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {
                     add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.cast),
-                        title = { Text(stringResource(R.string.google_cast)) },
-                        description = { Text(stringResource(R.string.google_cast_description)) },
+                        icon = painterResource(Res.drawable.cast),
+                        title = { Text(stringResource(Res.string.google_cast)) },
+                        description = { Text(stringResource(Res.string.google_cast_description)) },
                         trailingContent = {
                             Switch(
                                 checked = enableGoogleCast,
                                 onCheckedChange = onEnableGoogleCastChange,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (enableGoogleCast) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (enableGoogleCast) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -546,17 +635,16 @@ fun PlayerSettings(
                     ))
                 }
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.arrow_forward),
-                    title = { Text(stringResource(R.string.seek_seconds_addup)) },
-                    description = { Text(stringResource(R.string.seek_seconds_addup_description)) },
+                    icon = painterResource(Res.drawable.arrow_forward),
+                    title = { Text(stringResource(Res.string.seek_seconds_addup)) },
+                    description = { Text(stringResource(Res.string.seek_seconds_addup_description)) },
                     trailingContent = {
                         Switch(
                             checked = seekExtraSeconds,
                             onCheckedChange = onSeekExtraSeconds,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (seekExtraSeconds) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (seekExtraSeconds) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -631,21 +719,20 @@ fun PlayerSettings(
         }
 
         Material3SettingsGroup(
-            title = stringResource(R.string.sleep_timer),
+            title = stringResource(Res.string.sleep_timer),
             items = buildList {
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.time_auto),
-                        title = { Text(stringResource(R.string.enable_automatic_sleeptimer)) },
-                        description = { Text(stringResource(R.string.sleeptimer_description)) },
+                        icon = painterResource(Res.drawable.time_auto),
+                        title = { Text(stringResource(Res.string.enable_automatic_sleeptimer)) },
+                        description = { Text(stringResource(Res.string.sleeptimer_description)) },
                         trailingContent = {
                             Switch(
                                 checked = sleepTimerEnabled,
                                 onCheckedChange = onSleepTimerEnabledChange,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (sleepTimerEnabled) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (sleepTimerEnabled) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -659,11 +746,11 @@ fun PlayerSettings(
 
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.baseline_event_repeat_24),
-                            title = { Text(stringResource(R.string.sleep_timer_repeat)) },
+                            icon = painterResource(Res.drawable.baseline_event_repeat_24),
+                            title = { Text(stringResource(Res.string.sleep_timer_repeat)) },
                             description = {
                                 Text(
-                                    stringResource(R.string.sleep_timer_repeat_description)
+                                    stringResource(Res.string.sleep_timer_repeat_description)
                                 )
                             },
                             trailingContent = {
@@ -672,8 +759,7 @@ fun PlayerSettings(
                                     onCheckedChange = {showSleepTimerDialog = true},
                                     thumbContent = {
                                         Icon(
-                                            painter = painterResource(
-                                                id = if (sleepTimerEnabled) R.drawable.check else R.drawable.close
+                                            painter = painterResource(if (sleepTimerEnabled) Res.drawable.check else Res.drawable.close
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -688,17 +774,16 @@ fun PlayerSettings(
 
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.more_time),
-                        title = { Text(stringResource(R.string.sleep_timer_stop_after_current_song_title)) },
-                        description = { Text(stringResource(R.string.sleep_timer_stop_after_current_song_description)) },
+                        icon = painterResource(Res.drawable.more_time),
+                        title = { Text(stringResource(Res.string.sleep_timer_stop_after_current_song_title)) },
+                        description = { Text(stringResource(Res.string.sleep_timer_stop_after_current_song_description)) },
                         trailingContent = {
                             Switch(
                                 checked = sleepTimerStopAfterCurrentSong,
                                 onCheckedChange = onSleepTimerStopAfterCurrentSongChange,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (sleepTimerStopAfterCurrentSong) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (sleepTimerStopAfterCurrentSong) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -712,17 +797,16 @@ fun PlayerSettings(
 
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.timer_arrow_down),
-                        title = { Text(stringResource(R.string.sleep_timer_fade_out_title)) },
-                        description = { Text(stringResource(R.string.sleep_timer_fade_out_description)) },
+                        icon = painterResource(Res.drawable.timer_arrow_down),
+                        title = { Text(stringResource(Res.string.sleep_timer_fade_out_title)) },
+                        description = { Text(stringResource(Res.string.sleep_timer_fade_out_description)) },
                         trailingContent = {
                             Switch(
                                 checked = sleepTimerFadeOut,
                                 onCheckedChange = onSleepTimerFadeOutChange,
                                 thumbContent = {
                                     Icon(
-                                        painter = painterResource(
-                                            id = if (sleepTimerFadeOut) R.drawable.check else R.drawable.close
+                                        painter = painterResource(if (sleepTimerFadeOut) Res.drawable.check else Res.drawable.close
                                         ),
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -744,20 +828,19 @@ fun PlayerSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.queue),
+            title = stringResource(Res.string.queue),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.queue_music),
-                    title = { Text(stringResource(R.string.persistent_queue)) },
-                    description = { Text(stringResource(R.string.persistent_queue_desc)) },
+                    icon = painterResource(Res.drawable.queue_music),
+                    title = { Text(stringResource(Res.string.persistent_queue)) },
+                    description = { Text(stringResource(Res.string.persistent_queue_desc)) },
                     trailingContent = {
                         Switch(
                             checked = persistentQueue,
                             onCheckedChange = onPersistentQueueChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (persistentQueue) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (persistentQueue) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -768,17 +851,16 @@ fun PlayerSettings(
                     onClick = { onPersistentQueueChange(!persistentQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.playlist_add),
-                    title = { Text(stringResource(R.string.auto_load_more)) },
-                    description = { Text(stringResource(R.string.auto_load_more_desc)) },
+                    icon = painterResource(Res.drawable.playlist_add),
+                    title = { Text(stringResource(Res.string.auto_load_more)) },
+                    description = { Text(stringResource(Res.string.auto_load_more_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoLoadMore,
                             onCheckedChange = onAutoLoadMoreChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (autoLoadMore) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (autoLoadMore) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -789,17 +871,16 @@ fun PlayerSettings(
                     onClick = { onAutoLoadMoreChange(!autoLoadMore) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.radio),
-                    title = { Text(stringResource(R.string.auto_radio_queue)) },
-                    description = { Text(stringResource(R.string.auto_radio_queue_desc)) },
+                    icon = painterResource(Res.drawable.radio),
+                    title = { Text(stringResource(Res.string.auto_radio_queue)) },
+                    description = { Text(stringResource(Res.string.auto_radio_queue_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoRadioQueue,
                             onCheckedChange = onAutoRadioQueueChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (autoRadioQueue) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (autoRadioQueue) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -810,17 +891,16 @@ fun PlayerSettings(
                     onClick = { onAutoRadioQueueChange(!autoRadioQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.skip_next),
-                    title = { Text(stringResource(R.string.autoplay)) },
-                    description = { Text(stringResource(R.string.autoplay_desc)) },
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.autoplay)) },
+                    description = { Text(stringResource(Res.string.autoplay_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoplay,
                             onCheckedChange = onAutoplayChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (autoplay) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (autoplay) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -831,17 +911,16 @@ fun PlayerSettings(
                     onClick = { onAutoplayChange(!autoplay) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.repeat),
-                    title = { Text(stringResource(R.string.disable_load_more_when_repeat_all)) },
-                    description = { Text(stringResource(R.string.disable_load_more_when_repeat_all_desc)) },
+                    icon = painterResource(Res.drawable.repeat),
+                    title = { Text(stringResource(Res.string.disable_load_more_when_repeat_all)) },
+                    description = { Text(stringResource(Res.string.disable_load_more_when_repeat_all_desc)) },
                     trailingContent = {
                         Switch(
                             checked = disableLoadMoreWhenRepeatAll,
                             onCheckedChange = onDisableLoadMoreWhenRepeatAllChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (disableLoadMoreWhenRepeatAll) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (disableLoadMoreWhenRepeatAll) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -852,17 +931,16 @@ fun PlayerSettings(
                     onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.download),
-                    title = { Text(stringResource(R.string.auto_download_on_like)) },
-                    description = { Text(stringResource(R.string.auto_download_on_like_desc)) },
+                    icon = painterResource(Res.drawable.download),
+                    title = { Text(stringResource(Res.string.auto_download_on_like)) },
+                    description = { Text(stringResource(Res.string.auto_download_on_like_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoDownloadOnLike,
                             onCheckedChange = onAutoDownloadOnLikeChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (autoDownloadOnLike) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (autoDownloadOnLike) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -873,17 +951,16 @@ fun PlayerSettings(
                     onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.similar),
-                    title = { Text(stringResource(R.string.enable_similar_content)) },
-                    description = { Text(stringResource(R.string.similar_content_desc)) },
+                    icon = painterResource(Res.drawable.similar),
+                    title = { Text(stringResource(Res.string.enable_similar_content)) },
+                    description = { Text(stringResource(Res.string.similar_content_desc)) },
                     trailingContent = {
                         Switch(
                             checked = similarContentEnabled,
                             onCheckedChange = similarContentEnabledChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (similarContentEnabled) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (similarContentEnabled) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -894,17 +971,16 @@ fun PlayerSettings(
                     onClick = { similarContentEnabledChange(!similarContentEnabled) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.shuffle),
-                    title = { Text(stringResource(R.string.persistent_shuffle_title)) },
-                    description = { Text(stringResource(R.string.persistent_shuffle_desc)) },
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.persistent_shuffle_title)) },
+                    description = { Text(stringResource(Res.string.persistent_shuffle_desc)) },
                     trailingContent = {
                         Switch(
                             checked = persistentShuffleAcrossQueues,
                             onCheckedChange = onPersistentShuffleAcrossQueuesChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (persistentShuffleAcrossQueues) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (persistentShuffleAcrossQueues) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -915,17 +991,16 @@ fun PlayerSettings(
                     onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.shuffle),
-                    title = { Text(stringResource(R.string.remember_shuffle_and_repeat)) },
-                    description = { Text(stringResource(R.string.remember_shuffle_and_repeat_desc)) },
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.remember_shuffle_and_repeat)) },
+                    description = { Text(stringResource(Res.string.remember_shuffle_and_repeat_desc)) },
                     trailingContent = {
                         Switch(
                             checked = rememberShuffleAndRepeat,
                             onCheckedChange = onRememberShuffleAndRepeatChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (rememberShuffleAndRepeat) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (rememberShuffleAndRepeat) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -936,17 +1011,16 @@ fun PlayerSettings(
                     onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.shuffle),
-                    title = { Text(stringResource(R.string.shuffle_playlist_first)) },
-                    description = { Text(stringResource(R.string.shuffle_playlist_first_desc)) },
+                    icon = painterResource(Res.drawable.shuffle),
+                    title = { Text(stringResource(Res.string.shuffle_playlist_first)) },
+                    description = { Text(stringResource(Res.string.shuffle_playlist_first_desc)) },
                     trailingContent = {
                         Switch(
                             checked = shufflePlaylistFirst,
                             onCheckedChange = onShufflePlaylistFirstChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (shufflePlaylistFirst) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (shufflePlaylistFirst) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -957,17 +1031,16 @@ fun PlayerSettings(
                     onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.queue_music),
-                    title = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue)) },
-                    description = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue_desc)) },
+                    icon = painterResource(Res.drawable.queue_music),
+                    title = { Text(stringResource(Res.string.prevent_duplicate_tracks_in_queue)) },
+                    description = { Text(stringResource(Res.string.prevent_duplicate_tracks_in_queue_desc)) },
                     trailingContent = {
                         Switch(
                             checked = preventDuplicateTracksInQueue,
                             onCheckedChange = onPreventDuplicateTracksInQueueChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (preventDuplicateTracksInQueue) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (preventDuplicateTracksInQueue) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -978,17 +1051,16 @@ fun PlayerSettings(
                     onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.skip_next),
-                    title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
-                    description = { Text(stringResource(R.string.auto_skip_next_on_error_desc)) },
+                    icon = painterResource(Res.drawable.skip_next),
+                    title = { Text(stringResource(Res.string.auto_skip_next_on_error)) },
+                    description = { Text(stringResource(Res.string.auto_skip_next_on_error_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoSkipNextOnError,
                             onCheckedChange = onAutoSkipNextOnErrorChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (autoSkipNextOnError) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (autoSkipNextOnError) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -1004,19 +1076,18 @@ fun PlayerSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.misc),
+            title = stringResource(Res.string.misc),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.clear_all),
-                    title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
+                    icon = painterResource(Res.drawable.clear_all),
+                    title = { Text(stringResource(Res.string.stop_music_on_task_clear)) },
                     trailingContent = {
                         Switch(
                             checked = stopMusicOnTaskClear,
                             onCheckedChange = onStopMusicOnTaskClearChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (stopMusicOnTaskClear) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (stopMusicOnTaskClear) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -1027,16 +1098,15 @@ fun PlayerSettings(
                     onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.volume_off_pause),
-                    title = { Text(stringResource(R.string.pause_music_when_media_is_muted)) },
+                    icon = painterResource(Res.drawable.volume_off_pause),
+                    title = { Text(stringResource(Res.string.pause_music_when_media_is_muted)) },
                     trailingContent = {
                         Switch(
                             checked = pauseOnMute,
                             onCheckedChange = onPauseOnMuteChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (pauseOnMute) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (pauseOnMute) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -1047,16 +1117,15 @@ fun PlayerSettings(
                     onClick = { onPauseOnMuteChange(!pauseOnMute) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.bluetooth),
-                    title = { Text(stringResource(R.string.resume_on_bluetooth_connect)) },
+                    icon = painterResource(Res.drawable.bluetooth),
+                    title = { Text(stringResource(Res.string.resume_on_bluetooth_connect)) },
                     trailingContent = {
                         Switch(
                             checked = resumeOnBluetoothConnect,
                             onCheckedChange = onResumeOnBluetoothConnectChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (resumeOnBluetoothConnect) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (resumeOnBluetoothConnect) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -1067,16 +1136,15 @@ fun PlayerSettings(
                     onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.screenshot),
-                    title = { Text(stringResource(R.string.keep_screen_on_when_player_is_expanded)) },
+                    icon = painterResource(Res.drawable.screenshot),
+                    title = { Text(stringResource(Res.string.keep_screen_on_when_player_is_expanded)) },
                     trailingContent = {
                         Switch(
                             checked = keepScreenOn,
                             onCheckedChange = onKeepScreenOnChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (keepScreenOn) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (keepScreenOn) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -1092,14 +1160,14 @@ fun PlayerSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.player_and_audio)) },
+        title = { Text(stringResource(Res.string.player_and_audio)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null
                 )
             }

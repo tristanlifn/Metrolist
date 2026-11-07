@@ -60,8 +60,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -79,7 +77,6 @@ import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.MyTopFilter
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
@@ -98,6 +95,27 @@ import com.metrolist.music.ui.menu.TopPlaylistMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.viewmodels.TopPlaylistViewModel
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.all_time
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.music_note
+import com.metrolist.music.resources.my_top
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.past_24_hours
+import com.metrolist.music.resources.past_month
+import com.metrolist.music.resources.past_week
+import com.metrolist.music.resources.past_year
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.playlist_is_empty
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.search
+import com.metrolist.music.resources.shuffle
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -175,7 +193,7 @@ fun TopPlaylistScreen(
     }
 
     val sortType by viewModel.topPeriod.collectAsStateWithLifecycle()
-    val name = stringResource(R.string.my_top) + " $maxSize"
+    val name = stringResource(Res.string.my_top) + " $maxSize"
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember { mutableIntStateOf(Download.STATE_STOPPED) }
@@ -210,7 +228,7 @@ fun TopPlaylistScreen(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, name),
+                    text = stringResource(Res.string.remove_download_playlist_confirm, name),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -219,7 +237,7 @@ fun TopPlaylistScreen(
                 TextButton(
                     onClick = { showRemoveDownloadDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -254,8 +272,8 @@ fun TopPlaylistScreen(
                 if (songs!!.isEmpty()) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            icon = Res.drawable.music_note,
+                            text = stringResource(Res.string.playlist_is_empty),
                         )
                     }
                 } else {
@@ -287,11 +305,11 @@ fun TopPlaylistScreen(
                                 onSortDescendingChange = {},
                                 sortTypeText = { sortType ->
                                     when (sortType) {
-                                        MyTopFilter.ALL_TIME -> R.string.all_time
-                                        MyTopFilter.DAY -> R.string.past_24_hours
-                                        MyTopFilter.WEEK -> R.string.past_week
-                                        MyTopFilter.MONTH -> R.string.past_month
-                                        MyTopFilter.YEAR -> R.string.past_year
+                                        MyTopFilter.ALL_TIME -> Res.string.all_time
+                                        MyTopFilter.DAY -> Res.string.past_24_hours
+                                        MyTopFilter.WEEK -> Res.string.past_week
+                                        MyTopFilter.MONTH -> Res.string.past_month
+                                        MyTopFilter.YEAR -> Res.string.past_year
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
@@ -338,7 +356,7 @@ fun TopPlaylistScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -411,7 +429,7 @@ fun TopPlaylistScreen(
                 when {
                     inSelectMode -> {
                         Text(
-                            text = pluralStringResource(R.plurals.n_song, selection.size, selection.size),
+                            text = pluralStringResource(Res.plurals.n_song, selection.size, selection.size),
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
@@ -421,7 +439,7 @@ fun TopPlaylistScreen(
                             onValueChange = { query = it },
                             placeholder = {
                                 Text(
-                                    text = stringResource(R.string.search),
+                                    text = stringResource(Res.string.search),
                                     style = MaterialTheme.typography.titleLarge
                                 )
                             },
@@ -470,7 +488,7 @@ fun TopPlaylistScreen(
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (inSelectMode) R.drawable.close else R.drawable.arrow_back
+                            if (inSelectMode) Res.drawable.close else Res.drawable.arrow_back
                         ),
                         contentDescription = null
                     )
@@ -502,7 +520,7 @@ fun TopPlaylistScreen(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null
                         )
                     }
@@ -511,7 +529,7 @@ fun TopPlaylistScreen(
                         onClick = { isSearching = true }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(Res.drawable.search),
                             contentDescription = null
                         )
                     }
@@ -580,7 +598,7 @@ private fun TopPlaylistHeader(
         // Metadata - Song Count • Duration
         Text(
             text = buildString {
-                append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
+                append(pluralStringResource(Res.plurals.n_song, songs.size, songs.size))
                 if (likeLength > 0) {
                     append(" ")
                     append(makeTimeString(likeLength * 1000L))
@@ -619,8 +637,8 @@ private fun TopPlaylistHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
+                        painter = painterResource(Res.drawable.shuffle),
+                        contentDescription = stringResource(Res.string.shuffle),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -645,8 +663,8 @@ private fun TopPlaylistHeader(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
+                        painter = painterResource(Res.drawable.play),
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp)
                     )
@@ -695,7 +713,7 @@ private fun TopPlaylistHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.more_vert),
+                        painter = painterResource(Res.drawable.more_vert),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp)
                     )

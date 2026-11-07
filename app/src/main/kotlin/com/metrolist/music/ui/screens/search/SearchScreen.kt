@@ -42,8 +42,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -58,7 +56,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalIsPlayerExpanded
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.PauseSearchHistoryKey
 import com.metrolist.music.constants.SearchSource
 import com.metrolist.music.constants.SearchSourceKey
@@ -70,6 +67,17 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.dismiss
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.library_music
+import com.metrolist.music.resources.mic
+import com.metrolist.music.resources.search_library
+import com.metrolist.music.resources.search_yt_music
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,8 +212,8 @@ fun SearchScreen(
                                         text =
                                             stringResource(
                                                 when (searchSource) {
-                                                    SearchSource.LOCAL -> R.string.search_library
-                                                    SearchSource.ONLINE -> R.string.search_yt_music
+                                                    SearchSource.LOCAL -> Res.string.search_library
+                                                    SearchSource.ONLINE -> Res.string.search_yt_music
                                                 },
                                             ),
                                         style =
@@ -231,7 +239,7 @@ fun SearchScreen(
                             if (query.text.isNotEmpty()) {
                                 IconButton(onClick = { query = TextFieldValue("") }) {
                                     Icon(
-                                        painter = painterResource(R.drawable.close),
+                                        painter = painterResource(Res.drawable.close),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurface,
                                     )
@@ -251,8 +259,8 @@ fun SearchScreen(
                                     painter =
                                         painterResource(
                                             when (searchSource) {
-                                                SearchSource.LOCAL -> R.drawable.library_music
-                                                SearchSource.ONLINE -> R.drawable.language
+                                                SearchSource.LOCAL -> Res.drawable.library_music
+                                                SearchSource.ONLINE -> Res.drawable.language
                                             },
                                         ),
                                     contentDescription = null,
@@ -265,8 +273,8 @@ fun SearchScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.dismiss),
+                            painter = painterResource(Res.drawable.arrow_back),
+                            contentDescription = stringResource(Res.string.dismiss),
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -307,7 +315,7 @@ fun SearchScreen(
 
             HideOnScrollFAB(
                 lazyListState = lazyListState,
-                icon = R.drawable.mic,
+                icon = Res.drawable.mic,
                 onClick = { navController.navigate("recognition") },
             )
         }

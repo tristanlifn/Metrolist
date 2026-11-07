@@ -1,6 +1,9 @@
 package com.metrolist.music.resources
 
+import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageVector
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
 import org.junit.After
@@ -47,5 +50,17 @@ class AppResourcesTest {
                 "Da li zaista želite da obrišete plejlistu \"Mix\"?",
                 getString(Res.string.delete_playlist_confirm, "Mix"),
             )
+        }
+
+    @OptIn(ExperimentalResourceApi::class)
+    @Test
+    fun `every vector icon parses`() =
+        runBlocking {
+            val failures =
+                Res.allDrawableResources.keys.mapNotNull { name ->
+                    val bytes = runCatching { Res.readBytes("drawable/$name.xml") }.getOrNull() ?: return@mapNotNull null
+                    runCatching { bytes.decodeToImageVector(Density(1f)) }.exceptionOrNull()?.let { "$name: ${it.message}" }
+                }
+            assertEquals(emptyList<String>(), failures)
         }
 }

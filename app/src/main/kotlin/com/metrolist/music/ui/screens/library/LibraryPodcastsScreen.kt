@@ -49,9 +49,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.toMediaMetadata
@@ -66,7 +63,6 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
-import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_SONG
 import com.metrolist.music.constants.PodcastFilter
@@ -95,6 +91,39 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LibraryPodcastsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.auto_playlist
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.close_chip
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.downloaded_episodes
+import com.metrolist.music.resources.episodes_for_later
+import com.metrolist.music.resources.filter_channels
+import com.metrolist.music.resources.filter_downloaded
+import com.metrolist.music.resources.filter_episodes
+import com.metrolist.music.resources.filter_podcasts
+import com.metrolist.music.resources.more_options
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_channel
+import com.metrolist.music.resources.n_episode
+import com.metrolist.music.resources.new_episodes
+import com.metrolist.music.resources.no_downloaded_episodes
+import com.metrolist.music.resources.no_subscribed_channels
+import com.metrolist.music.resources.pin_to_speed_dial
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.remove_from_library
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.sort_by_artist
+import com.metrolist.music.resources.sort_by_create_date
+import com.metrolist.music.resources.sort_by_name
+import com.metrolist.music.resources.sort_by_play_time
+import com.metrolist.music.resources.unpin_from_speed_dial
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -103,7 +132,7 @@ fun LibraryPodcastsScreen(
     onDeselect: () -> Unit,
     viewModel: LibraryPodcastsViewModel = koinViewModel(),
 ) {
-    val downloadedEpisodesStr = stringResource(R.string.downloaded_episodes)
+    val downloadedEpisodesStr = stringResource(Res.string.downloaded_episodes)
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -181,7 +210,7 @@ fun LibraryPodcastsScreen(
             Row {
                 Spacer(Modifier.width(12.dp))
                 FilterChip(
-                    label = { Text(stringResource(R.string.filter_podcasts)) },
+                    label = { Text(stringResource(Res.string.filter_podcasts)) },
                     selected = true,
                     colors =
                         FilterChipDefaults.filterChipColors(
@@ -192,17 +221,17 @@ fun LibraryPodcastsScreen(
                     border = null,
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = stringResource(R.string.close_chip),
+                            painter = painterResource(Res.drawable.close),
+                            contentDescription = stringResource(Res.string.close_chip),
                         )
                     },
                 )
                 ChipsRow(
                     chips =
                         listOf(
-                            PodcastFilter.EPISODES to stringResource(R.string.filter_episodes),
-                            PodcastFilter.CHANNELS to stringResource(R.string.filter_channels),
-                            PodcastFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                            PodcastFilter.EPISODES to stringResource(Res.string.filter_episodes),
+                            PodcastFilter.CHANNELS to stringResource(Res.string.filter_channels),
+                            PodcastFilter.DOWNLOADED to stringResource(Res.string.filter_downloaded),
                         ),
                     currentValue = podcastFilter,
                     onValueUpdate = { podcastFilter = it },
@@ -225,7 +254,7 @@ fun LibraryPodcastsScreen(
                     // RDPN "New Episodes" auto-playlist card
                     item(key = "rdpn_playlist", contentType = CONTENT_TYPE_HEADER) {
                         AutoPlaylistCard(
-                            title = stringResource(R.string.new_episodes),
+                            title = stringResource(Res.string.new_episodes),
                             thumbnailUrl = rdpnPlaylist?.thumbnail,
                             episodeCount = rdpnPlaylist?.songCountText,
                             onClick = { navController.navigate("online_playlist/RDPN") },
@@ -235,11 +264,11 @@ fun LibraryPodcastsScreen(
                     // Episodes for Later - card/folder (works both logged in and out)
                     item(key = "episodes_for_later", contentType = CONTENT_TYPE_HEADER) {
                         AutoPlaylistCard(
-                            title = stringResource(R.string.episodes_for_later),
+                            title = stringResource(Res.string.episodes_for_later),
                             thumbnailUrl = sePlaylist?.thumbnail ?: savedEpisodes.firstOrNull()?.song?.thumbnailUrl,
                             episodeCount =
                                 sePlaylist?.songCountText ?: if (savedEpisodes.isNotEmpty()) {
-                                    pluralStringResource(R.plurals.n_episode, savedEpisodes.size, savedEpisodes.size)
+                                    pluralStringResource(Res.plurals.n_episode, savedEpisodes.size, savedEpisodes.size)
                                 } else {
                                     null
                                 },
@@ -295,7 +324,7 @@ fun LibraryPodcastsScreen(
                             Text(
                                 text =
                                     pluralStringResource(
-                                        R.plurals.n_channel,
+                                        Res.plurals.n_channel,
                                         podcastChannels.size,
                                         podcastChannels.size,
                                     ),
@@ -332,7 +361,7 @@ fun LibraryPodcastsScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = stringResource(R.string.no_subscribed_channels),
+                                    text = stringResource(Res.string.no_subscribed_channels),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -364,10 +393,10 @@ fun LibraryPodcastsScreen(
                                 onSortDescendingChange = onSortDescendingChange,
                                 sortTypeText = { st ->
                                     when (st) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        SongSortType.CREATE_DATE -> Res.string.sort_by_create_date
+                                        SongSortType.NAME -> Res.string.sort_by_name
+                                        SongSortType.ARTIST -> Res.string.sort_by_artist
+                                        SongSortType.PLAY_TIME -> Res.string.sort_by_play_time
                                     }
                                 },
                             )
@@ -375,7 +404,7 @@ fun LibraryPodcastsScreen(
                             Text(
                                 text =
                                     pluralStringResource(
-                                        R.plurals.n_episode,
+                                        Res.plurals.n_episode,
                                         downloadedEpisodes.size,
                                         downloadedEpisodes.size,
                                     ),
@@ -421,8 +450,8 @@ fun LibraryPodcastsScreen(
                                     },
                                 ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.more_vert),
-                                    contentDescription = stringResource(R.string.more_options),
+                                    painter = painterResource(Res.drawable.more_vert),
+                                    contentDescription = stringResource(Res.string.more_options),
                                 )
                                 }
                             },
@@ -455,7 +484,7 @@ fun LibraryPodcastsScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = stringResource(R.string.no_downloaded_episodes),
+                                    text = stringResource(Res.string.no_downloaded_episodes),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -467,7 +496,7 @@ fun LibraryPodcastsScreen(
                 HideOnScrollFAB(
                     visible = downloadedEpisodes.isNotEmpty(),
                     lazyListState = lazyListState,
-                    icon = R.drawable.shuffle,
+                    icon = Res.drawable.shuffle,
                     onClick = {
                         playerConnection.playQueue(
                             ListQueue(
@@ -528,7 +557,7 @@ private fun AutoPlaylistCard(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource(Res.drawable.queue_music),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(28.dp),
@@ -548,7 +577,7 @@ private fun AutoPlaylistCard(
             Text(
                 text =
                     buildString {
-                        append(stringResource(R.string.auto_playlist))
+                        append(stringResource(Res.string.auto_playlist))
                         if (!episodeCount.isNullOrBlank()) {
                             append(" • ")
                             append(episodeCount)
@@ -598,7 +627,7 @@ private fun PodcastEpisodePlaylistItem(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource(Res.drawable.queue_music),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(28.dp),
@@ -628,8 +657,8 @@ private fun PodcastEpisodePlaylistItem(
 
         IconButton(onClick = onMenuClick) {
             Icon(
-                painter = painterResource(R.drawable.more_vert),
-                contentDescription = stringResource(R.string.more_options),
+                painter = painterResource(Res.drawable.more_vert),
+                contentDescription = stringResource(Res.string.more_options),
             )
         }
     }
@@ -655,10 +684,10 @@ private fun PodcastEpisodePlaylistMenu(
         items =
             listOf(
                 Material3MenuItemData(
-                    title = { Text(text = stringResource(R.string.remove_from_library)) },
+                    title = { Text(text = stringResource(Res.string.remove_from_library)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.delete),
+                            painter = painterResource(Res.drawable.delete),
                             contentDescription = null,
                         )
                     },
@@ -675,10 +704,10 @@ private fun PodcastEpisodePlaylistMenu(
                     },
                 ),
                 Material3MenuItemData(
-                    title = { Text(text = stringResource(R.string.share)) },
+                    title = { Text(text = stringResource(Res.string.share)) },
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                         )
                     },
@@ -699,9 +728,9 @@ private fun PodcastEpisodePlaylistMenu(
                             text =
                                 stringResource(
                                     if (isPinned) {
-                                        R.string.unpin_from_speed_dial
+                                        Res.string.unpin_from_speed_dial
                                     } else {
-                                        R.string.pin_to_speed_dial
+                                        Res.string.pin_to_speed_dial
                                     },
                                 ),
                         )
@@ -710,7 +739,7 @@ private fun PodcastEpisodePlaylistMenu(
                         Icon(
                             painter =
                                 painterResource(
-                                    if (isPinned) R.drawable.remove else R.drawable.add,
+                                    if (isPinned) Res.drawable.remove else Res.drawable.add,
                                 ),
                             contentDescription = null,
                         )

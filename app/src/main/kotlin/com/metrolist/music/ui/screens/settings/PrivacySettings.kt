@@ -28,13 +28,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
-import com.metrolist.music.R
 import com.metrolist.music.constants.DisableScreenshotKey
 import com.metrolist.music.constants.PauseListenHistoryKey
 import com.metrolist.music.constants.PauseSearchHistoryKey
@@ -44,6 +42,30 @@ import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.check
+import com.metrolist.music.resources.clear_all
+import com.metrolist.music.resources.clear_listen_history
+import com.metrolist.music.resources.clear_listen_history_confirm
+import com.metrolist.music.resources.clear_search_history
+import com.metrolist.music.resources.clear_search_history_confirm
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.delete_history
+import com.metrolist.music.resources.disable_screenshot
+import com.metrolist.music.resources.disable_screenshot_desc
+import com.metrolist.music.resources.history
+import com.metrolist.music.resources.listen_history
+import com.metrolist.music.resources.misc
+import com.metrolist.music.resources.pause_listen_history
+import com.metrolist.music.resources.pause_search_history
+import com.metrolist.music.resources.privacy
+import com.metrolist.music.resources.screenshot
+import com.metrolist.music.resources.search_history
+import com.metrolist.music.resources.search_off
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +95,7 @@ fun PrivacySettings(
             onDismiss = { showClearListenHistoryDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.clear_listen_history_confirm),
+                    text = stringResource(Res.string.clear_listen_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -82,7 +104,7 @@ fun PrivacySettings(
                 TextButton(
                     onClick = { showClearListenHistoryDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -108,7 +130,7 @@ fun PrivacySettings(
             onDismiss = { showClearSearchHistoryDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.clear_search_history_confirm),
+                    text = stringResource(Res.string.clear_search_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -117,7 +139,7 @@ fun PrivacySettings(
                 TextButton(
                     onClick = { showClearSearchHistoryDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
 
                 TextButton(
@@ -153,19 +175,18 @@ fun PrivacySettings(
         )
 
         Material3SettingsGroup(
-            title = stringResource(R.string.listen_history),
+            title = stringResource(Res.string.listen_history),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.history),
-                    title = { Text(stringResource(R.string.pause_listen_history)) },
+                    icon = painterResource(Res.drawable.history),
+                    title = { Text(stringResource(Res.string.pause_listen_history)) },
                     trailingContent = {
                         Switch(
                             checked = pauseListenHistory,
                             onCheckedChange = onPauseListenHistoryChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (pauseListenHistory) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (pauseListenHistory) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize)
@@ -176,8 +197,8 @@ fun PrivacySettings(
                     onClick = { onPauseListenHistoryChange(!pauseListenHistory) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.delete_history),
-                    title = { Text(stringResource(R.string.clear_listen_history)) },
+                    icon = painterResource(Res.drawable.delete_history),
+                    title = { Text(stringResource(Res.string.clear_listen_history)) },
                     onClick = { showClearListenHistoryDialog = true }
                 )
             )
@@ -186,19 +207,18 @@ fun PrivacySettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.search_history),
+            title = stringResource(Res.string.search_history),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.search_off),
-                    title = { Text(stringResource(R.string.pause_search_history)) },
+                    icon = painterResource(Res.drawable.search_off),
+                    title = { Text(stringResource(Res.string.pause_search_history)) },
                     trailingContent = {
                         Switch(
                             checked = pauseSearchHistory,
                             onCheckedChange = onPauseSearchHistoryChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (pauseSearchHistory) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (pauseSearchHistory) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize)
@@ -209,8 +229,8 @@ fun PrivacySettings(
                     onClick = { onPauseSearchHistoryChange(!pauseSearchHistory) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.clear_all),
-                    title = { Text(stringResource(R.string.clear_search_history)) },
+                    icon = painterResource(Res.drawable.clear_all),
+                    title = { Text(stringResource(Res.string.clear_search_history)) },
                     onClick = { showClearSearchHistoryDialog = true }
                 )
             )
@@ -219,20 +239,19 @@ fun PrivacySettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.misc),
+            title = stringResource(Res.string.misc),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.screenshot),
-                    title = { Text(stringResource(R.string.disable_screenshot)) },
-                    description = { Text(stringResource(R.string.disable_screenshot_desc)) },
+                    icon = painterResource(Res.drawable.screenshot),
+                    title = { Text(stringResource(Res.string.disable_screenshot)) },
+                    description = { Text(stringResource(Res.string.disable_screenshot_desc)) },
                     trailingContent = {
                         Switch(
                             checked = disableScreenshot,
                             onCheckedChange = onDisableScreenshotChange,
                             thumbContent = {
                                 Icon(
-                                    painter = painterResource(
-                                        id = if (disableScreenshot) R.drawable.check else R.drawable.close
+                                    painter = painterResource(if (disableScreenshot) Res.drawable.check else Res.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize)
@@ -248,14 +267,14 @@ fun PrivacySettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.privacy)) },
+        title = { Text(stringResource(Res.string.privacy)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }

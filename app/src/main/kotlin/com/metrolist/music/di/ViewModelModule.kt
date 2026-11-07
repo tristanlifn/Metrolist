@@ -56,7 +56,7 @@ val viewModelModule = module {
     viewModelOf(::AutoPlaylistViewModel)
     viewModelOf(::BackupRestoreViewModel)
     viewModelOf(::BrowseViewModel)
-    viewModel { CachePlaylistViewModel(get(), get(), get(PlayerCache)) }
+    viewModelOf(::CachePlaylistViewModel)
     viewModelOf(::ChartsViewModel)
     viewModelOf(::EQViewModel)
     viewModelOf(::HistoryViewModel)

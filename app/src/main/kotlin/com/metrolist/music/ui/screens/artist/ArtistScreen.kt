@@ -68,8 +68,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -131,6 +129,22 @@ import com.metrolist.music.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.about_artist
+import com.metrolist.music.resources.albums
+import com.metrolist.music.resources.arrow_back
+import com.metrolist.music.resources.language
+import com.metrolist.music.resources.library_music
+import com.metrolist.music.resources.link
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.songs
+import com.metrolist.music.resources.subscribe
+import com.metrolist.music.resources.subscribed
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -384,7 +398,7 @@ fun ArtistScreen(
                                         modifier = Modifier.height(40.dp),
                                     ) {
                                         Text(
-                                            text = stringResource(if (isChannelSubscribed) R.string.subscribed else R.string.subscribe),
+                                            text = stringResource(if (isChannelSubscribed) Res.string.subscribed else Res.string.subscribe),
                                             fontSize = 14.sp,
                                             color = if (!isChannelSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current,
                                         )
@@ -407,13 +421,13 @@ fun ArtistScreen(
                                                     modifier = Modifier.height(40.dp),
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.radio),
+                                                        painter = painterResource(Res.drawable.radio),
                                                         contentDescription = null,
                                                         modifier = Modifier.size(20.dp),
                                                     )
                                                     Spacer(modifier = Modifier.width(8.dp))
                                                     Text(
-                                                        text = stringResource(R.string.radio),
+                                                        text = stringResource(Res.string.radio),
                                                         fontSize = 14.sp,
                                                     )
                                                 }
@@ -436,7 +450,7 @@ fun ArtistScreen(
                                                             ),
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.shuffle),
+                                                        painter = painterResource(Res.drawable.shuffle),
                                                         contentDescription = "Shuffle",
                                                         tint = MaterialTheme.colorScheme.onPrimary,
                                                         modifier = Modifier.size(20.dp),
@@ -474,7 +488,7 @@ fun ArtistScreen(
                             ) {
                                 if (showArtistDescription && (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty())) {
                                     Text(
-                                        text = stringResource(R.string.about_artist),
+                                        text = stringResource(Res.string.about_artist),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(bottom = 8.dp),
@@ -540,7 +554,7 @@ fun ArtistScreen(
                     if (librarySongs.isNotEmpty()) {
                         item(key = "local_songs_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.songs),
+                                title = stringResource(Res.string.songs),
                                 modifier = Modifier.animateItem(),
                                 onClick = {
                                     navController.navigate("artist/${viewModel.artistId}/songs")
@@ -575,7 +589,7 @@ fun ArtistScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.more_vert),
+                                            painter = painterResource(Res.drawable.more_vert),
                                             contentDescription = null,
                                         )
                                     }
@@ -616,7 +630,7 @@ fun ArtistScreen(
                     if (libraryAlbums.isNotEmpty()) {
                         item(key = "local_albums_title") {
                             NavigationTitle(
-                                title = stringResource(R.string.albums),
+                                title = stringResource(Res.string.albums),
                                 modifier = Modifier.animateItem(),
                                 onClick = {
                                     navController.navigate("artist/${viewModel.artistId}/albums")
@@ -704,7 +718,7 @@ fun ArtistScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                             )
                                         }
@@ -870,7 +884,7 @@ fun ArtistScreen(
         HideOnScrollFAB(
             visible = showLocalFab,
             lazyListState = lazyListState,
-            icon = if (showLocal) R.drawable.language else R.drawable.library_music,
+            icon = if (showLocal) Res.drawable.language else Res.drawable.library_music,
             onClick = {
                 showLocal = showLocal.not()
                 if (!showLocal && artistPage == null) viewModel.fetchArtistsFromYTM()
@@ -984,7 +998,7 @@ fun ArtistScreen(
                         onClick = onPlayAllClick,
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.play),
+                            painter = painterResource(Res.drawable.play),
                             contentDescription = "Play All",
                         )
                     }
@@ -994,7 +1008,7 @@ fun ArtistScreen(
                         onClick = onPlayAllClick,
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.play),
+                            painter = painterResource(Res.drawable.play),
                             contentDescription = "Play All",
                             modifier = Modifier.size(32.dp),
                         )
@@ -1020,7 +1034,7 @@ fun ArtistScreen(
                 onLongClick = navController::backToMain,
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(Res.drawable.arrow_back),
                     contentDescription = null,
                 )
             }
@@ -1037,7 +1051,7 @@ fun ArtistScreen(
                 },
             ) {
                 Icon(
-                    painterResource(R.drawable.link),
+                    painterResource(Res.drawable.link),
                     contentDescription = null,
                 )
             }

@@ -91,9 +91,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -102,7 +99,6 @@ import androidx.datastore.preferences.core.edit
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
-import com.metrolist.music.R
 import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.constants.PlayerBackgroundStyle
 import com.metrolist.music.constants.QueueEditLockKey
@@ -143,6 +139,43 @@ import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.material3.Button
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.bedtime
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.delete
+import com.metrolist.music.resources.delete_queue
+import com.metrolist.music.resources.delete_queue_confirm
+import com.metrolist.music.resources.drag_handle
+import com.metrolist.music.resources.end_of_song
+import com.metrolist.music.resources.expand_less
+import com.metrolist.music.resources.expand_more
+import com.metrolist.music.resources.lock
+import com.metrolist.music.resources.lock_open
+import com.metrolist.music.resources.lyrics
+import com.metrolist.music.resources.minute
+import com.metrolist.music.resources.more_vert
+import com.metrolist.music.resources.n_selected
+import com.metrolist.music.resources.n_song
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.removed_song_from_playlist
+import com.metrolist.music.resources.repeat
+import com.metrolist.music.resources.repeat_one
+import com.metrolist.music.resources.set_as_default
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.similar_content
+import com.metrolist.music.resources.sleep_timer
+import com.metrolist.music.resources.sleep_timer_default_set
+import com.metrolist.music.resources.switch_queue
+import com.metrolist.music.resources.undo
+import com.metrolist.music.resources.untitled_queue
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -167,7 +200,7 @@ fun Queue(
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboard.current
     val menuState = LocalMenuState.current
-    val sleepTimerDefaultSetTemplate = stringResource(R.string.sleep_timer_default_set)
+    val sleepTimerDefaultSetTemplate = stringResource(Res.string.sleep_timer_default_set)
     val bottomSheetPageState = LocalBottomSheetPageState.current
 
     // Listen Together state (reactive)
@@ -300,7 +333,7 @@ fun Queue(
                         )
 
                     PlayerQueueButton(
-                        icon = R.drawable.queue_music,
+                        icon = Res.drawable.queue_music,
                         onClick = { state.expandSoft() },
                         isActive = false,
                         shape = queueShape,
@@ -313,7 +346,7 @@ fun Queue(
                     )
 
                     PlayerQueueButton(
-                        icon = R.drawable.bedtime,
+                        icon = Res.drawable.bedtime,
                         onClick = {
                             if (sleepTimerEnabled) {
                                 playerConnection.sleepTimer?.clear()
@@ -335,7 +368,7 @@ fun Queue(
 
                     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsStateWithLifecycle()
                     PlayerQueueButton(
-                        icon = R.drawable.shuffle,
+                        icon = Res.drawable.shuffle,
                         onClick = {
                             playerConnection.setShuffleModeEnabled(!shuffleModeEnabled)
                         },
@@ -351,7 +384,7 @@ fun Queue(
                     )
 
                     PlayerQueueButton(
-                        icon = R.drawable.lyrics,
+                        icon = Res.drawable.lyrics,
                         onClick = { onToggleLyrics() },
                         isActive = showInlineLyrics,
                         shape = middleShape,
@@ -366,9 +399,9 @@ fun Queue(
                     PlayerQueueButton(
                         icon =
                             when (repeatMode) {
-                                RepeatMode.ALL -> R.drawable.repeat
-                                RepeatMode.ONE -> R.drawable.repeat_one
-                                else -> R.drawable.repeat
+                                RepeatMode.ALL -> Res.drawable.repeat
+                                RepeatMode.ONE -> Res.drawable.repeat_one
+                                else -> Res.drawable.repeat
                             },
                         onClick = {
                             playerConnection.toggleRepeatMode()
@@ -411,7 +444,7 @@ fun Queue(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                             modifier = Modifier.size(iconSize),
                             tint = iconButtonColor,
@@ -442,14 +475,14 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = TextBackgroundColor,
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = stringResource(id = R.string.queue),
+                                text = stringResource(Res.string.queue),
                                 color = TextBackgroundColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -478,7 +511,7 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.bedtime),
+                                painter = painterResource(Res.drawable.bedtime),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = TextBackgroundColor,
@@ -499,7 +532,7 @@ fun Queue(
                                     )
                                 } else {
                                     Text(
-                                        text = stringResource(id = R.string.sleep_timer),
+                                        text = stringResource(Res.string.sleep_timer),
                                         color = TextBackgroundColor,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -523,14 +556,14 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.lyrics),
+                                painter = painterResource(Res.drawable.lyrics),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = TextBackgroundColor,
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = stringResource(R.string.lyrics),
+                                text = stringResource(Res.string.lyrics),
                                 color = TextBackgroundColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -550,7 +583,7 @@ fun Queue(
                             horizontalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = stringResource(R.string.sleep_timer),
+                                text = stringResource(Res.string.sleep_timer),
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
                                 style = MaterialTheme.typography.headlineSmall,
@@ -577,7 +610,7 @@ fun Queue(
                             Text(
                                 text =
                                     pluralStringResource(
-                                        R.plurals.minute,
+                                        Res.plurals.minute,
                                         sleepTimerValue.roundToInt(),
                                         sleepTimerValue.roundToInt(),
                                     ),
@@ -619,7 +652,7 @@ fun Queue(
                                             contentColor = MaterialTheme.colorScheme.onPrimary,
                                         ),
                                     ) {
-                                        Text(stringResource(R.string.set_as_default))
+                                        Text(stringResource(Res.string.set_as_default))
                                     }
                                 } else {
                                     OutlinedButton(
@@ -636,7 +669,7 @@ fun Queue(
                                             ).show()
                                         },
                                     ) {
-                                        Text(stringResource(R.string.set_as_default))
+                                        Text(stringResource(Res.string.set_as_default))
                                     }
                                 }
 
@@ -648,7 +681,7 @@ fun Queue(
                                         )
                                     },
                                 ) {
-                                    Text(stringResource(R.string.end_of_song))
+                                    Text(stringResource(Res.string.end_of_song))
                                 }
                             }
                         }
@@ -669,14 +702,14 @@ fun Queue(
                 onDismiss = { queueToDelete = null },
                 icon = {
                     Icon(
-                        painter = painterResource(R.drawable.delete),
+                        painter = painterResource(Res.drawable.delete),
                         contentDescription = null,
                     )
                 },
-                title = { Text(stringResource(R.string.delete_queue)) },
+                title = { Text(stringResource(Res.string.delete_queue)) },
                 buttons = {
                     TextButton(onClick = { queueToDelete = null }) {
-                        Text(stringResource(R.string.cancel))
+                        Text(stringResource(Res.string.cancel))
                     }
                     TextButton(
                         onClick = {
@@ -684,11 +717,11 @@ fun Queue(
                             queueToDelete = null
                         },
                     ) {
-                        Text(stringResource(R.string.delete))
+                        Text(stringResource(Res.string.delete))
                     }
                 },
             ) {
-                Text(stringResource(R.string.delete_queue_confirm, session.title ?: stringResource(R.string.untitled_queue)))
+                Text(stringResource(Res.string.delete_queue_confirm, session.title ?: stringResource(Res.string.untitled_queue)))
             }
         }
         val automix by playerConnection.automixItems.collectAsStateWithLifecycle()
@@ -808,8 +841,8 @@ fun Queue(
 
                         var processedDismiss by remember { mutableStateOf(false) }
                         val removedSongMsg =
-                            stringResource(R.string.removed_song_from_playlist, currentItem.metadata?.title ?: "")
-                        val undoStr = stringResource(R.string.undo)
+                            stringResource(Res.string.removed_song_from_playlist, currentItem.metadata?.title ?: "")
+                        val undoStr = stringResource(Res.string.undo)
                         LaunchedEffect(dismissBoxState.currentValue) {
                             val dv = dismissBoxState.currentValue
                             if (!processedDismiss && !isListenTogetherGuest && (
@@ -886,7 +919,7 @@ fun Queue(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.more_vert),
+                                                        painter = painterResource(Res.drawable.more_vert),
                                                         contentDescription = null,
                                                     )
                                                 }
@@ -897,7 +930,7 @@ fun Queue(
                                                     modifier = Modifier.draggableHandle(),
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.drag_handle),
+                                                        painter = painterResource(Res.drawable.drag_handle),
                                                         contentDescription = null,
                                                     )
                                                 }
@@ -972,7 +1005,7 @@ fun Queue(
                         )
 
                         Text(
-                            text = stringResource(R.string.similar_content),
+                            text = stringResource(Res.string.similar_content),
                             modifier = Modifier.padding(start = 16.dp),
                         )
                     }
@@ -994,7 +1027,7 @@ fun Queue(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.playlist_play),
+                                                painter = painterResource(Res.drawable.playlist_play),
                                                 contentDescription = null,
                                             )
                                         }
@@ -1004,7 +1037,7 @@ fun Queue(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.queue_music),
+                                                painter = painterResource(Res.drawable.queue_music),
                                                 contentDescription = null,
                                             )
                                         }
@@ -1085,8 +1118,8 @@ fun Queue(
                     )
                     if (queueSessions.isNotEmpty() && !inSelectMode) {
                         Icon(
-                            painter = painterResource(if (queueSwitcherOpen) R.drawable.expand_less else R.drawable.expand_more),
-                            contentDescription = stringResource(R.string.switch_queue),
+                            painter = painterResource(if (queueSwitcherOpen) Res.drawable.expand_less else Res.drawable.expand_more),
+                            contentDescription = stringResource(Res.string.switch_queue),
                         )
                     }
                 }
@@ -1102,7 +1135,7 @@ fun Queue(
                             modifier = Modifier.padding(horizontal = 6.dp),
                         ) {
                             Icon(
-                                painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                                painter = painterResource(if (locked) Res.drawable.lock else Res.drawable.lock_open),
                                 contentDescription = null,
                             )
                         }
@@ -1116,7 +1149,7 @@ fun Queue(
                     Text(
                         text =
                             pluralStringResource(
-                                R.plurals.n_song,
+                                Res.plurals.n_song,
                                 queueWindows.size,
                                 queueWindows.size,
                             ),
@@ -1157,22 +1190,22 @@ fun Queue(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = session.title ?: stringResource(R.string.untitled_queue),
+                                    text = session.title ?: stringResource(Res.string.untitled_queue),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = if (isActive) MaterialTheme.colorScheme.primary else Color.Unspecified,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = pluralStringResource(R.plurals.n_song, songCount, songCount),
+                                    text = pluralStringResource(Res.plurals.n_song, songCount, songCount),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             IconButton(onClick = { queueToDelete = session }) {
                                 Icon(
-                                    painter = painterResource(R.drawable.close),
-                                    contentDescription = stringResource(R.string.delete_queue),
+                                    painter = painterResource(Res.drawable.close),
+                                    contentDescription = stringResource(Res.string.delete_queue),
                                 )
                             }
                         }
@@ -1206,12 +1239,12 @@ fun Queue(
                         onClick = onExitSelectionMode,
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(Res.drawable.close),
                             contentDescription = null,
                         )
                     }
                     Text(
-                        text = pluralStringResource(R.plurals.n_selected, count, count),
+                        text = pluralStringResource(Res.plurals.n_selected, count, count),
                         modifier = Modifier.weight(1f),
                     )
                     Checkbox(
@@ -1241,7 +1274,7 @@ fun Queue(
                         },
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_vert),
+                            painter = painterResource(Res.drawable.more_vert),
                             contentDescription = null,
                             tint = LocalContentColor.current,
                         )
@@ -1297,14 +1330,14 @@ fun Queue(
                 val baseAlpha = if (shuffleModeEnabled) 1f else 0.5f
                 val finalAlpha = if (!isListenTogetherGuest) baseAlpha else 0.3f
                 Icon(
-                    painter = painterResource(R.drawable.shuffle),
+                    painter = painterResource(Res.drawable.shuffle),
                     contentDescription = null,
                     modifier = Modifier.alpha(finalAlpha),
                 )
             }
 
             Icon(
-                painter = painterResource(R.drawable.expand_more),
+                painter = painterResource(Res.drawable.expand_more),
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.Center),
             )
@@ -1320,8 +1353,8 @@ fun Queue(
                     painter =
                         painterResource(
                             when (repeatMode) {
-                                RepeatMode.OFF, RepeatMode.ALL -> R.drawable.repeat
-                                RepeatMode.ONE -> R.drawable.repeat_one
+                                RepeatMode.OFF, RepeatMode.ALL -> Res.drawable.repeat
+                                RepeatMode.ONE -> Res.drawable.repeat_one
                             },
                         ),
                     contentDescription = null,
@@ -1347,7 +1380,7 @@ fun Queue(
 
 @Composable
 private fun PlayerQueueButton(
-    icon: Int,
+    icon: DrawableResource,
     onClick: () -> Unit,
     isActive: Boolean,
     enabled: Boolean = true,
@@ -1415,7 +1448,7 @@ private fun PlayerQueueButton(
                 }
             val finalTint = if (enabled) baseTint else baseTint.copy(alpha = 0.5f)
             Icon(
-                painter = painterResource(id = icon),
+                painter = painterResource(icon),
                 contentDescription = null,
                 modifier = Modifier.size(iconSize),
                 tint = finalTint,

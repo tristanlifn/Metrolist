@@ -14,15 +14,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.viewmodels.StatsViewModel
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.time_transfer_convert
+import com.metrolist.music.resources.time_transfer_listen_time_label
+import com.metrolist.music.resources.time_transfer_source_song
+import com.metrolist.music.resources.time_transfer_target_song
+import com.metrolist.music.resources.time_transfer_title
+import com.metrolist.music.resources.time_transfer_warning
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TimeTransfer(
@@ -38,14 +44,14 @@ fun TimeTransfer(
         onDismiss = onDismiss,
         title = {
             Text(
-                text = stringResource(R.string.time_transfer_title),
+                text = stringResource(Res.string.time_transfer_title),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
             )
         },
         content = {
             Text(
-                text = stringResource(R.string.time_transfer_warning),
+                text = stringResource(Res.string.time_transfer_warning),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 color = androidx.compose.ui.graphics.Color.Red,
@@ -55,7 +61,7 @@ fun TimeTransfer(
 
             Column {
                 SongSelectDropdown(
-                    titleT = stringResource(R.string.time_transfer_source_song),
+                    titleT = stringResource(Res.string.time_transfer_source_song),
                     songs = mostPlayedSongsStats,
                     selectedSong = sourceSong
                 )
@@ -63,7 +69,7 @@ fun TimeTransfer(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row {
-                    Text(stringResource(R.string.time_transfer_listen_time_label))
+                    Text(stringResource(Res.string.time_transfer_listen_time_label))
                     if (sourceSong.value != null) {
                         Text(
                             text = formatMillis(sourceSong.value!!.timeListened),
@@ -76,7 +82,7 @@ fun TimeTransfer(
 
 
                 SongSelectDropdown(
-                    titleT = stringResource(R.string.time_transfer_target_song),
+                    titleT = stringResource(Res.string.time_transfer_target_song),
                     songs = mostPlayedSongsStats,
                     selectedSong = targetSong,
                 )
@@ -84,7 +90,7 @@ fun TimeTransfer(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row {
-                    Text(stringResource(R.string.time_transfer_listen_time_label))
+                    Text(stringResource(Res.string.time_transfer_listen_time_label))
                     if (targetSong.value != null) {
                         Text(
                             text = formatMillis(targetSong.value!!.timeListened),
@@ -113,7 +119,7 @@ fun TimeTransfer(
                             sourceSong.value!!.id != targetSong.value!!.id,
                 ) {
                     Text(
-                        text = stringResource(R.string.time_transfer_convert),
+                        text = stringResource(Res.string.time_transfer_convert),
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }

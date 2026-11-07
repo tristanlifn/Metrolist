@@ -49,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
@@ -95,6 +94,45 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.action_download
+import com.metrolist.music.resources.add
+import com.metrolist.music.resources.add_to_playlist
+import com.metrolist.music.resources.add_to_playlist_desc
+import com.metrolist.music.resources.add_to_queue
+import com.metrolist.music.resources.add_to_queue_desc
+import com.metrolist.music.resources.already_in_playlist
+import com.metrolist.music.resources.cancel
+import com.metrolist.music.resources.close
+import com.metrolist.music.resources.download
+import com.metrolist.music.resources.download_desc
+import com.metrolist.music.resources.downloading
+import com.metrolist.music.resources.error_podcast_subscribe
+import com.metrolist.music.resources.error_podcast_unsubscribe
+import com.metrolist.music.resources.export_playlist
+import com.metrolist.music.resources.favorite
+import com.metrolist.music.resources.favorite_border
+import com.metrolist.music.resources.offline
+import com.metrolist.music.resources.pin_to_speed_dial
+import com.metrolist.music.resources.play
+import com.metrolist.music.resources.play_next
+import com.metrolist.music.resources.play_next_desc
+import com.metrolist.music.resources.playlist_add
+import com.metrolist.music.resources.playlist_play
+import com.metrolist.music.resources.queue_music
+import com.metrolist.music.resources.radio
+import com.metrolist.music.resources.remove
+import com.metrolist.music.resources.remove_download
+import com.metrolist.music.resources.remove_download_playlist_confirm
+import com.metrolist.music.resources.select
+import com.metrolist.music.resources.select_all
+import com.metrolist.music.resources.share
+import com.metrolist.music.resources.share_desc
+import com.metrolist.music.resources.shuffle
+import com.metrolist.music.resources.start_radio
+import com.metrolist.music.resources.unpin_from_speed_dial
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MutableCollectionMutableState")
@@ -227,9 +265,9 @@ fun YouTubePlaylistMenu(
                                 if (dbPlaylist?.playlist?.bookmarkedAt !=
                                     null
                                 ) {
-                                    R.drawable.favorite
+                                    Res.drawable.favorite
                                 } else {
-                                    R.drawable.favorite_border
+                                    Res.drawable.favorite_border
                                 },
                             ),
                         tint =
@@ -280,7 +318,7 @@ fun YouTubePlaylistMenu(
                 Text(
                     text =
                         stringResource(
-                            R.string.remove_download_playlist_confirm,
+                            Res.string.remove_download_playlist_confirm,
                             playlist.title,
                         ),
                     style = MaterialTheme.typography.bodyLarge,
@@ -291,7 +329,7 @@ fun YouTubePlaylistMenu(
                 TextButton(
                     onClick = { showRemoveDownloadDialog = false },
                 ) {
-                    Text(text = stringResource(android.R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -345,10 +383,10 @@ fun YouTubePlaylistMenu(
         ) {
             item {
                 ListItem(
-                    content = { Text(text = stringResource(R.string.already_in_playlist)) },
+                    content = { Text(text = stringResource(Res.string.already_in_playlist)) },
                     leadingContent = {
                         Image(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(Res.drawable.close),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier.size(ListThumbnailSize),
@@ -414,13 +452,13 @@ fun YouTubePlaylistMenu(
                                     NewAction(
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.play),
+                                                painter = painterResource(Res.drawable.play),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         },
-                                        text = stringResource(R.string.play),
+                                        text = stringResource(Res.string.play),
                                         onClick = {
                                             playerConnection.playQueue(YouTubeQueue(playEndpoint))
                                             onDismiss()
@@ -433,13 +471,13 @@ fun YouTubePlaylistMenu(
                                     NewAction(
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.shuffle),
+                                                painter = painterResource(Res.drawable.shuffle),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         },
-                                        text = stringResource(R.string.shuffle),
+                                        text = stringResource(Res.string.shuffle),
                                         onClick = {
                                             playerConnection.playQueue(YouTubeQueue(shuffleEndpoint))
                                             onDismiss()
@@ -452,13 +490,13 @@ fun YouTubePlaylistMenu(
                                     NewAction(
                                         icon = {
                                             Icon(
-                                                painter = painterResource(R.drawable.radio),
+                                                painter = painterResource(Res.drawable.radio),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         },
-                                        text = stringResource(R.string.start_radio),
+                                        text = stringResource(Res.string.start_radio),
                                         onClick = {
                                             playerConnection.playQueue(YouTubeQueue(radioEndpoint))
                                             onDismiss()
@@ -478,11 +516,11 @@ fun YouTubePlaylistMenu(
                     listOfNotNull(
                         if (!isGuest) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
+                                title = { Text(text = stringResource(Res.string.play_next)) },
+                                description = { Text(text = stringResource(Res.string.play_next_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.playlist_play),
+                                        painter = painterResource(Res.drawable.playlist_play),
                                         contentDescription = null,
                                     )
                                 },
@@ -516,11 +554,11 @@ fun YouTubePlaylistMenu(
                         },
                         if (!isGuest) {
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                                title = { Text(text = stringResource(Res.string.add_to_queue)) },
+                                description = { Text(text = stringResource(Res.string.add_to_queue_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.queue_music),
+                                        painter = painterResource(Res.drawable.queue_music),
                                         contentDescription = null,
                                     )
                                 },
@@ -547,11 +585,11 @@ fun YouTubePlaylistMenu(
                             null
                         },
                         Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.add_to_playlist)) },
-                            description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
+                            title = { Text(text = stringResource(Res.string.add_to_playlist)) },
+                            description = { Text(text = stringResource(Res.string.add_to_playlist_desc)) },
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.playlist_add),
+                                    painter = painterResource(Res.drawable.playlist_add),
                                     contentDescription = null,
                                 )
                             },
@@ -562,12 +600,12 @@ fun YouTubePlaylistMenu(
                         Material3MenuItemData(
                             title = {
                                 Text(
-                                    text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial),
+                                    text = if (isPinned) stringResource(Res.string.unpin_from_speed_dial) else stringResource(Res.string.pin_to_speed_dial),
                                 )
                             },
                             icon = {
                                 Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                    painter = painterResource(if (isPinned) Res.drawable.remove else Res.drawable.add),
                                     contentDescription = null,
                                 )
                             },
@@ -599,12 +637,12 @@ fun YouTubePlaylistMenu(
                                         Material3MenuItemData(
                                             title = {
                                                 Text(
-                                                    text = stringResource(R.string.remove_download),
+                                                    text = stringResource(Res.string.remove_download),
                                                 )
                                             },
                                             icon = {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.offline),
+                                                    painter = painterResource(Res.drawable.offline),
                                                     contentDescription = null,
                                                 )
                                             },
@@ -616,7 +654,7 @@ fun YouTubePlaylistMenu(
 
                                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                                         Material3MenuItemData(
-                                            title = { Text(text = stringResource(R.string.downloading)) },
+                                            title = { Text(text = stringResource(Res.string.downloading)) },
                                             icon = {
                                                 CircularProgressIndicator(
                                                     modifier = Modifier.size(24.dp),
@@ -631,11 +669,11 @@ fun YouTubePlaylistMenu(
 
                                     else -> {
                                         Material3MenuItemData(
-                                            title = { Text(text = stringResource(R.string.action_download)) },
-                                            description = { Text(text = stringResource(R.string.download_desc)) },
+                                            title = { Text(text = stringResource(Res.string.action_download)) },
+                                            description = { Text(text = stringResource(Res.string.download_desc)) },
                                             icon = {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.download),
+                                                    painter = painterResource(Res.drawable.download),
                                                     contentDescription = null,
                                                 )
                                             },
@@ -649,10 +687,10 @@ fun YouTubePlaylistMenu(
                         }
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.export_playlist)) },
+                                title = { Text(text = stringResource(Res.string.export_playlist)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.share),
+                                        painter = painterResource(Res.drawable.share),
                                         contentDescription = null,
                                     )
                                 },
@@ -661,11 +699,11 @@ fun YouTubePlaylistMenu(
                         )
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.share)) },
-                                description = { Text(text = stringResource(R.string.share_desc)) },
+                                title = { Text(text = stringResource(Res.string.share)) },
+                                description = { Text(text = stringResource(Res.string.share_desc)) },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.share),
+                                        painter = painterResource(Res.drawable.share),
                                         contentDescription = null,
                                     )
                                 },
@@ -684,10 +722,10 @@ fun YouTubePlaylistMenu(
                         if (canSelect) {
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.select)) },
+                                    title = { Text(text = stringResource(Res.string.select)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.select_all),
+                                            painter = painterResource(Res.drawable.select_all),
                                             contentDescription = null,
                                         )
                                     },

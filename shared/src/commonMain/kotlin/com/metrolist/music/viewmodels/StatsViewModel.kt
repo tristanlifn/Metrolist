@@ -5,7 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -21,10 +22,12 @@ import com.metrolist.music.constants.statToPeriod
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.ui.screens.OptionStats
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.safeDataStoreEdit
+import com.metrolist.music.utils.safeEdit
 import com.metrolist.music.utils.reportException
-import com.metrolist.music.R
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.monthly_most_playlist_name
+import com.metrolist.music.resources.weekly_most_playlist_name
+import org.jetbrains.compose.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,14 +51,14 @@ import kotlin.collections.emptyList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StatsViewModel(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     val database: MusicDatabase,
 ) : ViewModel() {
     private val periodicMostPlaylistSyncMutex = Mutex()
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
     val indexChips = MutableStateFlow(0)
     private val showMostStatsPlaylists =
-        context.dataStore.data
+        dataStore.data
             .map { it[ShowMostStatsPlaylistsKey] ?: true }
             .distinctUntilChanged()
 
@@ -63,7 +66,7 @@ class StatsViewModel(
         combine(
             selectedOption,
             indexChips,
-            context.dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
+            dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
         ) { first, second, third -> Triple(first, second, third) }
             .flatMapLatest { (selection, t, hideVideoSongs) ->
                 database
@@ -85,7 +88,7 @@ class StatsViewModel(
         combine(
             selectedOption,
             indexChips,
-            context.dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
+            dataStore.data.map { it[HideVideoSongsKey] ?: false }.distinctUntilChanged()
         ) { first, second, third -> Triple(first, second, third) }
             .flatMapLatest { (selection, t, hideVideoSongs) ->
                 database
@@ -238,7 +241,7 @@ class StatsViewModel(
             periodicMostPlaylistSyncMutex.withLock {
                 val now = LocalDateTime.now()
                 val nowEpochMillis = System.currentTimeMillis()
-                val preferences = context.dataStore.data.first()
+                val preferences = dataStore.data.first()
                 val hideVideoSongs = preferences[HideVideoSongsKey] ?: false
                 val shouldShowMostStatsPlaylists = preferences[ShowMostStatsPlaylistsKey] ?: true
 
@@ -270,7 +273,7 @@ class StatsViewModel(
                 if (shouldSyncWeekly) {
                     syncMostPlaylist(
                         playlistId = PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID,
-                        playlistName = context.getString(R.string.weekly_most_playlist_name),
+                        playlistName = getString(Res.string.weekly_most_playlist_name),
                         fromTimeStamp = StatPeriod.WEEK_1.toLocalDateTime(),
                         hideVideoSongs = hideVideoSongs,
                         now = now,
@@ -280,7 +283,7 @@ class StatsViewModel(
                 if (shouldSyncMonthly) {
                     syncMostPlaylist(
                         playlistId = PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID,
-                        playlistName = context.getString(R.string.monthly_most_playlist_name),
+                        playlistName = getString(Res.string.monthly_most_playlist_name),
                         fromTimeStamp = StatPeriod.MONTH_1.toLocalDateTime(),
                         hideVideoSongs = hideVideoSongs,
                         now = now,
@@ -289,7 +292,7 @@ class StatsViewModel(
 
                 // Only write "last sync" when it was a scheduled sync, not a forced rebuild
                 if (!force) {
-                    context.safeDataStoreEdit { settings ->
+                    dataStore.safeEdit { settings ->
                         if (shouldSyncWeekly) settings[LastWeeklyMostPlaylistSyncKey] = nowEpochMillis
                         if (shouldSyncMonthly) settings[LastMonthlyMostPlaylistSyncKey] = nowEpochMillis
                     }

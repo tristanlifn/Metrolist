@@ -35,8 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -52,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.metrolist.music.R
 import com.metrolist.music.models.MediaMetadata
 
 import androidx.compose.ui.draw.blur
@@ -65,6 +62,11 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.app_name
+import com.metrolist.music.resources.small_icon
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun rememberAdjustedFontSize(
@@ -403,7 +405,7 @@ fun LyricsImageCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.small_icon),
+                            painter = painterResource(Res.drawable.small_icon),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(38.dp),
@@ -414,7 +416,7 @@ fun LyricsImageCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = stringResource(R.string.app_name),
+                        text = stringResource(Res.string.app_name),
                         color = secondaryColor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
