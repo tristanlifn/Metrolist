@@ -5208,14 +5208,3 @@ class MusicService :
         var shutdownDeferred = kotlinx.coroutines.CompletableDeferred<Unit>().apply { complete(Unit) }
     }
 }
-
-internal fun normalizationGainMb(
-    loudnessDb: Double?,
-    perceptualLoudnessDb: Double?,
-    targetLufs: Float,
-): Int? {
-    val measuredLufs = perceptualLoudnessDb ?: loudnessDb?.let { it + LoudnessLevel.AGGRESSIVE.targetLufs }
-    return measuredLufs
-        ?.let { (-(it - targetLufs) * 100.0).toInt() }
-        ?.coerceIn(-1500, 300)
-}

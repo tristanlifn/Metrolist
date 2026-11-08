@@ -5,6 +5,7 @@
 
 package com.metrolist.desktop.playback
 
+import androidx.datastore.preferences.core.Preferences
 import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertubex.InnerTubeLogLevel
@@ -20,14 +21,18 @@ import com.metrolist.innertubex.extraction.TokenProvider
 import com.metrolist.innertubex.extraction.TokenProviderCapabilities
 import com.metrolist.innertubex.extraction.YtConfigParserImpl
 import com.metrolist.innertubex.extraction.generateClientPlaybackNonce
+import com.metrolist.music.constants.AudioQualityKey
+import com.metrolist.music.db.entities.FormatEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.metrolist.music.constants.AudioQuality as AppAudioQuality
 
 /** A playable audio stream: the URL and the request headers YouTube expects with it. */
 data class ResolvedStream(
     val url: String,
     val headers: Map<String, String>,
     val clientName: String,
+    val format: FormatEntity,
 )
 
 /** Finds an audio stream for a video, using clients that work without a PoToken (desktop has no BotGuard). */
@@ -49,17 +54,53 @@ class StreamResolver {
         )
     }
 
-    suspend fun resolve(videoId: String): ResolvedStream? =
+    suspend fun resolve(
+        videoId: String,
+        quality: AppAudioQuality,
+    ): ResolvedStream? =
         withContext(Dispatchers.IO) {
             extractor
                 .extract(
                     videoId = videoId,
                     hints = ContentHints().withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true),
                     excludedClients = emptySet(),
-                    audioQuality = AudioQuality.HIGH,
+                    // Desktop has no metered-network check, so AUTO behaves like Android on an unmetered network.
+                    audioQuality =
+                        when (quality) {
+                            AppAudioQuality.AUTO -> AudioQuality.AUTO
+                            AppAudioQuality.LOW -> AudioQuality.LOW
+                            AppAudioQuality.HIGH -> AudioQuality.HIGH
+                        },
                     clientPlaybackNonce = generateClientPlaybackNonce(),
-                )?.let { ResolvedStream(it.audioUrl, it.headers, it.clientName) }
+                )?.let {
+                    ResolvedStream(
+                        url = it.audioUrl,
+                        headers = it.headers,
+                        clientName = it.clientName,
+                        format =
+                            FormatEntity(
+                                id = videoId,
+                                itag = it.itag,
+                                mimeType = it.mimeType.orEmpty(),
+                                codecs = it.codecs.orEmpty(),
+                                bitrate = it.bitrate ?: 0,
+                                sampleRate = it.sampleRate,
+                                contentLength = it.contentLengthBytes ?: 0L,
+                                loudnessDb = it.loudnessDb,
+                                perceptualLoudnessDb = it.perceptualLoudnessDb,
+                                playbackUrl = null,
+                            ),
+                    )
+                }
         }
+
+    companion object {
+        /** The audio quality setting, reading the old VERY_HIGH value as HIGH like Android does. */
+        fun audioQuality(preferences: Preferences): AppAudioQuality =
+            preferences[AudioQualityKey]?.let { value ->
+                if (value == "VERY_HIGH") AppAudioQuality.HIGH else AppAudioQuality.entries.find { it.name == value }
+            } ?: AppAudioQuality.AUTO
+    }
 }
 
 private object NoPoTokenProvider : TokenProvider {

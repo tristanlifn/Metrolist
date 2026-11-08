@@ -1,5 +1,7 @@
 package com.metrolist.desktop.playback
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import co.touchlab.kermit.Logger
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.AlbumEntity
@@ -19,6 +21,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -36,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap
 class DesktopSongDownloads(
     private val database: MusicDatabase,
     private val streamResolver: StreamResolver,
+    private val dataStore: DataStore<Preferences>,
     private val dir: File,
 ) : SongDownloads, SongCache {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -67,7 +71,8 @@ class DesktopSongDownloads(
                     setState(id, DownloadState.DOWNLOADING)
                     val part = File(dir, id + PART_SUFFIX)
                     runCatching {
-                        val stream = streamResolver.resolve(id) ?: error("No playable stream")
+                        val stream = streamResolver.resolve(id, StreamResolver.audioQuality(dataStore.data.first())) ?: error("No playable stream")
+                        database.upsert(stream.format)
                         fetch(stream, part)
                         ensureActive()
                         check(part.renameTo(File(dir, id))) { "Could not move $part into place" }

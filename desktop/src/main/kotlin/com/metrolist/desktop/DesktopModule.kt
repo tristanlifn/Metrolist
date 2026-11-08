@@ -43,7 +43,7 @@ val desktopModule = module {
     single { SyncUtils(DesktopPaths.dataDir, get(), get(), get()) }
     single { DesktopStreamCache(DesktopPaths.dataDir.resolve("song_cache"), get()) } bind SongCache::class
     single { StreamResolver() }
-    single { DesktopSongDownloads(get(), get(), DesktopPaths.dataDir.resolve("downloads")) } bind SongDownloads::class
+    single { DesktopSongDownloads(get(), get(), get(), DesktopPaths.dataDir.resolve("downloads")) } bind SongDownloads::class
     single<SongCache>(DownloadSongCache) { get<DesktopSongDownloads>() }
     single<WrappedPreloader> { NoWrappedPreloader() }
     single<LyricsImageSharer> { NoLyricsImageSharer() }
