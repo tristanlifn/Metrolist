@@ -15,9 +15,7 @@ import com.metrolist.music.constants.DataSyncIdKey
 import com.metrolist.music.constants.InnerTubeAuthUserKey
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.VisitorDataKey
-import com.metrolist.music.db.entities.Song
 import com.metrolist.music.lyrics.LyricsImageSharer
-import com.metrolist.music.playback.SongCache
 import com.metrolist.music.ui.component.LyricsBackgroundStyle
 import com.metrolist.music.ui.screens.settings.LyricsPosition
 import com.metrolist.music.utils.AppSession
@@ -37,18 +35,6 @@ class DesktopNetworkConnectivity : NetworkConnectivity {
 
     override fun isCurrentlyConnected(): Boolean =
         runCatching { NetworkInterface.networkInterfaces().anyMatch { it.isUp && !it.isLoopback } }.getOrDefault(true)
-}
-
-class NoSongCache : SongCache {
-    override fun contentLength(song: Song): Long? = null
-
-    override fun isCached(songId: String, contentLength: Long) = false
-
-    override fun remove(songId: String) = Unit
-
-    override val size = 0L
-
-    override fun clear() = Unit
 }
 
 class NoWrappedPreloader : WrappedPreloader {

@@ -53,8 +53,8 @@ object Updater {
      * Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
      */
     fun compareVersions(v1: String, v2: String): Int {
-        val v1Parts = v1.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
-        val v2Parts = v2.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
+        val v1Parts = v1.removePrefix("v").substringBefore('-').substringBefore('+').split(".").map { it.toIntOrNull() ?: 0 }
+        val v2Parts = v2.removePrefix("v").substringBefore('-').substringBefore('+').split(".").map { it.toIntOrNull() ?: 0 }
         val maxLength = maxOf(v1Parts.size, v2Parts.size)
         
         for (i in 0 until maxLength) {

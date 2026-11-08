@@ -27,4 +27,11 @@ class UpdaterTest {
         assertEquals("https://example.com/Metrolist.apk", release.assets.single().downloadUrl)
         assertNull(Updater.parseKmpRelease(response.replace("Metrolist.apk", "Metrolist-with-Google-Cast.apk")))
     }
+
+    @Test
+    fun compareVersionsIgnoresBuildSuffixes() {
+        assertEquals(0, Updater.compareVersions("18.0.1-dev", "v18.0.1"))
+        assertEquals(1, Updater.compareVersions("18.0.1-beta", "18.0.0"))
+        assertEquals(-1, Updater.compareVersions("18.0.0+abc123", "18.0.1"))
+    }
 }

@@ -10,16 +10,21 @@ import androidx.datastore.preferences.core.Preferences
 import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.WatchEndpoint
+import com.metrolist.music.constants.AudioNormalizationKey
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.HistoryDuration
+import com.metrolist.music.constants.LoudnessLevel
+import com.metrolist.music.constants.LoudnessLevelKey
 import com.metrolist.music.constants.PauseListenHistoryKey
 import com.metrolist.music.constants.PersistentQueueKey
+import com.metrolist.music.constants.SkipSilenceKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Event
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.Song
+import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.PersistQueueSessions
 import com.metrolist.music.models.QueueSession
@@ -32,6 +37,7 @@ import com.metrolist.music.playback.QueueEntry
 import com.metrolist.music.playback.RepeatMode
 import com.metrolist.music.playback.PlayerSleepTimer
 import com.metrolist.music.playback.automaticSleepTimerMinutes
+import com.metrolist.music.playback.normalizationGainMb
 import com.metrolist.music.playback.queues.Queue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.playback.queues.filterExplicit
@@ -46,6 +52,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +61,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -62,6 +70,7 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * [MusicPlayer] backed by libmpv. All queue and playback state is changed on [scope], a single-threaded
@@ -74,6 +83,7 @@ class DesktopMusicPlayer(
     private val syncUtils: SyncUtils,
     private val streamResolver: StreamResolver,
     private val downloads: DesktopSongDownloads,
+    private val streamCache: DesktopStreamCache,
     // Where queue sessions are kept between runs; null keeps them in memory only.
     private val sessionsFile: File?,
 ) : MusicPlayer {
@@ -95,6 +105,7 @@ class DesktopMusicPlayer(
 
     // mpv reports initial property values before anything is loaded; those must not mark the player ready.
     private var fileLoaded = false
+    private val released = AtomicBoolean(false)
 
     override val mediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     override val isReady: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
@@ -161,6 +172,18 @@ class DesktopMusicPlayer(
     override val hasNextItem: Boolean get() = position in 0 until order.size - 1
 
     init {
+        scope.launch {
+            dataStore.data
+                .map { (it[AudioNormalizationKey] ?: true) to it[LoudnessLevelKey].toEnum(LoudnessLevel.BALANCED) }
+                .distinctUntilChanged()
+                .collect { mediaMetadata.value?.id?.let { id -> applyNormalization(id) } }
+        }
+        scope.launch {
+            dataStore.data
+                .map { it[SkipSilenceKey] ?: false }
+                .distinctUntilChanged()
+                .collect { skipSilence -> mpv.setProperty("af", if (skipSilence) SKIP_SILENCE_FILTER else "") }
+        }
         scope.launch {
             restoreSessions()
             // Saved while playing and on pause too, so a hard kill or a lost session keeps the queue.
@@ -444,6 +467,7 @@ class DesktopMusicPlayer(
     override fun clearAutomix() = Unit
 
     fun release() {
+        if (!released.compareAndSet(false, true)) return
         runBlocking {
             withTimeoutOrNull(RELEASE_TIMEOUT_MS) {
                 scope.launch { persistActiveSession() }.join()
@@ -630,21 +654,22 @@ class DesktopMusicPlayer(
                 if (database.song(metadata.id).first() == null) {
                     database.insert(metadata)
                 }
-                // Downloaded songs play from disk, so they work offline.
-                val localFile = downloads.file(metadata.id)
+                // Downloaded and fully cached songs play from disk, so they work offline.
+                val localFile = downloads.file(metadata.id) ?: streamCache.file(metadata.id)
                 // Shown as the stream title in volume mixers instead of the stream URL.
                 mpv.setProperty("force-media-title", "${metadata.title} – ${metadata.artists.joinToString { it.name }}")
                 mpv.setProperty("start", if (startMs > 0) "+${startMs / 1000.0}" else "none")
                 mpv.setProperty("pause", if (playWhenReady) "no" else "yes")
                 setPlayWhenReady(playWhenReady)
                 if (localFile != null) {
+                    applyNormalization(metadata.id)
                     currentStreamClient.value = null
                     mpv.setProperty("http-header-fields", "")
                     mpv.command("loadfile", localFile.path, "replace")
                     return@launch
                 }
                 val stream =
-                    runCatching { streamResolver.resolve(metadata.id) }
+                    runCatching { streamResolver.resolve(metadata.id, StreamResolver.audioQuality(dataStore.data.first())) }
                         .onFailure { Logger.withTag("DesktopPlayer").e(it) { "Stream extraction failed for ${metadata.id}" } }
                         .getOrNull()
                 if (stream == null) {
@@ -652,13 +677,19 @@ class DesktopMusicPlayer(
                     setPlaybackState(PlaybackState.IDLE)
                     return@launch
                 }
+                database.upsert(stream.format)
+                applyNormalization(metadata.id)
                 currentStreamClient.value = stream.clientName
+                val url = streamCache.playbackUrl(metadata.id, stream)
                 mpv.setProperty("http-header-fields", "")
-                stream.headers.forEach { (key, value) ->
-                    // change-list append adds one entry as-is, so header values may contain commas.
-                    mpv.command("change-list", "http-header-fields", "append", "$key: $value")
+                // The cache proxy sends YouTube's headers itself.
+                if (url == stream.url) {
+                    stream.headers.forEach { (key, value) ->
+                        // change-list append adds one entry as-is, so header values may contain commas.
+                        mpv.command("change-list", "http-header-fields", "append", "$key: $value")
+                    }
                 }
-                mpv.command("loadfile", stream.url, "replace")
+                mpv.command("loadfile", url, "replace")
             }
         maybeLoadMore()
     }
@@ -691,6 +722,7 @@ class DesktopMusicPlayer(
         when (event.reason) {
             LibMpv.END_FILE_REASON_EOF -> {
                 recordHistory()
+                mediaMetadata.value?.id?.let(::addToCachePlaylist)
                 when {
                     repeatMode.value == RepeatMode.ONE -> startCurrent(0L, playWhenReady = !pauseForSleepTimer())
                     position < order.size - 1 -> moveTo(position + 1)
@@ -707,6 +739,28 @@ class DesktopMusicPlayer(
                 setPlaybackState(PlaybackState.IDLE)
             }
         }
+    }
+
+    // Like Android, only songs that played to the end join the cache playlist, not ones skipped after prefetching.
+    private fun addToCachePlaylist(songId: String) {
+        scope.launch {
+            if (streamCache.file(songId) == null) return@launch
+            val song = database.song(songId).first()?.song ?: return@launch
+            if (song.dateDownload == null && !song.isDownloaded) database.update(song.copy(dateDownload = LocalDateTime.now()))
+        }
+    }
+
+    // Same gain as Android, from the loudness YouTube measured; mpv applies it on top of the volume setting.
+    private suspend fun applyNormalization(songId: String) {
+        val preferences = dataStore.data.first()
+        val format = database.format(songId).first()
+        val gainMb =
+            if (preferences[AudioNormalizationKey] ?: true) {
+                normalizationGainMb(format?.loudnessDb, format?.perceptualLoudnessDb, preferences[LoudnessLevelKey].toEnum(LoudnessLevel.BALANCED).targetLufs)
+            } else {
+                null
+            }
+        mpv.setProperty("volume-gain", ((gainMb ?: 0) / 100.0).toString())
     }
 
     private fun setPlaybackState(state: PlaybackState) {
@@ -791,5 +845,9 @@ class DesktopMusicPlayer(
         const val SAVE_INTERVAL_MS = 30_000L
         const val ERROR_CODE_NO_STREAM = 2004
         const val ERROR_CODE_PLAYBACK = 2001
+
+        // Drops silences longer than half a second down to a short pause; copied timestamps keep the position in song time.
+        const val SKIP_SILENCE_FILTER =
+            "lavfi=[silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_duration=0.5:stop_threshold=-50dB:stop_silence=0.2:timestamp=copy]"
     }
 }

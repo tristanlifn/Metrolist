@@ -8,6 +8,7 @@ package com.metrolist.desktop
 import com.metrolist.desktop.playback.StreamResolver
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.SongItem
+import com.metrolist.music.constants.AudioQuality
 import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
@@ -25,7 +26,7 @@ fun runPlaybackProbe(args: List<String>): Unit = runBlocking {
     println("Found: ${song.title} - ${song.artists.joinToString { it.name }} (${song.id})")
 
     val stream =
-        StreamResolver().resolve(song.id) ?: run {
+        StreamResolver().resolve(song.id, AudioQuality.HIGH) ?: run {
             System.err.println("No playable stream for ${song.id}")
             exitProcess(1)
         }

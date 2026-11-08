@@ -85,9 +85,13 @@ import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.ui.menu.ListenTogetherDialog
 import com.metrolist.music.ui.menu.rememberSystemEqualizerLauncher
 import com.metrolist.music.ui.utils.LocalAudioFilesPicker
+import com.metrolist.music.ui.utils.LocalOpenFilePicker
 import com.metrolist.music.ui.utils.LocalPlaylistCoverPicker
+import com.metrolist.music.ui.utils.LocalSaveFilePicker
 import com.metrolist.music.ui.utils.rememberAndroidAudioFilesPicker
+import com.metrolist.music.ui.utils.rememberAndroidOpenFilePicker
 import com.metrolist.music.ui.utils.rememberAndroidPlaylistCoverPicker
+import com.metrolist.music.ui.utils.rememberAndroidSaveFilePicker
 import com.metrolist.music.ui.screens.androidNavigationRoutes
 import com.metrolist.music.ui.screens.settings.AlarmSettingsSection
 
@@ -332,6 +336,8 @@ class MainActivity : FragmentActivity() {
                 LocalSystemEqualizerLauncher provides { rememberSystemEqualizerLauncher() },
                 LocalAudioFilesPicker provides { onPicked -> rememberAndroidAudioFilesPicker(onPicked) },
                 LocalPlaylistCoverPicker provides { title, onPicked -> rememberAndroidPlaylistCoverPicker(title, onPicked) },
+                LocalOpenFilePicker provides { onPicked -> rememberAndroidOpenFilePicker(onPicked) },
+                LocalSaveFilePicker provides { mimeType, onPicked -> rememberAndroidSaveFilePicker(mimeType, onPicked) },
             ) {
                 MetrolistApp(
                     playerConnection = playerConnectionSnapshot,

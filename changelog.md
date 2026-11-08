@@ -1,3 +1,13 @@
+---v14.1.0
+# Working for feature parody
+For this update the focus was feature parody for Linux.
+
+## Features ported to Linux
+- Volume normalization
+- Skipping silence
+- Audio streaming quality selection
+- Caching streamed songs on disk
+
 ---v13.7.0
 # KMP status update
 Metrolist-KMP remains in alpha, but tester feedback has been very positive. To try it, join our Discord and donate at least $1 to support development.
