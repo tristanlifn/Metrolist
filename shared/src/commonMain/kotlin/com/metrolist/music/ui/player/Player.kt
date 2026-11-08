@@ -2032,16 +2032,13 @@ fun BottomSheetPlayer(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
+            val desktopSplit = isDesktop && !isPortraitWindow()
             Queue(
                 state = queueSheetState,
                 playerBottomSheetState = state,
                 // Desktop: the open queue fills only the left half, next to the cover and controls.
-                modifier =
-                    if (isDesktop && !isPortraitWindow()) {
-                        Modifier.fillMaxWidth(1f - queueSheetState.progress.coerceIn(0f, 1f) / 2)
-                    } else {
-                        Modifier
-                    },
+                modifier = if (desktopSplit) Modifier.fillMaxWidth(0.5f) else Modifier,
+                pinBar = desktopSplit,
                 background =
                     if (useBlackBackground) {
                         Color.Black

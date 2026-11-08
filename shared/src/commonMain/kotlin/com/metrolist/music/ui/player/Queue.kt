@@ -191,6 +191,7 @@ fun Queue(
     showInlineLyrics: Boolean,
     playerBackground: PlayerBackgroundStyle = PlayerBackgroundStyle.DEFAULT,
     onToggleLyrics: () -> Unit = {},
+    pinBar: Boolean = false,
 ) {
     val navController = LocalNavController.current
     val dataStore = koinInject<DataStore<Preferences>>()
@@ -296,6 +297,7 @@ fun Queue(
         background = {
             Box(Modifier.fillMaxSize().background(Color.Unspecified))
         },
+        pinCollapsedContent = pinBar,
         collapsedContent = {
             if (useNewPlayerDesign) {
                 // New design
@@ -332,8 +334,8 @@ fun Queue(
 
                     PlayerQueueButton(
                         icon = Res.drawable.queue_music,
-                        onClick = { state.expandSoft() },
-                        isActive = false,
+                        onClick = { if (state.isExpanded) state.collapseSoft() else state.expandSoft() },
+                        isActive = pinBar && !state.isCollapsed,
                         shape = queueShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -464,7 +466,7 @@ fun Queue(
                             ),
                 ) {
                     TextButton(
-                        onClick = { state.expandSoft() },
+                        onClick = { if (state.isExpanded) state.collapseSoft() else state.expandSoft() },
                         modifier = Modifier.weight(1f),
                     ) {
                         Row(
