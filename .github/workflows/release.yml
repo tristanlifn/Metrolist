@@ -45,9 +45,22 @@ jobs:
       - name: Bump version
         id: bump
         if: github.event_name == 'workflow_dispatch' && inputs.bump != 'none'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           OLD_VERSION=$(grep -m1 -oP '^\s*versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
           OLD_CODE=$(grep -m1 -oP '^\s*versionCode\s*=\s*\K\d+' app/build.gradle.kts)
+
+          # The bump is pushed before anything is built, so a failed or cancelled run leaves an
+          # unreleased version behind. Release that one instead of bumping past it again.
+          if ! gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$OLD_VERSION" > /dev/null 2> "$RUNNER_TEMP/release_lookup.err"; then
+            if grep -q "HTTP 404" "$RUNNER_TEMP/release_lookup.err"; then
+              echo "::notice::v$OLD_VERSION was never released, so it is released now instead of bumping to a new version."
+              exit 0
+            fi
+            cat "$RUNNER_TEMP/release_lookup.err"
+            exit 1
+          fi
           IFS=. read -r MAJOR MINOR PATCH <<< "$OLD_VERSION"
 
           case "${{ inputs.bump }}" in
