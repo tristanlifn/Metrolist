@@ -74,6 +74,7 @@ class DesktopMusicPlayer(
     private val syncUtils: SyncUtils,
     private val streamResolver: StreamResolver,
     private val downloads: DesktopSongDownloads,
+    private val streamCache: DesktopStreamCache,
     // Where queue sessions are kept between runs; null keeps them in memory only.
     private val sessionsFile: File?,
 ) : MusicPlayer {
@@ -630,8 +631,8 @@ class DesktopMusicPlayer(
                 if (database.song(metadata.id).first() == null) {
                     database.insert(metadata)
                 }
-                // Downloaded songs play from disk, so they work offline.
-                val localFile = downloads.file(metadata.id)
+                // Downloaded and fully cached songs play from disk, so they work offline.
+                val localFile = downloads.file(metadata.id) ?: streamCache.file(metadata.id)
                 // Shown as the stream title in volume mixers instead of the stream URL.
                 mpv.setProperty("force-media-title", "${metadata.title} – ${metadata.artists.joinToString { it.name }}")
                 mpv.setProperty("start", if (startMs > 0) "+${startMs / 1000.0}" else "none")
@@ -653,12 +654,16 @@ class DesktopMusicPlayer(
                     return@launch
                 }
                 currentStreamClient.value = stream.clientName
+                val url = streamCache.playbackUrl(metadata.id, stream)
                 mpv.setProperty("http-header-fields", "")
-                stream.headers.forEach { (key, value) ->
-                    // change-list append adds one entry as-is, so header values may contain commas.
-                    mpv.command("change-list", "http-header-fields", "append", "$key: $value")
+                // The cache proxy sends YouTube's headers itself.
+                if (url == stream.url) {
+                    stream.headers.forEach { (key, value) ->
+                        // change-list append adds one entry as-is, so header values may contain commas.
+                        mpv.command("change-list", "http-header-fields", "append", "$key: $value")
+                    }
                 }
-                mpv.command("loadfile", stream.url, "replace")
+                mpv.command("loadfile", url, "replace")
             }
         maybeLoadMore()
     }
@@ -691,6 +696,7 @@ class DesktopMusicPlayer(
         when (event.reason) {
             LibMpv.END_FILE_REASON_EOF -> {
                 recordHistory()
+                mediaMetadata.value?.id?.let(::addToCachePlaylist)
                 when {
                     repeatMode.value == RepeatMode.ONE -> startCurrent(0L, playWhenReady = !pauseForSleepTimer())
                     position < order.size - 1 -> moveTo(position + 1)
@@ -706,6 +712,15 @@ class DesktopMusicPlayer(
                 error.value = PlayerError(ERROR_CODE_PLAYBACK, "ERROR_CODE_IO_UNSPECIFIED", RuntimeException(event.error ?: "Playback failed"))
                 setPlaybackState(PlaybackState.IDLE)
             }
+        }
+    }
+
+    // Like Android, only songs that played to the end join the cache playlist, not ones skipped after prefetching.
+    private fun addToCachePlaylist(songId: String) {
+        scope.launch {
+            if (streamCache.file(songId) == null) return@launch
+            val song = database.song(songId).first()?.song ?: return@launch
+            if (song.dateDownload == null && !song.isDownloaded) database.update(song.copy(dateDownload = LocalDateTime.now()))
         }
     }
 

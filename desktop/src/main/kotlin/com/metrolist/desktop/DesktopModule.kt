@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.metrolist.desktop.playback.DesktopMusicPlayer
 import com.metrolist.desktop.playback.DesktopSongDownloads
+import com.metrolist.desktop.playback.DesktopStreamCache
 import com.metrolist.desktop.playback.StreamResolver
 import com.metrolist.music.db.InternalDatabase
 import com.metrolist.music.db.MusicDatabase
@@ -40,7 +41,7 @@ val desktopModule = module {
     single { DesktopPlatformActions() } bind PlatformActions::class
     single<NetworkConnectivity> { DesktopNetworkConnectivity() }
     single { SyncUtils(DesktopPaths.dataDir, get(), get(), get()) }
-    single<SongCache> { NoSongCache() }
+    single { DesktopStreamCache(DesktopPaths.dataDir.resolve("song_cache"), get()) } bind SongCache::class
     single { StreamResolver() }
     single { DesktopSongDownloads(get(), get(), DesktopPaths.dataDir.resolve("downloads")) } bind SongDownloads::class
     single<SongCache>(DownloadSongCache) { get<DesktopSongDownloads>() }
@@ -48,5 +49,5 @@ val desktopModule = module {
     single<LyricsImageSharer> { NoLyricsImageSharer() }
     single<AppSession> { DesktopAppSession(get()) }
     factoryOf(::LyricsHelper)
-    single { DesktopMusicPlayer(get(), get(), get(), get(), get(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
+    single { DesktopMusicPlayer(get(), get(), get(), get(), get(), get(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
 }
