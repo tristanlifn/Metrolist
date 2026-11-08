@@ -138,7 +138,8 @@ private fun calculateThumbnailDimensions(
     val effectiveSize = if (isLandscape) {
         minOf(containerWidth, containerHeight) - (horizontalPadding * 2)
     } else {
-        containerWidth - (horizontalPadding * 2)
+        // Height caps it too, so a short, wide window keeps the cover square.
+        minOf(containerWidth - (horizontalPadding * 2), containerHeight)
     }
     return ThumbnailDimensions(
         itemWidth = containerWidth,
