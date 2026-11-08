@@ -2059,9 +2059,10 @@ fun BottomSheetPlayer(
         }
 
         // Desktop has no system back gesture; top end stays clear of the queue's header on the left.
-        if (isDesktop) {
+        // A full-window queue would sit under it, and has its own close strip.
+        if (isDesktop && (queueSheetState.isCollapsed || !isPortraitWindow())) {
             IconButton(
-                onClick = { if (queueSheetState.isCollapsed) state.collapseSoft() else queueSheetState.collapseSoft() },
+                onClick = { state.collapseSoft() },
                 modifier =
                     Modifier
                         .align(Alignment.TopEnd)

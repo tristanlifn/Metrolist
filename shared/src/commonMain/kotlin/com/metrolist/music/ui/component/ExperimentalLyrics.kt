@@ -62,6 +62,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onSizeChanged
@@ -699,6 +700,21 @@ fun ExperimentalLyrics(
                                         if (value != clamped) cancelAnimation()
                                     }
                                 }
+                            }
+                        }
+                    }
+                    // Mouse wheel: the drag handler above only sees presses, so wheel notches move the same offset.
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                if (event.type != PointerEventType.Scroll || isInitialLayout) continue
+                                flingJob?.cancel()
+                                isAutoScrollEnabled = false
+                                lastPreviewTime = System.currentTimeMillis()
+                                val delta = event.changes.sumOf { it.scrollDelta.y.toDouble() }.toFloat()
+                                userManualOffset = (userManualOffset - delta * 64.dp.toPx()).coerceIn(scrollClampMin, scrollClampMax)
+                                event.changes.forEach { it.consume() }
                             }
                         }
                     }
