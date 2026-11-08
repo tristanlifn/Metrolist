@@ -417,6 +417,16 @@ private fun NewMiniPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
             ) {
+                // Desktop has no comfortable swipe, so skip buttons sit beside play.
+                if (isDesktop) {
+                    IconButton(
+                        enabled = canSkipPrevious && !isListenTogetherGuest,
+                        onClick = { playerConnection.seekToPrevious() },
+                    ) {
+                        Icon(painter = painterResource(Res.drawable.skip_previous), contentDescription = null, tint = onSurfaceColor)
+                    }
+                }
+
                 // Play button with progress - isolated composable
                 NewMiniPlayerPlayButton(
                     progressState = progressState,
@@ -429,6 +439,15 @@ private fun NewMiniPlayer(
                     outlineColor = outlineColor,
                     listenTogetherManager = listenTogetherManager,
                 )
+
+                if (isDesktop) {
+                    IconButton(
+                        enabled = canSkipNext && !isListenTogetherGuest,
+                        onClick = { playerConnection.seekToNext() },
+                    ) {
+                        Icon(painter = painterResource(Res.drawable.skip_next), contentDescription = null, tint = onSurfaceColor)
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -833,6 +852,15 @@ private fun LegacyMiniPlayer(
                         pureBlack = pureBlack,
                         modifier = Modifier.padding(horizontal = 6.dp),
                     )
+                }
+            }
+
+            if (isDesktop) {
+                IconButton(
+                    enabled = canSkipPrevious && !isListenTogetherGuest,
+                    onClick = { playerConnection.seekToPrevious() },
+                ) {
+                    Icon(painter = painterResource(Res.drawable.skip_previous), contentDescription = null)
                 }
             }
 
