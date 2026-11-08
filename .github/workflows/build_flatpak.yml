@@ -62,7 +62,7 @@ jobs:
       - name: Build desktop jar
         run: |
           ./gradlew --console=plain :desktop:packageUberJarForCurrentOS --warning-mode summary \
-            ${VERSION:+-PdesktopVersion=$VERSION}
+            ${VERSION:+-PdesktopChannel=beta}
           mkdir -p desktop/build/flatpak
           cp "$(ls -t desktop/build/compose/jars/*.jar | head -1)" desktop/build/flatpak/metrolist.jar
         env:
@@ -97,7 +97,7 @@ jobs:
       - name: Add release version to metadata
         if: inputs.version != ''
         run: |
-          sed -i "s|</component>|  <releases>\n    <release version=\"$VERSION\" date=\"$(date -u +%F)\"/>\n  </releases>\n</component>|" \
+          sed -i "s|</component>|  <releases>\n    <release version=\"$VERSION-beta\" date=\"$(date -u +%F)\"/>\n  </releases>\n</component>|" \
             desktop/flatpak/com.metrolist.music.metainfo.xml
           cat desktop/flatpak/com.metrolist.music.metainfo.xml
         env:

@@ -19,8 +19,11 @@ dependencies {
     implementation(libs.dbus.java.transport)
 }
 
-// Release builds pass -PdesktopVersion; local builds report a dev version.
-val desktopVersion = providers.gradleProperty("desktopVersion").orElse("0.1.0-dev")
+// Same version as the Android app plus a channel suffix: "dev" locally, release builds pass -PdesktopChannel=beta.
+val desktopVersion =
+    providers.fileContents(rootProject.layout.projectDirectory.file("app/build.gradle.kts")).asText
+        .map { requireNotNull(Regex("""versionName = "([^"]+)"""").find(it)) { "versionName not found in app/build.gradle.kts" }.groupValues[1] }
+        .zip(providers.gradleProperty("desktopChannel").orElse("dev")) { version, channel -> "$version-$channel" }
 val generateVersionResource by tasks.registering {
     val version = desktopVersion
     val outputDir = layout.buildDirectory.dir("generated/version")
