@@ -29,6 +29,7 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
 import java.io.File
+import java.io.OutputStream
 
 private val UploadMimeTypes =
     arrayOf("audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/flac", "audio/ogg", "audio/x-ms-wma")
@@ -56,6 +57,36 @@ fun rememberAndroidAudioFilesPicker(onPicked: (List<PickedFile>) -> Unit): () ->
             )
         }
     return { launcher.launch(UploadMimeTypes) }
+}
+
+@Composable
+fun rememberAndroidOpenFilePicker(onPicked: (PickedFile) -> Unit): (Array<String>) -> Unit {
+    val context = LocalContext.current
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            onPicked(
+                PickedFile(
+                    nameAndSize = { context.contentResolver.fileNameAndSize(uri) },
+                    openStream = { checkNotNull(context.contentResolver.openInputStream(uri)) },
+                ),
+            )
+        }
+    return { mimeTypes -> launcher.launch(mimeTypes) }
+}
+
+@Composable
+fun rememberAndroidSaveFilePicker(
+    mimeType: String,
+    onPicked: (openStream: () -> OutputStream) -> Unit,
+): (String) -> Unit {
+    val context = LocalContext.current
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(mimeType)) { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            onPicked { checkNotNull(context.contentResolver.openOutputStream(uri)) }
+        }
+    return { suggestedName -> launcher.launch(suggestedName) }
 }
 
 @Composable

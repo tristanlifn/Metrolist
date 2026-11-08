@@ -15,7 +15,6 @@ import com.metrolist.music.ui.screens.equalizer.wizard.WizardScreen
 import com.metrolist.music.ui.screens.recognition.RecognitionHistoryScreen
 import com.metrolist.music.ui.screens.recognition.RecognitionScreen
 import com.metrolist.music.ui.screens.settings.AndroidAutoSettings
-import com.metrolist.music.ui.screens.settings.BackupAndRestore
 import com.metrolist.music.ui.screens.settings.integrations.DiscordSettings
 import com.metrolist.music.ui.screens.settings.integrations.ListenTogetherSettings
 import com.metrolist.music.ui.screens.wrapped.WrappedScreen
@@ -30,10 +29,6 @@ fun NavGraphBuilder.androidNavigationRoutes(navController: NavHostController) {
         route = "listen_together_from_topbar",
     ) {
         ListenTogetherScreen(navController, showTopBar = true)
-    }
-
-    composable("settings/backup_restore") {
-        BackupAndRestore(navController)
     }
 
     composable("settings/integrations/discord") {

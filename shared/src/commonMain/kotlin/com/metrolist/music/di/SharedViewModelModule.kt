@@ -13,6 +13,7 @@ import com.metrolist.music.viewmodels.ArtistItemsViewModel
 import com.metrolist.music.viewmodels.ArtistSongsViewModel
 import com.metrolist.music.viewmodels.ArtistViewModel
 import com.metrolist.music.viewmodels.AutoPlaylistViewModel
+import com.metrolist.music.viewmodels.BackupRestoreViewModel
 import com.metrolist.music.viewmodels.BrowseViewModel
 import com.metrolist.music.viewmodels.CachePlaylistViewModel
 import com.metrolist.music.viewmodels.ChartsViewModel
@@ -51,6 +52,7 @@ val sharedViewModelModule = module {
     viewModelOf(::ArtistSongsViewModel)
     viewModelOf(::ArtistViewModel)
     viewModelOf(::AutoPlaylistViewModel)
+    viewModelOf(::BackupRestoreViewModel)
     viewModelOf(::BrowseViewModel)
     viewModelOf(::CachePlaylistViewModel)
     viewModelOf(::ChartsViewModel)

@@ -5,54 +5,44 @@
 
 package com.metrolist.music.viewmodels
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
+import co.touchlab.kermit.Logger
 import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.innertube.utils.sha1
-import com.metrolist.music.R
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import com.metrolist.music.db.openHelper
-import com.metrolist.music.db.readDatabaseVersion
-import com.metrolist.music.utils.restore
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import com.metrolist.music.constants.DataSyncIdKey
-import com.metrolist.music.constants.InnerTubeAuthUserKey
-import com.metrolist.music.constants.InnerTubeCookieKey
-import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.db.InternalDatabase
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SongEntity
-import com.metrolist.music.extensions.div
-import com.metrolist.music.extensions.tryOrNull
-import com.metrolist.music.extensions.zipInputStream
-import com.metrolist.music.extensions.zipOutputStream
-import com.metrolist.music.playback.MusicService
-import com.metrolist.music.playback.MusicService.Companion.PERSISTENT_AUTOMIX_FILE
-import com.metrolist.music.playback.MusicService.Companion.PERSISTENT_PLAYER_STATE_FILE
-import com.metrolist.music.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
-import com.metrolist.music.utils.reportException
+import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.backup_create_failed
+import com.metrolist.music.resources.backup_create_success
+import com.metrolist.music.resources.restore_database_incompatible
+import com.metrolist.music.resources.restore_failed
+import com.metrolist.music.ui.utils.PickedFile
 import com.metrolist.music.utils.ArtistNameAliases
+import com.metrolist.music.utils.BackupPlatform
+import com.metrolist.music.utils.PlatformActions
+import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import timber.log.Timber
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 data class BackupPreviewInfo(
     val hasAuthData: Boolean = false,
@@ -77,67 +67,58 @@ data class ConvertedSongLog(
 
 class BackupRestoreViewModel(
     val database: MusicDatabase,
+    private val platform: BackupPlatform,
+    private val platformActions: PlatformActions,
 ) : ViewModel() {
-    fun backup(context: Context, uri: Uri) {
-        runCatching {
-            context.applicationContext.contentResolver.openOutputStream(uri)?.use {
-                it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-                        .use { inputStream ->
-                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-                            inputStream.copyTo(outputStream)
-                        }
+    fun backup(openStream: () -> OutputStream) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                openStream().buffered().let(::ZipOutputStream).use { outputStream ->
+                    platform.settingsFile.inputStream().buffered().use { inputStream ->
+                        outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
+                        inputStream.copyTo(outputStream)
+                    }
                     outputStream.putNextEntry(ZipEntry(ArtistNameAliases.BACKUP_FILENAME))
                     outputStream.write(ArtistNameAliases.serialize().encodeToByteArray())
-                    runBlocking(Dispatchers.IO) {
-                        database.checkpoint()
+                    database.checkpoint()
+                    val dbPath = platform.databaseFile.path
+                    File(dbPath).inputStream().use { inputStream ->
+                        outputStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
+                        inputStream.copyTo(outputStream)
                     }
-                    val dbPath = database.openHelper.writableDatabase.path
-                    if (dbPath != null) {
-                        FileInputStream(dbPath).use { inputStream ->
-                            outputStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
+                    val walFile = File("$dbPath-wal")
+                    if (walFile.exists()) {
+                        walFile.inputStream().use { inputStream ->
+                            outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-wal"))
                             inputStream.copyTo(outputStream)
                         }
-                        val walFile = File("$dbPath-wal")
-                        if (walFile.exists()) {
-                            FileInputStream(walFile).use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-wal"))
-                                inputStream.copyTo(outputStream)
-                            }
-                        }
-                        val shmFile = File("$dbPath-shm")
-                        if (shmFile.exists()) {
-                            FileInputStream(shmFile).use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-shm"))
-                                inputStream.copyTo(outputStream)
-                            }
+                    }
+                    val shmFile = File("$dbPath-shm")
+                    if (shmFile.exists()) {
+                        shmFile.inputStream().use { inputStream ->
+                            outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-shm"))
+                            inputStream.copyTo(outputStream)
                         }
                     }
                 }
+            }.onSuccess {
+                platformActions.toast(Res.string.backup_create_success)
+            }.onFailure {
+                reportException(it)
+                platformActions.toast(Res.string.backup_create_failed)
             }
-        }.onSuccess {
-            Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            reportException(it)
-            Toast.makeText(context, R.string.backup_create_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun restore(context: Context, uri: Uri, clearAuthData: Boolean = false) {
-        // Run in viewModelScope to allow suspending
+    fun restore(file: PickedFile) {
         viewModelScope.launch(Dispatchers.IO) {
-            val restoreDbName = "restored_${InternalDatabase.DB_NAME}"
-            val restoreDbPath = context.getDatabasePath(restoreDbName).absolutePath
-            val tempSettings = File(context.filesDir, "datastore/$SETTINGS_FILENAME.restore")
+            val currentDbPath = platform.databaseFile.path
+            val restoreDbPath = "${platform.databaseFile.parent}/restored_${InternalDatabase.DB_NAME}"
+            val tempSettings = File("${platform.settingsFile.path}.restore")
+            val logger = Logger.withTag("RESTORE")
 
             runCatching {
-                Timber.tag("RESTORE").i("Starting restore from URI: $uri, clearAuthData: $clearAuthData")
-
-                val currentDbPath = database.openHelper.writableDatabase.path
-                if (currentDbPath == null) {
-                    Timber.tag("RESTORE").e("Database path is null, cannot restore")
-                    return@launch
-                }
+                logger.i { "Starting restore" }
 
                 File(restoreDbPath).delete()
                 File("$restoreDbPath-wal").delete()
@@ -148,11 +129,11 @@ class BackupRestoreViewModel(
                 var foundSettings = false
                 var restoredArtistNameAliases: Map<String, String>? = null
 
-                context.applicationContext.contentResolver.openInputStream(uri)?.use { raw ->
-                    raw.zipInputStream().use { inputStream ->
-                        var entry = tryOrNull { inputStream.nextEntry }
+                file.openStream().use { raw ->
+                    ZipInputStream(raw).use { inputStream ->
+                        var entry = runCatching { inputStream.nextEntry }.getOrNull()
                         while (entry != null) {
-                            Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
+                            logger.i { "Found zip entry: ${entry.name}" }
                             when (entry.name) {
                                 SETTINGS_FILENAME -> {
                                     foundSettings = true
@@ -164,7 +145,7 @@ class BackupRestoreViewModel(
                                 }
                                 InternalDatabase.DB_NAME -> {
                                     foundDb = true
-                                    FileOutputStream(restoreDbPath).use { inputStream.copyTo(it) }
+                                    File(restoreDbPath).outputStream().use { inputStream.copyTo(it) }
                                 }
                                 "${InternalDatabase.DB_NAME}-wal" -> {
                                     // Skip WAL — we'll open cleanly
@@ -172,60 +153,38 @@ class BackupRestoreViewModel(
                                 "${InternalDatabase.DB_NAME}-shm" -> {
                                     // Skip SHM — we'll open cleanly
                                 }
-                                else -> Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
+                                else -> logger.i { "Skipping unexpected entry: ${entry.name}" }
                             }
-                            entry = tryOrNull { inputStream.nextEntry }
+                            entry = runCatching { inputStream.nextEntry }.getOrNull()
                         }
                     }
-                } ?: run {
-                    Timber.tag("RESTORE").e("Could not open input stream for uri: $uri")
-                    return@launch
                 }
 
                 if (!foundDb && !foundSettings) {
-                    Timber.tag("RESTORE").w("No expected entries found in archive")
-                    kotlinx.coroutines.withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-                    }
+                    logger.w { "No expected entries found in archive" }
+                    platformActions.toast(Res.string.restore_failed)
                     return@launch
                 }
 
-                var backupDbVersion = -1
-                var currentDbVersion = -1
                 if (foundDb) {
-                    // Read backup DB version using raw SQLite (no Room involvement)
-                    backupDbVersion = InternalDatabase.readDatabaseVersion(restoreDbPath)
-                    if (backupDbVersion <= 0) {
-                        Timber.tag("RESTORE").e("Cannot read backup database version")
-                        kotlinx.coroutines.withContext(Dispatchers.Main) {
-                            Toast.makeText(context, R.string.restore_database_incompatible, Toast.LENGTH_LONG).show()
-                        }
-                        return@launch
-                    }
-                    // Read current database version dynamically — this matches whatever Room
-                    // annotation says, even when the schema version changes in future builds.
-                    currentDbVersion = database.openHelper.writableDatabase.version
-                    if (backupDbVersion > currentDbVersion) {
-                        Timber.tag("RESTORE").w(
-                            "Backup DB version $backupDbVersion > current $currentDbVersion, incompatible"
-                        )
-                        kotlinx.coroutines.withContext(Dispatchers.Main) {
-                            Toast.makeText(context, R.string.restore_database_incompatible, Toast.LENGTH_LONG).show()
-                        }
+                    val backupDbVersion = readDatabaseVersion(File(restoreDbPath))
+                    // The live file only shows the current version once the WAL is checkpointed.
+                    database.checkpoint()
+                    val currentDbVersion = readDatabaseVersion(platform.databaseFile)
+                    if (backupDbVersion !in platform.oldestRestorableDatabaseVersion..currentDbVersion) {
+                        logger.w { "Backup DB version $backupDbVersion can't be restored on version $currentDbVersion" }
+                        platformActions.toast(Res.string.restore_database_incompatible, long = true)
                         return@launch
                     }
                 }
 
                 // === Proceed with restore ===
 
-                // 1. Stop service first — ensures no pending DB writes during swap
-                context.stopService(Intent(context, MusicService::class.java))
+                // 1. Stop playback first — ensures no pending DB writes during swap
                 try {
-                    kotlinx.coroutines.withTimeout(5000) {
-                        MusicService.shutdownDeferred.await()
-                    }
+                    withTimeout(5000) { platform.stopPlayback() }
                 } catch (e: Exception) {
-                    Timber.e(e, "Timeout waiting for MusicService to shutdown")
+                    logger.e(e) { "Timeout waiting for playback to stop" }
                 }
 
                 // 2. Close the database — all operations should be done by now
@@ -259,85 +218,28 @@ class BackupRestoreViewModel(
                         File("$currentDbPath-wal").delete()
                         File("$currentDbPath-shm").delete()
                     } catch (e: Exception) {
-                        Timber.e(e, "Failed to swap DB files")
+                        logger.e(e) { "Failed to swap DB files" }
                         dbSwapSucceeded = false
                     }
                 }
 
                 if (dbSwapSucceeded) {
                     if (foundSettings) {
-                        // If auth data needs clearing, strip auth keys from the temp file
-                        // before copying to actualSettings. This avoids issues with
-                        // DataStore's in-memory cache being stale after a raw file swap.
-                        if (clearAuthData) {
-                            runCatching {
-                                // Open a temporary DataStore for the staged settings file
-                                // to remove auth keys before promoting it to the live path.
-                                val settingsBaseName = SETTINGS_FILENAME.removeSuffix(".preferences_pb")
-                                val stageSettings = File(
-                                    context.filesDir,
-                                    "datastore/${settingsBaseName}.stage.preferences_pb",
-                                )
-                                stageSettings.delete()
-                                tempSettings.copyTo(stageSettings, overwrite = true)
-
-                                val stageDataStore =
-                                    androidx.datastore.preferences.core.PreferenceDataStoreFactory.create {
-                                        stageSettings
-                                    }
-                                kotlinx.coroutines.runBlocking {
-                                    stageDataStore.edit { prefs ->
-                                        prefs.remove(InnerTubeCookieKey)
-                                        prefs.remove(VisitorDataKey)
-                                        prefs.remove(DataSyncIdKey)
-                                        prefs.remove(InnerTubeAuthUserKey)
-                                    }
-                                }
-
-                                val actualSettings = File(
-                                    context.filesDir,
-                                    "datastore/$SETTINGS_FILENAME",
-                                )
-                                stageSettings.copyTo(actualSettings, overwrite = true)
-                                stageSettings.delete()
-                            }.onFailure {
-                                Timber.tag("RESTORE").e(it, "Failed to clear auth from restored settings")
-                                kotlinx.coroutines.withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-                                }
-                                return@launch
-                            }
-                        } else {
-                            val actualSettings = File(
-                                context.filesDir,
-                                "datastore/$SETTINGS_FILENAME",
-                            )
-                            tempSettings.copyTo(actualSettings, overwrite = true)
-                        }
+                        tempSettings.copyTo(platform.settingsFile, overwrite = true)
                     }
 
-                    context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
-                    context.filesDir.resolve(PERSISTENT_AUTOMIX_FILE).delete()
-                    context.filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).delete()
-                    ArtistNameAliases.restore(context, restoredArtistNameAliases.orEmpty())
+                    platform.playerStateFiles.forEach(File::delete)
+                    platform.restoreArtistNameAliases(restoredArtistNameAliases.orEmpty())
 
                     // 4. Restart — Room will open the swapped DB and run migrations if needed
-                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    }
-                    context.startActivity(intent)
-                    Runtime.getRuntime().exit(0)
+                    platform.restart()
                 } else {
-                    kotlinx.coroutines.withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-                    }
+                    platformActions.toast(Res.string.restore_failed)
                 }
             }.onFailure {
                 reportException(it)
-                Timber.tag("RESTORE").e(it, "Restore failed unexpectedly")
-                kotlinx.coroutines.withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-                }
+                logger.e(it) { "Restore failed unexpectedly" }
+                platformActions.toast(Res.string.restore_failed)
             }
 
             File(restoreDbPath).delete()
@@ -347,11 +249,11 @@ class BackupRestoreViewModel(
         }
     }
 
-    fun previewBackup(context: Context, uri: Uri): BackupPreviewInfo {
+    fun previewBackup(file: PickedFile): BackupPreviewInfo {
         return runCatching {
-            context.applicationContext.contentResolver.openInputStream(uri)?.use { raw ->
-                raw.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry }
+            file.openStream().use { raw ->
+                ZipInputStream(raw).use { inputStream ->
+                    var entry = runCatching { inputStream.nextEntry }.getOrNull()
                     while (entry != null) {
                         if (entry.name == SETTINGS_FILENAME) {
                             val bytes = inputStream.readBytes()
@@ -377,13 +279,13 @@ class BackupRestoreViewModel(
                                 cookie = cookie,
                             )
                         }
-                        entry = tryOrNull { inputStream.nextEntry }
+                        entry = runCatching { inputStream.nextEntry }.getOrNull()
                     }
                 }
             }
             BackupPreviewInfo()
         }.getOrElse {
-            Timber.tag("BACKUP_PREVIEW").e(it, "Failed to preview backup")
+            Logger.withTag("BACKUP_PREVIEW").e(it) { "Failed to preview backup" }
             BackupPreviewInfo()
         }
     }
@@ -504,16 +406,16 @@ class BackupRestoreViewModel(
                 } else null
             } else null
         }.getOrElse {
-            Timber.tag("BACKUP_PREVIEW").e(it, "Failed to fetch account info from backup")
+            Logger.withTag("BACKUP_PREVIEW").e(it) { "Failed to fetch account info from backup" }
             null
         }
     }
 
-    fun previewCsvFile(context: Context, uri: Uri): CsvImportState {
+    fun previewCsvFile(file: PickedFile): CsvImportState {
         val previewRows = mutableListOf<List<String>>()
         val csvState: CsvImportState
         runCatching {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
+            file.openStream().use { stream ->
                 val lines = stream.bufferedReader().readLines()
                 val rowsToPreview = lines.take(6).map { parseCsvLine(it) }
                 previewRows.addAll(rowsToPreview)
@@ -527,23 +429,22 @@ class BackupRestoreViewModel(
             }
         }.onFailure {
             reportException(it)
-            Toast.makeText(context, "Failed to preview CSV file", Toast.LENGTH_SHORT).show()
+            platformActions.toast("Failed to preview CSV file")
         }
         return CsvImportState()
     }
 
     suspend fun importPlaylistFromCsv(
-        context: Context,
-        uri: Uri,
+        file: PickedFile,
         columnMapping: CsvImportState,
         onProgress: (Int) -> Unit = {},
         onLogUpdate: (List<ConvertedSongLog>) -> Unit = {},
-    ): ArrayList<Song> = kotlinx.coroutines.withContext(Dispatchers.IO) {
+    ): ArrayList<Song> = withContext(Dispatchers.IO) {
         val songs = arrayListOf<Song>()
         val recentLogs = mutableListOf<ConvertedSongLog>()
 
         runCatching {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
+            file.openStream().use { stream ->
                 val lines = stream.bufferedReader().readLines()
                 val startIndex = if (columnMapping.hasHeader) 1 else 0
                 val totalLines = lines.size - startIndex
@@ -594,8 +495,8 @@ class BackupRestoreViewModel(
         songs
     }
 
-    suspend fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
-        return importPlaylistFromCsv(context, uri, CsvImportState())
+    suspend fun importPlaylistFromCsv(file: PickedFile): ArrayList<Song> {
+        return importPlaylistFromCsv(file, CsvImportState())
     }
 
     private fun parseCsvLine(line: String): List<String> {
@@ -618,13 +519,12 @@ class BackupRestoreViewModel(
     }
 
     fun loadM3UOnline(
-        context: Context,
-        uri: Uri,
+        file: PickedFile,
     ): ArrayList<Song> {
         val songs = ArrayList<Song>()
 
         runCatching {
-            context.applicationContext.contentResolver.openInputStream(uri)?.use { stream ->
+            file.openStream().use { stream ->
                 val lines = stream.bufferedReader().readLines()
                 if (lines.isNotEmpty() && lines.first().startsWith("#EXTM3U")) {
                     lines.forEachIndexed { _, rawLine ->
@@ -648,16 +548,23 @@ class BackupRestoreViewModel(
         }
 
         if (songs.isEmpty()) {
-            Toast.makeText(
-                context,
-                "No songs found. Invalid file, or perhaps no song matches were found.",
-                Toast.LENGTH_SHORT
-            ).show()
+            platformActions.toast("No songs found. Invalid file, or perhaps no song matches were found.")
         }
         return songs
     }
 
     companion object {
         const val SETTINGS_FILENAME = "settings.preferences_pb"
+
+        /** SQLite's user_version, which Room uses as the schema version, read from the file header; -1 if unreadable. */
+        private fun readDatabaseVersion(file: File): Int =
+            runCatching {
+                RandomAccessFile(file, "r").use {
+                    val magic = ByteArray(16).also(it::readFully)
+                    if (!magic.contentEquals("SQLite format 3\u0000".encodeToByteArray())) return -1
+                    it.seek(60)
+                    it.readInt()
+                }
+            }.getOrDefault(-1)
     }
 }

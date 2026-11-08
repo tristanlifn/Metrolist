@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,6 +44,8 @@ import com.metrolist.music.MetrolistApp
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.di.sharedViewModelModule
 import com.metrolist.music.playback.SongDownloads
+import com.metrolist.music.ui.utils.LocalOpenFilePicker
+import com.metrolist.music.ui.utils.LocalSaveFilePicker
 import com.metrolist.music.utils.BuildInfo
 import com.metrolist.music.utils.SyncUtils
 import kotlinx.coroutines.CoroutineScope
@@ -155,17 +158,22 @@ private fun DesktopApp() {
             isPlayPauseKey
         },
     ) {
-        MetrolistApp(
-            playerConnection = player,
-            database = koinInject<MusicDatabase>(),
-            downloadUtil = koinInject<SongDownloads>(),
-            syncUtils = koinInject<SyncUtils>(),
-            listenTogetherManager = null,
-            platformRoutes = { navController ->
-                composable("login") { DesktopLoginScreen(navController) }
-                composable("switch_channel") { DesktopLoginScreen(navController) }
-            },
-        )
+        CompositionLocalProvider(
+            LocalOpenFilePicker provides { onPicked -> rememberDesktopOpenFilePicker(onPicked) },
+            LocalSaveFilePicker provides { _, onPicked -> rememberDesktopSaveFilePicker(onPicked) },
+        ) {
+            MetrolistApp(
+                playerConnection = player,
+                database = koinInject<MusicDatabase>(),
+                downloadUtil = koinInject<SongDownloads>(),
+                syncUtils = koinInject<SyncUtils>(),
+                listenTogetherManager = null,
+                platformRoutes = { navController ->
+                    composable("login") { DesktopLoginScreen(navController) }
+                    composable("switch_channel") { DesktopLoginScreen(navController) }
+                },
+            )
+        }
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp))
     }
     }

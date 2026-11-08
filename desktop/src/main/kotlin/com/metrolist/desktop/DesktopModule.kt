@@ -22,6 +22,7 @@ import com.metrolist.music.playback.MusicPlayer
 import com.metrolist.music.playback.SongCache
 import com.metrolist.music.playback.SongDownloads
 import com.metrolist.music.utils.AppSession
+import com.metrolist.music.utils.BackupPlatform
 import com.metrolist.music.utils.NetworkConnectivity
 import com.metrolist.music.utils.PlatformActions
 import com.metrolist.music.utils.SyncUtils
@@ -49,5 +50,6 @@ val desktopModule = module {
     single<LyricsImageSharer> { NoLyricsImageSharer() }
     single<AppSession> { DesktopAppSession(get()) }
     factoryOf(::LyricsHelper)
-    single { DesktopMusicPlayer(get(), get(), get(), get(), get(), get(), DesktopPaths.dataDir.resolve("queue_sessions")) } bind MusicPlayer::class
+    single { DesktopMusicPlayer(get(), get(), get(), get(), get(), get(), DesktopPaths.dataDir.resolve(DesktopBackupPlatform.QUEUE_SESSIONS_FILE)) } bind MusicPlayer::class
+    single<BackupPlatform> { DesktopBackupPlatform(get()) }
 }

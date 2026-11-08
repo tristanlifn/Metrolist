@@ -70,6 +70,7 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * [MusicPlayer] backed by libmpv. All queue and playback state is changed on [scope], a single-threaded
@@ -104,6 +105,7 @@ class DesktopMusicPlayer(
 
     // mpv reports initial property values before anything is loaded; those must not mark the player ready.
     private var fileLoaded = false
+    private val released = AtomicBoolean(false)
 
     override val mediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     override val isReady: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
@@ -465,6 +467,7 @@ class DesktopMusicPlayer(
     override fun clearAutomix() = Unit
 
     fun release() {
+        if (!released.compareAndSet(false, true)) return
         runBlocking {
             withTimeoutOrNull(RELEASE_TIMEOUT_MS) {
                 scope.launch { persistActiveSession() }.join()

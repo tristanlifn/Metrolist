@@ -5,8 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
@@ -58,6 +55,9 @@ import com.metrolist.music.ui.menu.AddToPlaylistDialogOnline
 import com.metrolist.music.ui.menu.CsvColumnMappingDialog
 import com.metrolist.music.ui.menu.CsvImportProgressDialog
 import com.metrolist.music.ui.menu.LoadingScreen
+import com.metrolist.music.ui.utils.LocalOpenFilePicker
+import com.metrolist.music.ui.utils.LocalSaveFilePicker
+import com.metrolist.music.ui.utils.PickedFile
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.viewmodels.BackupPreviewInfo
 import com.metrolist.music.viewmodels.BackupRestoreViewModel
@@ -115,60 +115,53 @@ fun BackupAndRestore(
     var showCsvImportProgress by rememberSaveable { mutableStateOf(false) }
     var csvImportProgress by rememberSaveable { mutableIntStateOf(0) }
     val csvRecentLogs = remember { mutableStateListOf<ConvertedSongLog>() }
-    var pendingCsvUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pendingCsvFile by remember { mutableStateOf<PickedFile?>(null) }
 
     // Restore confirmation dialog state
     var showRestoreConfirmDialog by rememberSaveable { mutableStateOf(false) }
-    var pendingRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pendingRestoreFile by remember { mutableStateOf<PickedFile?>(null) }
     var backupPreviewInfo by remember { mutableStateOf<BackupPreviewInfo?>(null) }
     var isLoadingAccountInfo by remember { mutableStateOf(false) }
     var accountCheckFailed by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val backupLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-            if (uri != null) {
-                viewModel.backup(context, uri)
-            }
+        LocalSaveFilePicker.current("application/octet-stream") { openStream ->
+            viewModel.backup(openStream)
         }
     val restoreLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                pendingRestoreUri = uri
-                val preview = viewModel.previewBackup(context, uri)
-                backupPreviewInfo = preview
-                showRestoreConfirmDialog = true
+        LocalOpenFilePicker.current { file ->
+            pendingRestoreFile = file
+            val preview = viewModel.previewBackup(file)
+            backupPreviewInfo = preview
+            showRestoreConfirmDialog = true
 
-                // Fetch account info asynchronously if backup has auth data
-                accountCheckFailed = false
-                if (preview.hasAuthData && preview.cookie != null) {
-                    isLoadingAccountInfo = true
-                    coroutineScope.launch(Dispatchers.IO) {
-                        val accountInfo = viewModel.fetchAccountInfoFromBackup(preview.cookie)
-                        if (accountInfo != null) {
-                            backupPreviewInfo = accountInfo
-                        } else {
-                            accountCheckFailed = true
-                        }
-                        isLoadingAccountInfo = false
+            // Fetch account info asynchronously if backup has auth data
+            accountCheckFailed = false
+            if (preview.hasAuthData && preview.cookie != null) {
+                isLoadingAccountInfo = true
+                coroutineScope.launch(Dispatchers.IO) {
+                    val accountInfo = viewModel.fetchAccountInfoFromBackup(preview.cookie)
+                    if (accountInfo != null) {
+                        backupPreviewInfo = accountInfo
+                    } else {
+                        accountCheckFailed = true
                     }
+                    isLoadingAccountInfo = false
                 }
             }
         }
     val importPlaylistFromCsv =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            pendingCsvUri = uri
-            val previewState = viewModel.previewCsvFile(context, uri)
+        LocalOpenFilePicker.current { file ->
+            pendingCsvFile = file
+            val previewState = viewModel.previewCsvFile(file)
             csvImportState = previewState
             showCsvColumnMapping = true
         }
     val importM3uLauncherOnline =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            val result = viewModel.loadM3UOnline(context, uri)
+        LocalOpenFilePicker.current { file ->
+            val result = viewModel.loadM3UOnline(file)
             importedSongs.clear()
             importedSongs.addAll(result)
 
@@ -200,7 +193,7 @@ fun BackupAndRestore(
                         icon = painterResource(Res.drawable.backup),
                         onClick = {
                             val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                            backupLauncher.launch(
+                            backupLauncher?.invoke(
                                 "${appName}_${
                                     LocalDateTime.now().format(formatter)
                                 }.backup",
@@ -211,21 +204,21 @@ fun BackupAndRestore(
                         title = { Text(stringResource(Res.string.action_restore)) },
                         icon = painterResource(Res.drawable.restore),
                         onClick = {
-                            restoreLauncher.launch(arrayOf("application/octet-stream"))
+                            restoreLauncher?.invoke(arrayOf("application/octet-stream"))
                         },
                     ),
                     Material3SettingsItem(
                         title = { Text(stringResource(Res.string.import_online)) },
                         icon = painterResource(Res.drawable.playlist_add),
                         onClick = {
-                            importM3uLauncherOnline.launch(arrayOf("audio/*"))
+                            importM3uLauncherOnline?.invoke(arrayOf("audio/*"))
                         },
                     ),
                     Material3SettingsItem(
                         title = { Text(stringResource(Res.string.import_csv)) },
                         icon = painterResource(Res.drawable.playlist_add),
                         onClick = {
-                            importPlaylistFromCsv.launch(
+                            importPlaylistFromCsv?.invoke(
                                 arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"),
                             )
                         },
@@ -278,13 +271,12 @@ fun BackupAndRestore(
             onConfirm = { mappingState ->
                 showCsvColumnMapping = false
                 csvImportState = mappingState
-                pendingCsvUri?.let { uri ->
+                pendingCsvFile?.let { file ->
                     showCsvImportProgress = true
                     coroutineScope.launch(Dispatchers.Default) {
                         val result =
                             viewModel.importPlaylistFromCsv(
-                                context,
-                                uri,
+                                file,
                                 mappingState,
                                 onProgress = { progress ->
                                     csvImportProgress = progress
@@ -323,7 +315,7 @@ fun BackupAndRestore(
         DefaultDialog(
             onDismiss = {
                 showRestoreConfirmDialog = false
-                pendingRestoreUri = null
+                pendingRestoreFile = null
                 backupPreviewInfo = null
                 accountCheckFailed = false
             },
@@ -338,7 +330,7 @@ fun BackupAndRestore(
                 TextButton(
                     onClick = {
                         showRestoreConfirmDialog = false
-                        pendingRestoreUri = null
+                        pendingRestoreFile = null
                         backupPreviewInfo = null
                         accountCheckFailed = false
                     },
@@ -348,10 +340,8 @@ fun BackupAndRestore(
                 TextButton(
                     onClick = {
                         showRestoreConfirmDialog = false
-                        pendingRestoreUri?.let { uri ->
-                            viewModel.restore(context, uri, clearAuthData = false)
-                        }
-                        pendingRestoreUri = null
+                        pendingRestoreFile?.let(viewModel::restore)
+                        pendingRestoreFile = null
                         backupPreviewInfo = null
                         accountCheckFailed = false
                     },
