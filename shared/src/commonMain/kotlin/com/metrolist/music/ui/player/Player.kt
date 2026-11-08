@@ -8,6 +8,9 @@ package com.metrolist.music.ui.player
 import com.metrolist.music.ui.utils.okLabel
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -55,6 +58,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
@@ -177,6 +181,8 @@ import com.metrolist.music.constants.SleepTimerDefaultKey
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 import com.metrolist.music.resources.Res
+import com.metrolist.music.resources.back
+import com.metrolist.music.resources.expand_more
 import com.metrolist.music.resources.bedtime
 import com.metrolist.music.resources.cancel
 import com.metrolist.music.resources.copied_artist
@@ -217,12 +223,13 @@ import com.metrolist.music.ui.utils.BackHandler
 import com.metrolist.music.ui.theme.artworkGradientColors
 import coil3.compose.LocalPlatformContext
 import com.metrolist.music.ui.utils.PlayerWindowEffects
+import com.metrolist.music.ui.utils.isDesktop
 import com.metrolist.music.ui.utils.isPortraitWindow
 import com.metrolist.music.ui.utils.softwareBitmap
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -1835,6 +1842,67 @@ fun BottomSheetPlayer(
         }
 
         when (isPortraitWindow()) {
+            false if isDesktop -> {
+                val sidePanelOpen = showInlineLyrics || queueSheetState.progress > 0.5f
+                val coverWeight by animateFloatAsState(if (sidePanelOpen) 4f else 1f, label = "coverWeight")
+                val currentSliderPosition by rememberUpdatedState(sliderPosition)
+                val sliderPositionProvider = remember { { currentSliderPosition } }
+                val isExpandedProvider = remember(state) { { state.isExpanded } }
+
+                SharedTransitionLayout(
+                    modifier =
+                        Modifier
+                            .windowInsetsPadding(WindowInsets.systemBars)
+                            .padding(bottom = queueSheetState.collapsedBound)
+                            .fillMaxSize(),
+                ) {
+                    // Shown on the left by default; slides above the controls while the queue or lyrics fill the left half.
+                    val cover: @Composable AnimatedVisibilityScope.() -> Unit = {
+                        Thumbnail(
+                            sliderPositionProvider = sliderPositionProvider,
+                            modifier = Modifier.sharedElement(rememberSharedContentState("cover"), this),
+                            isPlayerExpanded = isExpandedProvider,
+                            isLandscape = true,
+                            isListenTogetherGuest = isListenTogetherGuest,
+                        )
+                    }
+
+                    Row(Modifier.fillMaxSize()) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .nestedScroll(state.preUpPostDownNestedScrollConnection),
+                        ) {
+                            androidx.compose.animation.AnimatedVisibility(showInlineLyrics, enter = fadeIn(), exit = fadeOut()) {
+                                InlineLyricsView(
+                                    mediaMetadata = mediaMetadata,
+                                    showLyrics = true,
+                                    positionProvider = { effectivePosition },
+                                )
+                            }
+                            androidx.compose.animation.AnimatedVisibility(!sidePanelOpen, enter = fadeIn(), exit = fadeOut(), content = cover)
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(coverWeight)) {
+                                androidx.compose.animation.AnimatedVisibility(sidePanelOpen, enter = fadeIn(), exit = fadeOut(), content = cover)
+                            }
+
+                            mediaMetadata?.let {
+                                controlsContent(it)
+                            }
+
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+
             false -> {
                 // Calculate vertical padding like OuterTune
                 val density = LocalDensity.current
@@ -1964,9 +2032,13 @@ fun BottomSheetPlayer(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
+            val desktopSplit = isDesktop && !isPortraitWindow()
             Queue(
                 state = queueSheetState,
                 playerBottomSheetState = state,
+                // Desktop: the open queue fills only the left half, next to the cover and controls.
+                modifier = if (desktopSplit) Modifier.fillMaxWidth(0.5f) else Modifier,
+                pinBar = desktopSplit,
                 background =
                     if (useBlackBackground) {
                         Color.Black
@@ -1984,6 +2056,24 @@ fun BottomSheetPlayer(
                     showInlineLyrics = !showInlineLyrics
                 },
             )
+        }
+
+        // Desktop has no system back gesture; top end stays clear of the queue's header on the left.
+        if (isDesktop) {
+            IconButton(
+                onClick = { if (queueSheetState.isCollapsed) state.collapseSoft() else queueSheetState.collapseSoft() },
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .windowInsetsPadding(WindowInsets.systemBars)
+                        .padding(8.dp),
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.expand_more),
+                    contentDescription = stringResource(Res.string.back),
+                    tint = onBackgroundColor,
+                )
+            }
         }
     }
 }

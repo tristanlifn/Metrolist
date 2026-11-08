@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -68,6 +69,8 @@ fun BottomSheet(
     onDismiss: (() -> Unit)? = null,
     collapsedContent: @Composable BoxScope.() -> Unit,
     isExpandable: Boolean = true,
+    // Keeps collapsedContent shown at the bottom, at the parent's full width, while the sheet is open.
+    pinCollapsedContent: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -91,26 +94,7 @@ fun BottomSheet(
                     .coerceAtLeast(0f)
                 translationY = y
             }
-            .pointerInput(state, isExpandable) {
-                if (!isExpandable) return@pointerInput
-                val velocityTracker = VelocityTracker()
-
-                detectVerticalDragGestures(
-                    onVerticalDrag = { change, dragAmount ->
-                        velocityTracker.addPointerInputChange(change)
-                        state.dispatchRawDelta(dragAmount)
-                    },
-                    onDragCancel = {
-                        velocityTracker.resetTracking()
-                        state.snapTo(state.collapsedBound)
-                    },
-                    onDragEnd = {
-                        val velocity = -velocityTracker.calculateVelocity().y
-                        velocityTracker.resetTracking()
-                        state.performFling(velocity, onDismiss)
-                    }
-                )
-            }
+            .sheetDrag(state, isExpandable, onDismiss)
             .graphicsLayer {
                 val cornerRadius = if (!state.isExpanded) 16.dp.toPx() else 0f
                 shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius)
@@ -148,6 +132,7 @@ fun BottomSheet(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(bottom = if (pinCollapsedContent) state.collapsedBound else 0.dp)
                     .graphicsLayer {
                         alpha = ((state.progress - 0.15f) * 4).coerceIn(0f, 1f)
                     },
@@ -155,7 +140,7 @@ fun BottomSheet(
             )
         }
 
-        if (!state.isExpanded && (onDismiss == null || !state.isDismissed)) {
+        if (!pinCollapsedContent && !state.isExpanded && (onDismiss == null || !state.isDismissed)) {
             Box(
                 modifier =
                 Modifier
@@ -173,6 +158,50 @@ fun BottomSheet(
             )
         }
     }
+
+    if (pinCollapsedContent) {
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    translationY = (state.expandedBound - state.collapsedBound).toPx()
+                }
+                .sheetDrag(state, isExpandable, onDismiss)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { if (isExpandable) state.expandSoft() },
+                )
+                .focusable(false)
+                .fillMaxWidth()
+                .height(state.collapsedBound),
+            content = collapsedContent,
+        )
+    }
+}
+
+private fun Modifier.sheetDrag(
+    state: BottomSheetState,
+    isExpandable: Boolean,
+    onDismiss: (() -> Unit)?,
+): Modifier = pointerInput(state, isExpandable) {
+    if (!isExpandable) return@pointerInput
+    val velocityTracker = VelocityTracker()
+
+    detectVerticalDragGestures(
+        onVerticalDrag = { change, dragAmount ->
+            velocityTracker.addPointerInputChange(change)
+            state.dispatchRawDelta(dragAmount)
+        },
+        onDragCancel = {
+            velocityTracker.resetTracking()
+            state.snapTo(state.collapsedBound)
+        },
+        onDragEnd = {
+            val velocity = -velocityTracker.calculateVelocity().y
+            velocityTracker.resetTracking()
+            state.performFling(velocity, onDismiss)
+        }
+    )
 }
 
 @Stable

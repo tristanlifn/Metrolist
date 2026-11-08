@@ -138,7 +138,8 @@ private fun calculateThumbnailDimensions(
     val effectiveSize = if (isLandscape) {
         minOf(containerWidth, containerHeight) - (horizontalPadding * 2)
     } else {
-        containerWidth - (horizontalPadding * 2)
+        // Height caps it too, so a short, wide window keeps the cover square.
+        minOf(containerWidth - (horizontalPadding * 2), containerHeight)
     }
     return ThumbnailDimensions(
         itemWidth = containerWidth,
@@ -210,9 +211,6 @@ fun Thumbnail(
     // Pre-calculate text color based on background style
     val textBackgroundColor = getTextColor(playerBackground)
     
-    // Grid state
-    val thumbnailLazyGridState = rememberLazyGridState()
-    
     // Calculate media items data - memoized
     val queue by playerConnection.queue.collectAsStateWithLifecycle()
     val queuePosition by playerConnection.currentQueuePosition.collectAsStateWithLifecycle()
@@ -222,6 +220,9 @@ fun Thumbnail(
     
     val mediaItems = mediaItemsData.items
     val currentMediaIndex = mediaItemsData.currentIndex
+
+    // Start on the playing cover, or a freshly composed thumbnail briefly scrolls in from the previous song's.
+    val thumbnailLazyGridState = rememberLazyGridState(initialFirstVisibleItemIndex = maxOf(0, currentMediaIndex))
 
     // Snap behavior - created once per grid state
     val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {
